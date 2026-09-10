@@ -1,0 +1,400 @@
+# Lager-Barcode-Generator
+
+Erzeugt aus einer Liste von Lagerplatz-Bezeichnungen (z. B. `01A01`) fertige
+Etiketten-Bilder: pro Zeile ein **Code-128-Barcode** mit lesbarem Klartext
+darunter, mittig zentriert in einer eigenen PNG-Vorlage.
+
+Es gibt zwei gleichwertige Wege, das Tool zu benutzen:
+
+| Werkzeug | Wofür |
+|---|---|
+| `barcode.ps1` / `barcode.mjs` (PowerShell / Node.js) | Produktionsläufe, große Stückzahlen, automatisierbar |
+| `Lagerplatz-Barcode-Generator.html` | Schnelle Einzeltests oder kleine Stapel direkt im Browser, komplett offline, keine Installation |
+
+Beide verwenden **exakt dieselbe Positionierungs- und Skalierungslogik**, damit
+Ergebnisse aus beiden Wegen identisch aussehen.
+
+---
+
+## Inhaltsverzeichnis
+
+1. [Projektstruktur](#projektstruktur)
+2. [Voraussetzungen](#voraussetzungen)
+3. [Schnellstart (PowerShell/Node)](#schnellstart-powershellnode)
+4. [Schnellstart (HTML-Tool)](#schnellstart-html-tool)
+5. [Eintragsdatei-Format](#eintragsdatei-format)
+6. [config.json — alle Einstellungen](#configjson--alle-einstellungen)
+7. [Workflow: Neue Vorlage einrichten](#workflow-neue-vorlage-einrichten)
+8. [Workflow: Layout anpassen](#workflow-layout-anpassen)
+9. [Workflow: config.json ändern](#workflow-configjson-ändern)
+10. [Workflow: Skript (barcode.mjs) ändern](#workflow-skript-barcodemjs-ändern)
+11. [Workflow: HTML-Tool anpassen](#workflow-html-tool-anpassen)
+12. [Kommandozeilen-Referenz](#kommandozeilen-referenz)
+13. [Troubleshooting](#troubleshooting)
+14. [Produktionsprüfung vor dem großen Lauf](#produktionsprüfung-vor-dem-großen-lauf)
+15. [Quellen / Lizenzen](#quellen--lizenzen)
+
+---
+
+## Projektstruktur
+
+```text
+lager-barcode-generator/
+├── barcode.ps1                          PowerShell-Wrapper (interaktiv + Parameter)
+├── barcode.mjs                           Eigentliche Generator-Logik (Node.js)
+├── config.json                           Layout-Konfiguration (Barcode, Position, Ausgabe)
+├── eintraege.txt                         Liste der Lagerplätze, eine pro Zeile
+├── package.json / package-lock.json      Node-Abhängigkeiten (etiket, sharp)
+├── templates/                            Eigene PNG-Vorlagen hier ablegen
+│   ├── MV-AB.png
+│   └── MV-C.png
+├── output/                               Fertige Schilder landen hier
+├── logs/                                 Protokoll jedes barcode.ps1-Laufs
+├── Lagerplatz-Barcode-Generator.html     Interaktives Offline-Tool für den Browser
+└── README.md                             Diese Anleitung
+```
+
+---
+
+## Voraussetzungen
+
+- **Nur für den PowerShell/Node-Weg:** Node.js **24 oder neuer**
+  ([nodejs.org](https://nodejs.org)), Windows PowerShell.
+- **Für das HTML-Tool:** nichts weiter als ein aktueller Browser (Chrome,
+  Edge, Firefox). Keine Installation, keine Internetverbindung nötig.
+
+Nach der Node-Installation einmalig prüfen:
+
+```powershell
+node --version   # muss >= 24 sein
+npm --version
+```
+
+---
+
+## Schnellstart (PowerShell/Node)
+
+```powershell
+cd C:\Lager\lager-barcode-generator
+npm install                # nur einmalig, benötigt Internet
+npm test                    # Selbsttest: 3 Beispielschilder in self-test\output
+
+.\barcode.ps1 .\eintraege.txt .\templates\vorlage1.png .\output
+```
+
+Ohne Parameter gestartet (`.\barcode.ps1`) fragt das Skript interaktiv nach
+Eintragsdatei, Vorlage und Ausgabeordner und öffnet dafür bei Bedarf
+Dateiauswahl-Dialoge.
+
+Ergebnis: für jede Zeile in `eintraege.txt` entsteht eine Datei
+`output\lagerplatz_<Eintrag>.png`.
+
+---
+
+## Schnellstart (HTML-Tool)
+
+1. `Lagerplatz-Barcode-Generator.html` per Doppelklick öffnen (startet im
+   Standardbrowser).
+2. Vorlage per Klick oder Drag & Drop in die Dropzone laden.
+3. Lagerplätze eintragen oder per „Datei laden (.txt)" importieren.
+4. Layout bei Bedarf anpassen (siehe [config.json](#configjson--alle-einstellungen) —
+   dieselben Felder stehen im Formular).
+5. „Vorschau erzeugen" zum Testen eines einzelnen Eintrags.
+6. „Alle Schilder erzeugen" → danach „Alle als ZIP herunterladen".
+
+Die aktuelle Konfiguration lässt sich im HTML-Tool über „config.json
+exportieren" sichern und über „config.json laden" wieder einspielen — so
+lassen sich Einstellungen zwischen Browser-Tool und PowerShell-Skript
+austauschen.
+
+---
+
+## Eintragsdatei-Format
+
+Reine Textdatei, UTF-8, ein Lagerplatz pro Zeile:
+
+```text
+# Kommentarzeilen beginnen mit #
+01A01
+01A02
+01A03
+02B01
+```
+
+Regeln:
+
+- Ein Eintrag pro Zeile.
+- Führende Nullen bleiben erhalten (`01A01` bleibt `01A01`).
+- Leerzeilen werden ignoriert.
+- Zeilen, die mit `#` beginnen, sind Kommentare und werden ignoriert.
+- **Doppelte Einträge führen absichtlich zum Abbruch** (`barcode.mjs`,
+  Funktion `readEntries`) — so werden nie versehentlich zwei Schilder mit
+  demselben Barcode erzeugt. Fehlermeldung nennt Zeilennummer und Datei.
+
+---
+
+## config.json — alle Einstellungen
+
+```json
+{
+  "barcode": {
+    "height": 180,
+    "barWidth": 4,
+    "margin": 20,
+    "fontSize": 54,
+    "fontFamily": "Arial, Helvetica, sans-serif",
+    "color": "#000000",
+    "background": "transparent",
+    "textMargin": 6
+  },
+  "placement": {
+    "area": { "left": 642, "top": 50, "width": 1068, "height": 756 },
+    "maxWidthPercent": 90,
+    "maxHeightPercent": 90,
+    "offsetX": 0,
+    "offsetY": 0
+  },
+  "output": {
+    "prefix": "lagerplatz_",
+    "dpi": 300,
+    "overwrite": false
+  }
+}
+```
+
+### `barcode` — Aussehen von Barcode + Text
+
+| Feld | Bedeutung |
+|---|---|
+| `height` | Höhe der Barcode-Balken in Pixel |
+| `barWidth` | Breite (Dicke) eines einzelnen Barcode-Moduls |
+| `margin` | Innenabstand rund um Barcode + Text vor dem Zuschnitt |
+| `fontSize` | Schriftgröße des Klartexts unter dem Barcode |
+| `fontFamily` | Schriftfamilie des Klartexts |
+| `color` | Farbe von Balken und Text (Hex) |
+| `background` | Hintergrund des Barcode-Bilds selbst — `"transparent"` empfohlen |
+| `textMargin` | Abstand zwischen Barcode-Balken und Klartext |
+
+### `placement` — Position auf der Vorlage
+
+| Feld | Bedeutung |
+|---|---|
+| `area.left` / `area.top` | Pixel-Offset der oberen linken Ecke des Zielbereichs auf der Vorlage |
+| `area.width` / `area.height` | Größe des Zielbereichs in Pixel. **`null`** = automatisch bis zum Vorlagenrand (`Vorlagenbreite − left` bzw. `Vorlagenhöhe − top`) |
+| `maxWidthPercent` / `maxHeightPercent` | Wie viel Prozent des Zielbereichs der Barcode maximal einnehmen darf. Relativ, passt sich also automatisch an, wenn sich der Zielbereich ändert |
+| `offsetX` / `offsetY` | Zusätzliche Feinjustierung nach rechts/unten (auch negativ möglich) |
+
+Der Barcode wird nie größer als die Vorlage selbst skaliert (`scale` ist immer
+`≤ 1`, siehe `composeLabel` in `barcode.mjs`, Zeile 105) — er wird nur verkleinert,
+nie über die Originalgröße hinaus vergrößert.
+
+Passt der konfigurierte Zielbereich nicht in die tatsächliche Vorlagengröße,
+geben sowohl `barcode.mjs`/`barcode.ps1` als auch das HTML-Tool automatisch
+eine Warnung im Log aus (kein Abbruch, aber ein deutlicher Hinweis zum Nachjustieren).
+
+### `output` — Dateiausgabe
+
+| Feld | Bedeutung |
+|---|---|
+| `prefix` | Vorangestellter Text im Dateinamen, z. B. `lagerplatz_` → `lagerplatz_01A01.png` |
+| `dpi` | In die PNG-Metadaten geschriebene Auflösung (wichtig für exaktes Druckformat) |
+| `overwrite` | `true` = vorhandene Dateien im Ausgabeordner werden überschrieben. Kann pro Lauf auch über `-Overwrite` (PowerShell) übersteuert werden |
+
+---
+
+## Workflow: Neue Vorlage einrichten
+
+1. PNG-Vorlage nach `templates\` kopieren.
+2. Bereich hinter dem Barcode sollte weiß/hell und frei von Linien, Logos
+   oder Mustern sein — die Ruhezonen links/rechts vom Barcode dürfen nicht
+   überlagert werden, sonst leidet die Scanbarkeit.
+3. Zielbereich in `config.json` festlegen — entweder:
+   - **Automatisch:** `"width": null, "height": null` setzen → Bereich
+     füllt automatisch alles ab `left`/`top` bis zum Vorlagenrand.
+   - **Manuell:** feste Pixelwerte für `left`, `top`, `width`, `height`
+     eintragen, z. B. wenn der Barcode nur in einer bestimmten Ecke stehen
+     soll.
+4. Mit 2–3 Testeinträgen einen Probelauf machen, bevor die volle Liste
+   verarbeitet wird (siehe [Produktionsprüfung](#produktionsprüfung-vor-dem-großen-lauf)).
+
+## Workflow: Layout anpassen
+
+Häufige Anpassungen und welches Feld dafür zu ändern ist:
+
+| Wunsch | Einstellung |
+|---|---|
+| Größere Barcode-Balken | `barcode.height` erhöhen |
+| Breitere Barcode-Module | `barcode.barWidth` erhöhen |
+| Größerer Klartext | `barcode.fontSize` erhöhen |
+| Mehr Abstand zwischen Barcode und Text | `barcode.textMargin` erhöhen |
+| Andere Schrift | `barcode.fontFamily` ändern |
+| Barcode weiter nach unten/rechts verschieben | `placement.offsetY` / `placement.offsetX` erhöhen |
+| Barcode kleiner relativ zur Vorlage | `placement.maxWidthPercent` / `maxHeightPercent` verkleinern |
+| Barcode nur in einem Teilbereich der Vorlage | `placement.area.left/top/width/height` manuell setzen statt `null` |
+| Vorlage ändert nur ihre Größe, Layout bleibt gleich | `width`/`height` auf `null` lassen — passt sich automatisch an |
+| Andere Dateibenennung | `output.prefix` ändern |
+| Andere Druckauflösung | `output.dpi` ändern |
+
+Nach jeder Änderung: kurze Vorschau/Testlauf machen (PowerShell: 2–3
+Testeinträge; HTML-Tool: „Vorschau erzeugen" für einen einzelnen Eintrag),
+bevor der komplette Bestand erzeugt wird.
+
+## Workflow: config.json ändern
+
+1. `config.json` mit einem Texteditor öffnen.
+2. Gewünschtes Feld ändern (siehe Tabellen oben). Gültiges JSON beachten —
+   Kommas zwischen Feldern, keine Kommentare erlaubt.
+3. Speichern.
+4. Testlauf:
+   ```powershell
+   .\barcode.ps1 .\eintraege-test.txt .\templates\vorlage1.png .\test-output
+   ```
+   oder im HTML-Tool „config.json laden" verwenden, um die geänderte Datei
+   direkt zu importieren und per „Vorschau erzeugen" zu prüfen.
+5. Ergebnis visuell kontrollieren (Zentrierung, Lesbarkeit, keine Überlappung
+   mit Vorlagenelementen).
+6. Erst danach den vollständigen Bestand verarbeiten.
+
+Eine eigene Konfiguration für eine zweite Vorlage lässt sich als separate
+Datei speichern, z. B. `config-MV-C.json`, und gezielt aufrufen:
+
+```powershell
+.\barcode.ps1 .\eintraege.txt .\templates\MV-C.png .\output -Config config-MV-C.json
+```
+
+## Workflow: Skript (barcode.mjs) ändern
+
+`barcode.mjs` enthält die komplette Erzeugungslogik in drei Funktionen:
+
+| Funktion | Zuständig für |
+|---|---|
+| `readEntries()` | Einlesen und Validieren der Eintragsdatei (Duplikat-Prüfung, Kommentare, Leerzeilen) |
+| `buildLabelPng()` | Erzeugen des Barcode-Bilds selbst (ruft `etiket`'s `barcode()` auf, rendert via `sharp`) |
+| `composeLabel()` | Skalierung + Zentrierung des Barcodes im Zielbereich, Zusammenfügen mit der Vorlage |
+| `main()` | Kommandozeilen-Argumente, Datei-Prüfungen, Schleife über alle Einträge |
+
+Typische Änderungen:
+
+- **Neues Ausgabeformat statt PNG:** in `composeLabel()`/`main()` `.png()`
+  durch z. B. `.jpeg({ quality: 90 })` ersetzen (sharp unterstützt weitere
+  Formate) und die Dateiendung in `main()` anpassen.
+- **Andere Barcode-Symbologie:** `type: "code128"` im `barcode(...)`-Aufruf
+  in `buildLabelPng()` ändern — sofern von `etiket` unterstützt.
+- **Zusätzliche Metadaten ins Bild schreiben:** `.withMetadata({...})` in
+  `composeLabel()` erweitern.
+
+Vorgehen bei Änderungen:
+
+1. Kopie der Original-Datei sichern (`barcode.mjs.bak`), damit ein Rollback
+   möglich ist.
+2. Änderung vornehmen.
+3. Direkt über Node testen, ohne den PowerShell-Wrapper:
+   ```powershell
+   node .\barcode.mjs .\eintraege-test.txt .\templates\vorlage1.png .\test-output
+   ```
+4. Bei Fehlern gibt `main().catch(...)` (letzte Zeilen der Datei) die
+   Fehlermeldung direkt in der Konsole aus.
+5. Erst nach erfolgreichem Test den PowerShell-Wrapper (`barcode.ps1`) wieder
+   verwenden — er ruft intern exakt dasselbe `barcode.mjs` auf.
+
+`barcode.ps1` selbst muss für reine Layout-/Logik-Änderungen **nicht**
+angepasst werden — es reicht immer, `barcode.mjs` bzw. `config.json` zu
+ändern. Der PowerShell-Wrapper ist nur für Bedienung (interaktiver Modus,
+Dateiauswahl-Dialoge, Protokollierung in `logs\`) zuständig.
+
+## Workflow: HTML-Tool anpassen
+
+Das HTML-Tool ist eine einzelne, in sich geschlossene Datei
+(`Lagerplatz-Barcode-Generator.html`) mit eingebettetem CSS/JS und der
+inline eingebetteten Bibliothek [JsBarcode](https://github.com/lindell/JsBarcode)
+für die Code-128-Erzeugung im Browser. Die zentrale Logik
+(`composeLabel()` in der Datei) ist bewusst identisch zu `barcode.mjs`
+aufgebaut, damit beide Werkzeuge dieselben Ergebnisse liefern.
+
+Wichtig bei Anpassungen:
+
+- Änderungen direkt in der `<script>`-Sektion der HTML-Datei vornehmen (kein
+  Build-Schritt nötig — einfach speichern und Browser neu laden/aktualisieren).
+- Die Positions-/Skalierungsformel in `composeLabel()` sollte bei Änderungen
+  an `barcode.mjs` synchron gehalten werden, sonst weichen Browser- und
+  PowerShell-Ergebnisse voneinander ab.
+- Da alles offline laufen soll, dürfen keine externen `<script src="https://...">`-
+  Verweise eingefügt werden — neue Bibliotheken müssten wie JsBarcode direkt
+  in die Datei eingebettet werden.
+- Nach jeder Änderung: Datei im Browser neu laden, Vorlage laden,
+  „Vorschau erzeugen" klicken und das Ergebnis visuell prüfen.
+
+---
+
+## Kommandozeilen-Referenz
+
+```powershell
+.\barcode.ps1 <Eintraege-Datei> <Vorlage-Datei> <Ausgabe-Ordner> [-Config <Pfad>] [-Overwrite]
+```
+
+| Parameter | Pflicht | Bedeutung |
+|---|---|---|
+| `Eintraege-Datei` | ja | Pfad zur `.txt`-Datei mit den Lagerplätzen |
+| `Vorlage-Datei` | ja | Pfad zur PNG-Vorlage |
+| `Ausgabe-Ordner` | ja | Zielordner für die fertigen Schilder (wird bei Bedarf angelegt) |
+| `-Config` | nein | Alternative `config.json`, Standard: `config.json` im Skriptordner |
+| `-Overwrite` | nein | Vorhandene Dateien im Ausgabeordner überschreiben |
+
+Ohne jeden Parameter startet der interaktive Modus mit Dateiauswahl-Dialogen.
+
+Direkter Aufruf ohne PowerShell (z. B. wenn `Set-ExecutionPolicy` blockiert):
+
+```powershell
+node .\barcode.mjs .\eintraege.txt .\templates\vorlage1.png .\output --config config.json --overwrite
+```
+
+Falls PowerShell die Ausführung von `.ps1`-Dateien verweigert, einmalig:
+
+```powershell
+Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
+```
+
+---
+
+## Troubleshooting
+
+| Problem | Ursache / Lösung |
+|---|---|
+| `Node.js wurde nicht gefunden` | Node.js installieren, PowerShell-Fenster neu öffnen |
+| `Doppelter Eintrag "..." in Zeile N` | Eintragsdatei enthält denselben Lagerplatz zweimal — bewusst als Fehler, um doppelte Schilder zu verhindern; Duplikat entfernen |
+| `Vorlagendatei nicht gefunden` / `Eintragsdatei nicht gefunden` | Pfad prüfen, ggf. mit Anführungszeichen bei Leerzeichen im Pfad |
+| Warnung „Zielbereich ... reicht über die Vorlagengröße ... hinaus" | `placement.area` in `config.json` passt nicht zur tatsächlichen Vorlagengröße — Werte anpassen oder `width`/`height` auf `null` setzen |
+| Schild wird nicht überschrieben | `output.overwrite` ist `false` und `-Overwrite` wurde nicht gesetzt — Datei existiert bereits im Ausgabeordner |
+| Barcode scannt schlecht | Ruhezonen (freier Bereich links/rechts vom Barcode) durch Vorlagenelemente überlappt, Vorlage zu dunkel/gemustert hinter dem Barcode, oder Etikett zu klein gedruckt — in tatsächlicher Größe drucken, nicht „An Seite anpassen" |
+| HTML-Tool: Vorschau bleibt leer/weiß | Zielbereich (`left`/`top`/`width`/`height`) liegt außerhalb der geladenen Testvorlage — bei kleinen Testbildern `left`/`top` auf `0` setzen oder „Zielbereich automatisch" aktivieren |
+
+---
+
+## Produktionsprüfung vor dem großen Lauf
+
+1. Zuerst nur 5 bis 10 Testschilder erzeugen.
+2. Kurze, typische **und** besonders lange Lagerplatznummern testen.
+3. Prüfen, ob Dateiname, sichtbarer Text und Scanner-Ergebnis übereinstimmen.
+4. In tatsächlicher Größe drucken, nicht mit „An Seite anpassen".
+5. Mit den real im Lager verwendeten Scannern testen.
+6. Unter der tatsächlichen Lagerbeleuchtung und aus üblicher Entfernung testen.
+7. Auch das endgültige Material bzw. die Laminierung testen.
+8. Sicherstellen, dass die weißen Ruhezonen erhalten bleiben.
+9. Barcodes nicht über Kanten, Falten, Nähte, raue oder stark reflektierende
+   Flächen kleben.
+10. Erst danach den vollständigen Durchlauf mit der kompletten Eintragsliste starten.
+
+Nach erfolgreicher Abnahme: Skripte, `config.json`, Vorlage, Eintragsdatei
+und `package-lock.json` gemeinsam archivieren, damit sich dieselben Schilder
+später exakt reproduzieren lassen.
+
+---
+
+## Quellen / Lizenzen
+
+- [etiket](https://github.com/productdevbook/etiket) — Barcode-/SVG-Erzeugung
+  (PowerShell/Node-Weg)
+- [sharp](https://github.com/lubien/sharp) / [sharp.pixelplumbing.com](https://sharp.pixelplumbing.com/) — Bildkomposition und PNG-Export
+- [JsBarcode](https://github.com/lindell/JsBarcode) (MIT-Lizenz) — Code-128-
+  Erzeugung im Browser, inline eingebettet im HTML-Tool
+- [Node.js](https://nodejs.org) — Laufzeitumgebung für `barcode.mjs`
