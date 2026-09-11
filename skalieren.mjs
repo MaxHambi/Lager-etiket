@@ -4,10 +4,15 @@
 // auf eine gewünschte physische Höhe in Millimetern, bei fester Auflösung
 // (Standard 300 DPI, wie beim Generator). Die Breite wird proportional
 // mitskaliert, das Seitenverhältnis bleibt exakt erhalten.
+//
+// Vor dem Resize wird jedes Bild ueber konvertieren.mjs normalisiert
+// (Transparenz auf Weiss plattgemacht, sRGB, 8-Bit-PNG) — damit bleiben
+// skalierte Schilder genauso robust scanbar wie frisch generierte.
 
 import fs from "node:fs";
 import path from "node:path";
 import sharp from "sharp";
+import { normalisiereBild } from "./konvertieren.mjs";
 
 function printUsage() {
   console.error(
@@ -64,7 +69,10 @@ async function scaleOne(inputPath, outputDir, targetHeightPx, dpi, overwrite) {
     return { skipped: true };
   }
 
-  const meta = await sharp(inputPath).metadata();
+  const rohbytes = fs.readFileSync(inputPath);
+  const normalisiert = await normalisiereBild(rohbytes);
+
+  const meta = await sharp(normalisiert).metadata();
   const origW = meta.width;
   const origH = meta.height;
 
@@ -79,7 +87,7 @@ async function scaleOne(inputPath, outputDir, targetHeightPx, dpi, overwrite) {
   // lanczos3 (sharp-Standardfilter) liefert die beste Kantenschärfe bei
   // Verkleinerung/Vergrößerung von Barcode-Balken — wichtig für die
   // Scanbarkeit nach dem Skalieren.
-  const buffer = await sharp(inputPath)
+  const buffer = await sharp(normalisiert)
     .resize(newWidth, newHeight, { kernel: sharp.kernel.lanczos3 })
     .withMetadata({ density: dpi })
     .png()

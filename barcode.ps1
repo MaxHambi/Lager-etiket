@@ -17,6 +17,9 @@ param(
 $ErrorActionPreference = "Stop"
 $scriptDir  = Split-Path -Parent $MyInvocation.MyCommand.Path
 $mainScript = Join-Path $scriptDir "barcode.mjs"
+$skalierenScript    = Join-Path $scriptDir "skalieren.mjs"
+$pruefenScript      = Join-Path $scriptDir "pruefen.mjs"
+$konvertierenScript = Join-Path $scriptDir "konvertieren.mjs"
 
 # --- Protokollierung: jeder Lauf wird vollstaendig in eine Log-Datei geschrieben ---
 $logDir = Join-Path $scriptDir "logs"
@@ -91,6 +94,101 @@ function Invoke-Generator {
     return $LASTEXITCODE
 }
 
+function Invoke-Skalieren {
+    param([string]$QuellOrdner)
+
+    if (-not (Test-Path $skalierenScript)) {
+        Write-Warning "skalieren.mjs wurde nicht gefunden unter: $skalierenScript"
+        return
+    }
+
+    $hoehe = Read-Host "Zielhoehe in mm"
+    if ([string]::IsNullOrWhiteSpace($hoehe)) {
+        Write-Host "Keine Zielhoehe angegeben. Abbruch."
+        return
+    }
+
+    $standardZiel = Join-Path $QuellOrdner "skaliert"
+    $ziel = Read-Host "Zielordner (Enter = $standardZiel)"
+    if ([string]::IsNullOrWhiteSpace($ziel)) { $ziel = $standardZiel }
+
+    $antwort = Read-Host "Vorhandene Dateien ueberschreiben? (j/N)"
+    $overwriteFlag = ($antwort -match '^[jJ]')
+
+    $nodeArgs = @($skalierenScript, "--ordner", $QuellOrdner, "--hoehe", $hoehe, "--output", $ziel)
+    if ($overwriteFlag) { $nodeArgs += "--overwrite" }
+
+    Write-Host ""
+    & node @nodeArgs
+}
+
+function Invoke-Pruefen {
+    param([string]$QuellOrdner, [string]$Eintraege)
+
+    if (-not (Test-Path $pruefenScript)) {
+        Write-Warning "pruefen.mjs wurde nicht gefunden unter: $pruefenScript"
+        return
+    }
+
+    $nodeArgs = @($pruefenScript, "--ordner", $QuellOrdner)
+
+    if (-not [string]::IsNullOrWhiteSpace($Eintraege) -and (Test-Path $Eintraege)) {
+        $antwort = Read-Host "Vollstaendigkeit gegen '$Eintraege' pruefen? (J/n)"
+        if ($antwort -notmatch '^[nN]') {
+            $nodeArgs += "--eintraege"
+            $nodeArgs += $Eintraege
+        }
+    }
+
+    Write-Host ""
+    & node @nodeArgs
+}
+
+function Invoke-Konvertieren {
+    param([string]$QuellOrdner)
+
+    if (-not (Test-Path $konvertierenScript)) {
+        Write-Warning "konvertieren.mjs wurde nicht gefunden unter: $konvertierenScript"
+        return
+    }
+
+    $standardZiel = Join-Path $QuellOrdner "konvertiert"
+    $ziel = Read-Host "Zielordner (Enter = $standardZiel)"
+    if ([string]::IsNullOrWhiteSpace($ziel)) { $ziel = $standardZiel }
+
+    $hintergrund = Read-Host "Hintergrundfarbe fuer Transparenz (Enter = #ffffff)"
+    if ([string]::IsNullOrWhiteSpace($hintergrund)) { $hintergrund = "#ffffff" }
+
+    $antwort = Read-Host "Vorhandene Dateien ueberschreiben? (j/N)"
+    $overwriteFlag = ($antwort -match '^[jJ]')
+
+    $nodeArgs = @($konvertierenScript, "--ordner", $QuellOrdner, "--output", $ziel, "--hintergrund", $hintergrund)
+    if ($overwriteFlag) { $nodeArgs += "--overwrite" }
+
+    Write-Host ""
+    & node @nodeArgs
+}
+
+function Show-Aktionsmenue {
+    param([string]$AusgabeOrdnerPfad, [string]$EintraegeDateiPfad)
+
+    Write-Host ""
+    Write-Host "Was moechtest du als Naechstes tun?"
+    Write-Host "  (1) Skalieren     - Schilder auf eine Zielhoehe (mm) skalieren"
+    Write-Host "  (2) Pruefen       - Barcode scannen und Inhalt verifizieren"
+    Write-Host "  (3) Konvertieren  - Bilder normalisieren (Transparenz entfernen, sRGB, 8-Bit-PNG)"
+    Write-Host "  (0) Keine Auswahl"
+    Write-Host ""
+    $wahl = Read-Host "Auswahl (0-3)"
+
+    switch ($wahl) {
+        "1" { Invoke-Skalieren -QuellOrdner $AusgabeOrdnerPfad }
+        "2" { Invoke-Pruefen -QuellOrdner $AusgabeOrdnerPfad -Eintraege $EintraegeDateiPfad }
+        "3" { Invoke-Konvertieren -QuellOrdner $AusgabeOrdnerPfad }
+        default { Write-Host "Keine Auswahl getroffen." }
+    }
+}
+
 $exitCode = 0
 
 if ($PSBoundParameters.Count -eq 0) {
@@ -143,6 +241,12 @@ if ($PSBoundParameters.Count -eq 0) {
 
     Write-Host ""
     Write-Host "Fertig. Protokoll gespeichert unter: $logFile"
+
+    if ($exitCode -eq 0) {
+        Show-Aktionsmenue -AusgabeOrdnerPfad $AusgabeOrdner -EintraegeDateiPfad $EintraegeDatei
+    }
+
+    Write-Host ""
     Read-Host "Enter druecken, um das Fenster zu schliessen"
 
 }

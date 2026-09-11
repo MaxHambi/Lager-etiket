@@ -27,26 +27,19 @@
  *
  * Exit-Code: 0 = alle Schilder korrekt, 1 = mindestens ein Fehler.
  *
- * Vor dem Dekodieren wird jedes Bild ueber sharp normalisiert: ein eventuell
- * vorhandener Alphakanal wird auf weissem Hintergrund plattgemacht (flatten),
- * und das Ergebnis wird als einfaches 8-Bit-sRGB-PNG neu kodiert. Das nimmt
- * dem Decoder ungewoehnliche Eingaben (Transparenz, 16-Bit-Farbtiefe,
- * Paletten-PNGs, exotische ICC-Profile) aus dem Weg, bevor sie ueberhaupt zum
- * Problem werden koennen.
+ * Vor dem Dekodieren wird jedes Bild ueber konvertieren.mjs normalisiert:
+ * ein eventuell vorhandener Alphakanal wird auf weissem Hintergrund
+ * plattgemacht (flatten), und das Ergebnis wird als einfaches 8-Bit-sRGB-PNG
+ * neu kodiert. Das nimmt dem Decoder ungewoehnliche Eingaben (Transparenz,
+ * 16-Bit-Farbtiefe, Paletten-PNGs, exotische ICC-Profile) aus dem Weg, bevor
+ * sie ueberhaupt zum Problem werden koennen. Dieselbe Normalisierung steht
+ * auch als eigenstaendiges Skript zur Verfuegung: konvertieren.mjs.
  */
 
 import { readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
 import { basename, extname, join } from "node:path";
-import sharp from "sharp";
 import { readBarcodes } from "zxing-wasm/reader";
-
-async function normalisiereBild(bytes) {
-  return sharp(bytes)
-    .flatten({ background: "#ffffff" })
-    .toColorspace("srgb")
-    .png({ bitdepth: 8 })
-    .toBuffer();
-}
+import { normalisiereBild } from "./konvertieren.mjs";
 
 function parseArgs(argv) {
   const args = { praefix: "lagerplatz_" };

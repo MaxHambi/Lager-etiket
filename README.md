@@ -29,12 +29,13 @@ Ergebnisse aus beiden Wegen identisch aussehen.
 9. [Workflow: config.json ändern](#workflow-configjson-ändern)
 10. [Workflow: Skript (barcode.mjs) ändern](#workflow-skript-barcodemjs-ändern)
 11. [Workflow: HTML-Tool anpassen](#workflow-html-tool-anpassen)
-12. [Fertige Schilder nachträglich skalieren (skalieren.ps1)](#fertige-schilder-nachträglich-skalieren-skalierenps1)
-13. [Barcode automatisch scannen & prüfen (pruefen.ps1)](#barcode-automatisch-scannen--prüfen-pruefenps1)
-14. [Kommandozeilen-Referenz](#kommandozeilen-referenz)
-15. [Troubleshooting](#troubleshooting)
-16. [Produktionsprüfung vor dem großen Lauf](#produktionsprüfung-vor-dem-großen-lauf)
-17. [Quellen / Lizenzen](#quellen--lizenzen)
+12. [Fertige Schilder nachträglich skalieren (skalieren.mjs)](#fertige-schilder-nachträglich-skalieren-skalierenmjs)
+13. [Barcode automatisch scannen & prüfen (pruefen.mjs)](#barcode-automatisch-scannen--prüfen-pruefenmjs)
+14. [Bilder normalisieren (konvertieren.mjs)](#bilder-normalisieren-konvertierenmjs)
+15. [Kommandozeilen-Referenz](#kommandozeilen-referenz)
+16. [Troubleshooting](#troubleshooting)
+17. [Produktionsprüfung vor dem großen Lauf](#produktionsprüfung-vor-dem-großen-lauf)
+18. [Quellen / Lizenzen](#quellen--lizenzen)
 
 ---
 
@@ -42,12 +43,15 @@ Ergebnisse aus beiden Wegen identisch aussehen.
 
 ```text
 lager-barcode-generator/
-├── barcode.ps1                          PowerShell-Wrapper (interaktiv + Parameter)
+├── barcode.ps1                          PowerShell-Wrapper (interaktiv + Parameter); bietet am Ende ein
+│                                          Auswahlmenü für Skalieren/Prüfen/Konvertieren an
 ├── barcode.mjs                           Eigentliche Generator-Logik (Node.js)
-├── skalieren.ps1                         PowerShell-Wrapper zum nachträglichen Skalieren fertiger Schilder
-├── skalieren.mjs                         Skalierungs-Logik (Node.js, Zielhöhe in mm)
-├── pruefen.ps1                           PowerShell-Wrapper: Barcode auf fertigen Schildern scannen & prüfen
-├── pruefen.mjs                           Prüflogik (Node.js, dekodiert Code 128 per zxing-wasm)
+├── skalieren.mjs                         Skalierungs-Logik (Node.js, Zielhöhe in mm), direkt per `node`
+│                                          ausgeführt — normalisiert Bilder vor dem Skalieren automatisch
+├── pruefen.mjs                           Prüflogik (Node.js, dekodiert Code 128 per zxing-wasm), direkt
+│                                          per `node` ausgeführt — normalisiert Bilder vor dem Scan automatisch
+├── konvertieren.mjs                      Bild-Normalisierung (Transparenz entfernen, sRGB, 8-Bit-PNG);
+│                                          eigenständig nutzbar UND automatisch von skalieren.mjs/pruefen.mjs verwendet
 ├── config.json                           Layout-Konfiguration (Barcode, Position, Ausgabe)
 ├── eintraege.txt                         Liste der Lagerplätze, eine pro Zeile
 ├── package.json / package-lock.json      Node-Abhängigkeiten (etiket, sharp, zxing-wasm)
@@ -55,10 +59,17 @@ lager-barcode-generator/
 │   ├── MV-AB.png
 │   └── MV-C.png
 ├── output/                               Fertige Schilder landen hier
-├── logs/                                 Protokoll jedes barcode.ps1-/skalieren.ps1-Laufs
+├── logs/                                 Protokoll jedes barcode.ps1-Laufs
 ├── Lagerplatz-Barcode-Generator.html     Interaktives Offline-Tool für den Browser
 └── README.md                             Diese Anleitung
 ```
+
+`skalieren.ps1` und `pruefen.ps1` (PowerShell-Wrapper) gibt es bewusst nicht
+mehr — `skalieren.mjs` und `pruefen.mjs` werden direkt per `node` aufgerufen.
+`barcode.ps1` selbst bleibt erhalten und bietet nach jedem erfolgreichen Lauf
+ein Menü an, über das sich Skalieren, Prüfen und Konvertieren ohne manuellen
+`node`-Aufruf anstoßen lassen (siehe
+[Kommandozeilen-Referenz](#kommandozeilen-referenz)).
 
 ---
 
@@ -332,30 +343,34 @@ Wichtig bei Anpassungen:
 
 ---
 
-## Fertige Schilder nachträglich skalieren (skalieren.ps1)
+## Fertige Schilder nachträglich skalieren (skalieren.mjs)
 
 Werden dieselben Schilder an unterschiedlichen Orten angebracht, ist oft eine
-andere physische Größe nötig. `skalieren.ps1` / `skalieren.mjs` skalieren
-bereits fertige PNG-Schilder (Vorlage + Barcode, schon zusammengefügt) auf
-eine gewünschte **Zielhöhe in Millimetern** — die Breite wird dabei exakt
-proportional mitskaliert, das Seitenverhältnis bleibt unverändert.
+andere physische Größe nötig. `skalieren.mjs` skaliert bereits fertige
+PNG-Schilder (Vorlage + Barcode, schon zusammengefügt) auf eine gewünschte
+**Zielhöhe in Millimetern** — die Breite wird dabei exakt proportional
+mitskaliert, das Seitenverhältnis bleibt unverändert. Vor dem Skalieren wird
+jedes Bild automatisch über `konvertieren.mjs` normalisiert (siehe
+[Bilder normalisieren](#bilder-normalisieren-konvertierenmjs)).
+
+Es gibt keinen eigenen PowerShell-Wrapper mehr — `skalieren.mjs` wird direkt
+per `node` aufgerufen. Über `barcode.ps1` lässt sich Skalieren nach jedem Lauf
+aber weiterhin bequem über ein Menü anstatt per Kommandozeile anstoßen (siehe
+[Kommandozeilen-Referenz](#kommandozeilen-referenz)).
 
 ### Verwendung
 
 Einzelne Datei:
 
 ```powershell
-.\skalieren.ps1 -Datei .\output\lagerplatz_01A01.png -Hoehe 15 -Output .\output-15mm
+node .\skalieren.mjs --datei .\output\lagerplatz_01A01.png --hoehe 15 --output .\output-15mm
 ```
 
 Ganzer Ordner (alle `.png`-Dateien darin):
 
 ```powershell
-.\skalieren.ps1 -Ordner .\output -Hoehe 15 -Output .\output-15mm
+node .\skalieren.mjs --ordner .\output --hoehe 15 --output .\output-15mm
 ```
-
-Ohne Parameter gestartet fragt das Skript interaktiv nach Datei/Ordner,
-Zielhöhe, Ausgabeordner und ob vorhandene Dateien überschrieben werden sollen.
 
 ### Wie die Umrechnung funktioniert
 
@@ -393,19 +408,17 @@ Grundregel gilt letztlich für jede Skalierung, auch ohne Warnung.
 
 ### Parameter-Referenz
 
-| Parameter | Pflicht | Bedeutung |
+| Option | Pflicht | Bedeutung |
 |---|---|---|
-| `-Datei` | ja (oder `-Ordner`) | Pfad zu einem einzelnen fertigen Schild (PNG) |
-| `-Ordner` | ja (oder `-Datei`) | Ordner mit mehreren fertigen Schildern — alle `.png`-Dateien darin werden verarbeitet |
-| `-Hoehe` | ja | Zielhöhe in Millimetern |
-| `-Output` | ja | Ausgabeordner für die skalierten Schilder (wird bei Bedarf angelegt) |
-| `-Dpi` | nein | Auflösung für die mm→Pixel-Umrechnung, Standard `300` |
-| `-Overwrite` | nein | Vorhandene Dateien im Ausgabeordner überschreiben |
+| `--datei` | ja (oder `--ordner`) | Pfad zu einem einzelnen fertigen Schild (PNG) |
+| `--ordner` | ja (oder `--datei`) | Ordner mit mehreren fertigen Schildern — alle `.png`-Dateien darin werden verarbeitet |
+| `--hoehe` | ja | Zielhöhe in Millimetern |
+| `--output` | ja | Ausgabeordner für die skalierten Schilder (wird bei Bedarf angelegt) |
+| `--dpi` | nein | Auflösung für die mm→Pixel-Umrechnung, Standard `300` |
+| `--overwrite` | nein | Vorhandene Dateien im Ausgabeordner überschreiben |
 
-`-Datei` und `-Ordner` schließen sich gegenseitig aus — es muss genau eine
+`--datei` und `--ordner` schließen sich gegenseitig aus — es muss genau eine
 der beiden Optionen angegeben werden.
-
-Direkter Aufruf ohne PowerShell:
 
 ```powershell
 node .\skalieren.mjs --ordner .\output --hoehe 15 --output .\output-15mm --dpi 300 --overwrite
@@ -413,34 +426,32 @@ node .\skalieren.mjs --ordner .\output --hoehe 15 --output .\output-15mm --dpi 3
 
 ---
 
-## Barcode automatisch scannen & prüfen (pruefen.ps1)
+## Barcode automatisch scannen & prüfen (pruefen.mjs)
 
 Statt nur nach Augenmaß zu prüfen, ob ein Barcode noch "gut aussieht",
-dekodiert `pruefen.ps1` / `pruefen.mjs` den Barcode auf einem fertigen
+dekodiert `pruefen.mjs` den Barcode auf einem fertigen
 Schild wirklich — also so, wie es später ein Scanner im Lager tun würde —
 und vergleicht das Ergebnis mit dem erwarteten Lagerplatz-Code. Das
-funktioniert für frisch erzeugte Schilder aus `barcode.ps1` genauso wie für
-bereits skalierte Schilder aus `skalieren.ps1` — damit lässt sich nach jeder
+funktioniert für frisch erzeugte Schilder aus `barcode.mjs` genauso wie für
+bereits skalierte Schilder aus `skalieren.mjs` — damit lässt sich nach jeder
 Skalierung automatisiert bestätigen, dass der Barcode noch korrekt lesbar
-ist.
+ist. Vor dem Scan wird jedes Bild automatisch über `konvertieren.mjs`
+normalisiert (siehe [Bilder normalisieren](#bilder-normalisieren-konvertierenmjs)).
 
 ### Verwendung
 
 Einzelne Datei (erwarteter Code wird automatisch aus dem Dateinamen abgeleitet):
 
 ```powershell
-.\pruefen.ps1 -Datei .\output\lagerplatz_01A01.png
+node .\pruefen.mjs --datei .\output\lagerplatz_01A01.png
 ```
 
 Ganzer Ordner, inklusive Vollständigkeitsabgleich gegen die Eintragsdatei
 und CSV-Bericht:
 
 ```powershell
-.\pruefen.ps1 -Ordner .\output-15mm -Eintraege .\eintraege.txt -Report .\pruefbericht.csv
+node .\pruefen.mjs --ordner .\output-15mm --eintraege .\eintraege.txt --report .\pruefbericht.csv
 ```
-
-Ohne Parameter gestartet fragt das Skript interaktiv nach Datei/Ordner und
-optional nach einer Eintragsdatei für den Vollständigkeitsabgleich.
 
 Die Konsolen-Ausgabe zeigt für jedes Schild Dateiname, erwarteten Code,
 tatsächlich dekodierten Code und einen Status (`OK` / `FEHLER`), zum
@@ -470,7 +481,7 @@ Barcode-Erzeugung in `barcode.mjs`/`skalieren.mjs` sorgt, verifiziert seine
 eigenen erzeugten Code-128-Barcodes in seiner Testsuite ebenfalls per
 Round-Trip-Scan mit `zxing-wasm` (neben `rxing` und `gozxing`) — siehe die
 [etiket-Projektseite](https://github.com/productdevbook/etiket), Abschnitt
-"Verified formats". `pruefen.ps1` wendet also denselben Prüfansatz auf die
+"Verified formats". `pruefen.mjs` wendet also denselben Prüfansatz auf die
 fertigen, bereits mit der Vorlage zusammengesetzten Schilder an. `zxing-wasm`
 läuft rein in WebAssembly ohne native Abhängigkeiten (kein `zbar`/`libzbar`
 nötig) und funktioniert identisch unter Windows, macOS und Linux.
@@ -484,7 +495,7 @@ cd C:\Lager\lager-barcode-generator
 npm install zxing-wasm
 ```
 
-Danach steht `pruefen.mjs`/`pruefen.ps1` wie gewohnt zur Verfügung.
+Danach steht `pruefen.mjs` wie gewohnt zur Verfügung.
 
 ### Wie zuverlässig ist die Prüfung bei kleinen Schildern?
 
@@ -494,7 +505,7 @@ Zielhöhe von 15mm noch zuverlässig korrekt dekodiert, bei 10mm und darunter
 nicht mehr. Dieser konkrete Schwellenwert gilt nur für diesen einen Test und
 hängt von Vorlage, Barcode-Länge und `config.json`-Einstellungen
 (`moduleSize` etc.) ab — er ersetzt keine eigene Prüfung. Genau deshalb ist
-`pruefen.ps1` nach jeder Skalierung hilfreich: Statt sich auf einen
+`pruefen.mjs` nach jeder Skalierung hilfreich: Statt sich auf einen
 pauschalen Prozentsatz zu verlassen, wird für jedes tatsächlich erzeugte
 Schild einzeln bestätigt, ob der Barcode noch korrekt ausgelesen werden
 kann. Eine erfolgreiche Software-Dekodierung ist ein starkes Indiz, ersetzt
@@ -504,20 +515,64 @@ nicht den echten Scannertest aus der
 
 ### Parameter-Referenz
 
-| Parameter | Pflicht | Bedeutung |
+| Option | Pflicht | Bedeutung |
 |---|---|---|
-| `-Datei` | ja (oder `-Ordner`) | Pfad zu einem einzelnen zu prüfenden Schild (PNG) |
-| `-Ordner` | ja (oder `-Datei`) | Ordner mit mehreren Schildern — alle `.png`-Dateien darin werden geprüft |
-| `-Erwartet` | nein | Erwarteter Barcode-Inhalt (nur bei `-Datei`; sonst aus Dateiname abgeleitet) |
-| `-Praefix` | nein | Dateiname-Präfix vor dem Lagerplatz-Code, Standard `lagerplatz_` (passend zu `config.json` → `output.prefix`) |
-| `-Eintraege` | nein | Pfad zu einer `eintraege.txt` — prüft zusätzlich, dass jeder dort gelistete Lagerplatz auch als korrekt lesbares Schild vorhanden ist |
-| `-Report` | nein | Schreibt das Ergebnis zusätzlich als CSV-Datei |
-
-Direkter Aufruf ohne PowerShell:
+| `--datei` | ja (oder `--ordner`) | Pfad zu einem einzelnen zu prüfenden Schild (PNG) |
+| `--ordner` | ja (oder `--datei`) | Ordner mit mehreren Schildern — alle `.png`-Dateien darin werden geprüft |
+| `--erwartet` | nein | Erwarteter Barcode-Inhalt (nur bei `--datei`; sonst aus Dateiname abgeleitet) |
+| `--praefix` | nein | Dateiname-Präfix vor dem Lagerplatz-Code, Standard `lagerplatz_` (passend zu `config.json` → `output.prefix`) |
+| `--eintraege` | nein | Pfad zu einer `eintraege.txt` — prüft zusätzlich, dass jeder dort gelistete Lagerplatz auch als korrekt lesbares Schild vorhanden ist |
+| `--report` | nein | Schreibt das Ergebnis zusätzlich als CSV-Datei |
 
 ```powershell
 node .\pruefen.mjs --ordner .\output-15mm --eintraege .\eintraege.txt --report .\pruefbericht.csv
 ```
+
+---
+
+## Bilder normalisieren (konvertieren.mjs)
+
+`konvertieren.mjs` nimmt ein beliebiges Bild (PNG mit Transparenz, 16-Bit-
+Farbtiefe, Paletten-PNG, ungewöhnliches ICC-Profil, ...) und macht daraus
+ein robustes, einfaches Bild:
+
+1. Ein eventuell vorhandener Alphakanal wird auf einem festen Hintergrund
+   (Standard: Weiß) plattgemacht (`flatten`).
+2. Der Farbraum wird auf sRGB vereinheitlicht.
+3. Das Ergebnis wird als einfaches 8-Bit-PNG neu kodiert.
+
+Das nimmt nachgelagerten Schritten — dem Barcode-Scan in `pruefen.mjs`, der
+Skalierung in `skalieren.mjs` — von vornherein eine ganze Klasse
+ungewöhnlicher Eingaben ab, die dort zu Problemen führen könnten (z. B.
+wenn ein Barcode-Scanner mit transparenten oder exotisch kodierten PNGs
+nicht zurechtkommt). **`pruefen.mjs` und `skalieren.mjs` verwenden diese
+Normalisierung bereits automatisch** — ein manueller Aufruf ist normalerweise
+nicht nötig. `konvertieren.mjs` steht aber auch eigenständig zur Verfügung,
+z. B. um eine problematische Vorlage einmalig zu bereinigen.
+
+### Verwendung
+
+Einzelne Datei:
+
+```powershell
+node .\konvertieren.mjs --datei .\templates\vorlage1.png --output .\templates-normalisiert
+```
+
+Ganzer Ordner:
+
+```powershell
+node .\konvertieren.mjs --ordner .\output --output .\output-normalisiert
+```
+
+### Parameter-Referenz
+
+| Option | Pflicht | Bedeutung |
+|---|---|---|
+| `--datei` | ja (oder `--ordner`) | Pfad zu einem einzelnen Bild |
+| `--ordner` | ja (oder `--datei`) | Ordner mit mehreren Bildern (`.png`, `.jpg`, `.jpeg`, `.webp`, `.tif`, `.tiff`) |
+| `--output` | ja | Ausgabeordner für die normalisierten PNGs (wird bei Bedarf angelegt) |
+| `--hintergrund` | nein | Hintergrundfarbe für Transparenz, Standard `#ffffff` |
+| `--overwrite` | nein | Vorhandene Dateien im Ausgabeordner überschreiben |
 
 ---
 
@@ -536,6 +591,33 @@ node .\pruefen.mjs --ordner .\output-15mm --eintraege .\eintraege.txt --report .
 | `-Overwrite` | nein | Vorhandene Dateien im Ausgabeordner überschreiben |
 
 Ohne jeden Parameter startet der interaktive Modus mit Dateiauswahl-Dialogen.
+
+### Aktionsmenü nach dem interaktiven Lauf
+
+Wird `barcode.ps1` **ohne Parameter** (also im interaktiven Modus) gestartet
+und die Schilder wurden erfolgreich erzeugt, erscheint am Ende automatisch
+ein Auswahlmenü:
+
+```text
+Was möchtest du als Nächstes tun?
+  (1) Skalieren
+  (2) Prüfen
+  (3) Konvertieren
+  (0) Keine Auswahl
+Auswahl (0-3):
+```
+
+| Auswahl | Wirkung |
+|---|---|
+| `1` Skalieren | Fragt nach Zielhöhe (mm), Zielordner (Standard `<Ausgabe>\skaliert`) und ob überschrieben werden soll, dann `node skalieren.mjs ...` |
+| `2` Prüfen | Fragt optional nach der Eintragsdatei für den Vollständigkeitsabgleich, dann `node pruefen.mjs ...` |
+| `3` Konvertieren | Fragt nach Zielordner (Standard `<Ausgabe>\konvertiert`), Hintergrundfarbe (Standard `#ffffff`) und ob überschrieben werden soll, dann `node konvertieren.mjs ...` |
+| `0` / Enter | Keine weitere Aktion, Skript endet |
+
+Das Menü erscheint **nur im interaktiven Modus** — wird `barcode.ps1` mit
+den drei Pflichtparametern (oder über `node barcode.mjs`) direkt aufgerufen,
+z. B. aus einem eigenen Automatisierungs-Skript, entfällt es, damit
+automatisierte Läufe nicht auf eine Benutzereingabe warten.
 
 Direkter Aufruf ohne PowerShell (z. B. wenn `Set-ExecutionPolicy` blockiert):
 
