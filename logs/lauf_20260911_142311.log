@@ -1,0 +1,113 @@
+**********************
+PowerShell transcript start
+Start time: 20260911142311
+Username: MAXHAMBI\Max Hambi
+RunAs User: MAXHAMBI\Max Hambi
+Configuration Name: 
+Machine: MAXHAMBI (Microsoft Windows NT 10.0.26200.0)
+Host Application: C:\Program Files\PowerShell\7\pwsh.dll
+Process ID: 18556
+PSVersion: 7.6.5
+PSEdition: Core
+GitCommitId: 7.6.5
+OS: Microsoft Windows 10.0.26200
+Platform: Win32NT
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1, 6.0, 7.0
+PSRemotingProtocolVersion: 2.4
+SerializationVersion: 1.1.0.1
+WSManStackVersion: 3.0
+**********************
+   ______          __    ______   ____     ________  _ __        __ 
+  / ____/___  ____/ /__ <  /__ \ ( __ )   / ____/ /_(_) /_____  / /_
+ / /   / __ \/ __  / _ \/ /__/ // __  |  / __/ / __/ / //_/ _ \/ __/
+/ /___/ /_/ / /_/ /  __/ // __// /_/ /  / /___/ /_/ / ,< /  __/ /_  
+\____/\____/\__,_/\___/_//____/\____/  /_____/\__/_/_/|_|\___/\__/  
+   ______  __  ___              __  __                __    _       
+  / ____ \/  |/  /___ __  __   / / / /___ _____ ___  / /_  (_)      
+ / / __ `/ /|_/ / __ `/ |/_/  / /_/ / __ `/ __ `__ \/ __ \/ /       
+/ / /_/ / /  / / /_/ />  <   / __  / /_/ / / / / / / /_/ / /        
+\ \__,_/_/  /_/\__,_/_/|_|  /_/ /_/\__,_/_/ /_/ /_/_.___/_/         
+ \____/
+
+
+Starte Verarbeitung ...
+  Eintraege     : C:\Lager\lager-barcode-generator\mv01.txt
+  Vorlage       : C:\Lager\lager-barcode-generator\Templates\MV-ABC.png
+  Ausgabe       : C:\Lager\lager-barcode-generator\output
+  Ueberschreiben: True
+
+2026-09-11 14:23:46 [info] Log-Datei: C:\Lager\lager-barcode-generator\log\barcode_20260911_142346_146.log
+2026-09-11 14:23:46 [info] 5 Eintraege gefunden.
+2026-09-11 14:23:46 [info] Vorlage: C:\Lager\lager-barcode-generator\Templates\MV-ABC.png
+2026-09-11 14:23:46 [info] Ausgabe: C:\Lager\lager-barcode-generator\output
+2026-09-11 14:23:46 [info] Erstellt: lagerplatz_01A01.png {"dauerMs":168}
+2026-09-11 14:23:46 [info] Erstellt: lagerplatz_01A02.png {"dauerMs":137}
+2026-09-11 14:23:46 [info] Erstellt: lagerplatz_01A03.png {"dauerMs":140}
+2026-09-11 14:23:46 [info] Erstellt: lagerplatz_01C32.png {"dauerMs":137}
+2026-09-11 14:23:46 [info] Erstellt: lagerplatz_01C33.png {"dauerMs":136}
+2026-09-11 14:23:46 [info] Fertig. 5 erstellt, 0 uebersprungen. {"gesamtDauerMs":726}
+
+Fertig. Protokoll gespeichert unter: C:\Lager\lager-barcode-generator\logs\lauf_20260911_142311.log
+
+Was moechtest du als Naechstes tun?
+  (1) Skalieren     - Schilder auf eine Zielhoehe (mm) skalieren
+  (2) Pruefen       - Barcode scannen und Inhalt verifizieren
+  (3) Konvertieren  - Bilder normalisieren (Transparenz entfernen, sRGB, 8-Bit-PNG)
+  (0) Fertig / Verlassen
+
+
+2026-09-11 14:24:16 [info] Log-Datei: C:\Lager\lager-barcode-generator\log\skalieren_20260911_142416_089.log
+2026-09-11 14:24:16 [info] Zielh├Âhe: 30 mm @ 300 DPI = 354 px
+2026-09-11 14:24:16 [info] 5 Datei(en) werden verarbeitet.
+2026-09-11 14:24:16 [info] Skaliert: lagerplatz_01A01.png  2362x856 -> 977x354 px (41.4% der Originalgr├Â├ƒe)
+2026-09-11 14:24:16 [warn] "lagerplatz_01A01.png" wird auf unter 50% der Originalgr├Â├ƒe verkleinert. Die Barcode-Balken werden entsprechend d├╝nner ÔÇö vor dem vollst├ñndigen Lauf unbedingt mit einem echten Scanner testen (siehe README, Abschnitt "Produktionspr├╝fung").
+2026-09-11 14:24:16 [info] Skaliert: lagerplatz_01A02.png  2362x856 -> 977x354 px (41.4% der Originalgr├Â├ƒe)
+2026-09-11 14:24:16 [warn] "lagerplatz_01A02.png" wird auf unter 50% der Originalgr├Â├ƒe verkleinert. Die Barcode-Balken werden entsprechend d├╝nner ÔÇö vor dem vollst├ñndigen Lauf unbedingt mit einem echten Scanner testen (siehe README, Abschnitt "Produktionspr├╝fung").
+2026-09-11 14:24:16 [info] Skaliert: lagerplatz_01A03.png  2362x856 -> 977x354 px (41.4% der Originalgr├Â├ƒe)
+2026-09-11 14:24:16 [warn] "lagerplatz_01A03.png" wird auf unter 50% der Originalgr├Â├ƒe verkleinert. Die Barcode-Balken werden entsprechend d├╝nner ÔÇö vor dem vollst├ñndigen Lauf unbedingt mit einem echten Scanner testen (siehe README, Abschnitt "Produktionspr├╝fung").
+2026-09-11 14:24:16 [info] Skaliert: lagerplatz_01C32.png  2362x856 -> 977x354 px (41.4% der Originalgr├Â├ƒe)
+2026-09-11 14:24:16 [warn] "lagerplatz_01C32.png" wird auf unter 50% der Originalgr├Â├ƒe verkleinert. Die Barcode-Balken werden entsprechend d├╝nner ÔÇö vor dem vollst├ñndigen Lauf unbedingt mit einem echten Scanner testen (siehe README, Abschnitt "Produktionspr├╝fung").
+2026-09-11 14:24:16 [info] Skaliert: lagerplatz_01C33.png  2362x856 -> 977x354 px (41.4% der Originalgr├Â├ƒe)
+2026-09-11 14:24:16 [warn] "lagerplatz_01C33.png" wird auf unter 50% der Originalgr├Â├ƒe verkleinert. Die Barcode-Balken werden entsprechend d├╝nner ÔÇö vor dem vollst├ñndigen Lauf unbedingt mit einem echten Scanner testen (siehe README, Abschnitt "Produktionspr├╝fung").
+2026-09-11 14:24:16 [info] Fertig. 5 skaliert, 0 ├╝bersprungen, 5 mit Gr├Â├ƒenwarnung. {"gesamtDauerMs":321}
+
+Was moechtest du als Naechstes tun?
+  (1) Skalieren     - Schilder auf eine Zielhoehe (mm) skalieren
+  (2) Pruefen       - Barcode scannen und Inhalt verifizieren
+  (3) Konvertieren  - Bilder normalisieren (Transparenz entfernen, sRGB, 8-Bit-PNG)
+  (0) Fertig / Verlassen
+
+
+2026-09-11 14:24:30 [info] Log-Datei: C:\Lager\lager-barcode-generator\log\pruefen_20260911_142430_106.log
+2026-09-11 14:24:30 [info] 5 Datei(en) im Ordner C:\Lager\lager-barcode-generator\output werden gepr├╝ft.
+Datei                 Erwartet   Dekodiert   Status  Hinweis
+--------------------------------------------------------------------------------
+lagerplatz_01A01.png  01A01      01A01       OK
+lagerplatz_01A02.png  01A02      01A02       OK
+lagerplatz_01A03.png  01A03      01A03       OK
+lagerplatz_01C32.png  01C32      01C32       OK
+lagerplatz_01C33.png  01C33      01C33       OK
+2026-09-11 14:24:30 [info] lagerplatz_01A01.png: OK (dekodiert "01A01")
+2026-09-11 14:24:30 [info] lagerplatz_01A02.png: OK (dekodiert "01A02")
+2026-09-11 14:24:30 [info] lagerplatz_01A03.png: OK (dekodiert "01A03")
+2026-09-11 14:24:30 [info] lagerplatz_01C32.png: OK (dekodiert "01C32")
+2026-09-11 14:24:30 [info] lagerplatz_01C33.png: OK (dekodiert "01C33")
+
+Vollst├ñndigkeitspr├╝fung gegen C:\Lager\lager-barcode-generator\mv01.txt: alle 5 Eintr├ñge korrekt lesbar vorhanden.
+2026-09-11 14:24:30 [info] Vollst├ñndigkeitspr├╝fung: alle 5 Eintr├ñge korrekt lesbar vorhanden.
+
+5 von 5 Schildern korrekt gepr├╝ft.
+2026-09-11 14:24:30 [info] Fertig. 5 von 5 Schildern korrekt gepr├╝ft. {"gesamtDauerMs":762}
+
+Was moechtest du als Naechstes tun?
+  (1) Skalieren     - Schilder auf eine Zielhoehe (mm) skalieren
+  (2) Pruefen       - Barcode scannen und Inhalt verifizieren
+  (3) Konvertieren  - Bilder normalisieren (Transparenz entfernen, sRGB, 8-Bit-PNG)
+  (0) Fertig / Verlassen
+
+
+
+**********************
+PowerShell transcript end
+End time: 20260911142451
+**********************

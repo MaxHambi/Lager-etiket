@@ -1,0 +1,9 @@
+2026-09-11 14:24:30 [info] Log-Datei: C:\Lager\lager-barcode-generator\log\pruefen_20260911_142430_106.log
+2026-09-11 14:24:30 [info] 5 Datei(en) im Ordner C:\Lager\lager-barcode-generator\output werden geprüft.
+2026-09-11 14:24:30 [info] lagerplatz_01A01.png: OK (dekodiert "01A01")
+2026-09-11 14:24:30 [info] lagerplatz_01A02.png: OK (dekodiert "01A02")
+2026-09-11 14:24:30 [info] lagerplatz_01A03.png: OK (dekodiert "01A03")
+2026-09-11 14:24:30 [info] lagerplatz_01C32.png: OK (dekodiert "01C32")
+2026-09-11 14:24:30 [info] lagerplatz_01C33.png: OK (dekodiert "01C33")
+2026-09-11 14:24:30 [info] Vollständigkeitsprüfung: alle 5 Einträge korrekt lesbar vorhanden.
+2026-09-11 14:24:30 [info] Fertig. 5 von 5 Schildern korrekt geprüft. {"gesamtDauerMs":762}

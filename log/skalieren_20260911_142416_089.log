@@ -1,0 +1,14 @@
+2026-09-11 14:24:16 [info] Log-Datei: C:\Lager\lager-barcode-generator\log\skalieren_20260911_142416_089.log
+2026-09-11 14:24:16 [info] Zielhöhe: 30 mm @ 300 DPI = 354 px
+2026-09-11 14:24:16 [info] 5 Datei(en) werden verarbeitet.
+2026-09-11 14:24:16 [info] Skaliert: lagerplatz_01A01.png  2362x856 -> 977x354 px (41.4% der Originalgröße)
+2026-09-11 14:24:16 [warn] "lagerplatz_01A01.png" wird auf unter 50% der Originalgröße verkleinert. Die Barcode-Balken werden entsprechend dünner — vor dem vollständigen Lauf unbedingt mit einem echten Scanner testen (siehe README, Abschnitt "Produktionsprüfung").
+2026-09-11 14:24:16 [info] Skaliert: lagerplatz_01A02.png  2362x856 -> 977x354 px (41.4% der Originalgröße)
+2026-09-11 14:24:16 [warn] "lagerplatz_01A02.png" wird auf unter 50% der Originalgröße verkleinert. Die Barcode-Balken werden entsprechend dünner — vor dem vollständigen Lauf unbedingt mit einem echten Scanner testen (siehe README, Abschnitt "Produktionsprüfung").
+2026-09-11 14:24:16 [info] Skaliert: lagerplatz_01A03.png  2362x856 -> 977x354 px (41.4% der Originalgröße)
+2026-09-11 14:24:16 [warn] "lagerplatz_01A03.png" wird auf unter 50% der Originalgröße verkleinert. Die Barcode-Balken werden entsprechend dünner — vor dem vollständigen Lauf unbedingt mit einem echten Scanner testen (siehe README, Abschnitt "Produktionsprüfung").
+2026-09-11 14:24:16 [info] Skaliert: lagerplatz_01C32.png  2362x856 -> 977x354 px (41.4% der Originalgröße)
+2026-09-11 14:24:16 [warn] "lagerplatz_01C32.png" wird auf unter 50% der Originalgröße verkleinert. Die Barcode-Balken werden entsprechend dünner — vor dem vollständigen Lauf unbedingt mit einem echten Scanner testen (siehe README, Abschnitt "Produktionsprüfung").
+2026-09-11 14:24:16 [info] Skaliert: lagerplatz_01C33.png  2362x856 -> 977x354 px (41.4% der Originalgröße)
+2026-09-11 14:24:16 [warn] "lagerplatz_01C33.png" wird auf unter 50% der Originalgröße verkleinert. Die Barcode-Balken werden entsprechend dünner — vor dem vollständigen Lauf unbedingt mit einem echten Scanner testen (siehe README, Abschnitt "Produktionsprüfung").
+2026-09-11 14:24:16 [info] Fertig. 5 skaliert, 0 übersprungen, 5 mit Größenwarnung. {"gesamtDauerMs":321}
