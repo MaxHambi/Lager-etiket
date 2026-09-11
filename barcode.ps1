@@ -140,7 +140,11 @@ function Invoke-Skalieren {
     if ($Debuggen) { $nodeArgs += "--debug" }
 
     Write-Host ""
-    & node @nodeArgs
+    # Wie bei Invoke-Generator: explizit an Write-Host weiterleiten, damit
+    # die Ausgabe live sichtbar bleibt und nicht in einen Funktions- oder
+    # Schleifen-Rueckgabewert einfliesst (wichtig, seit Show-Aktionsmenue in
+    # einer Schleife wiederholt aufgerufen wird).
+    & node @nodeArgs 2>&1 | ForEach-Object { Write-Host $_ }
 }
 
 function Invoke-Pruefen {
@@ -163,7 +167,11 @@ function Invoke-Pruefen {
     if ($Debuggen) { $nodeArgs += "--debug" }
 
     Write-Host ""
-    & node @nodeArgs
+    # Wie bei Invoke-Generator: explizit an Write-Host weiterleiten, damit
+    # die Ausgabe live sichtbar bleibt und nicht in einen Funktions- oder
+    # Schleifen-Rueckgabewert einfliesst (wichtig, seit Show-Aktionsmenue in
+    # einer Schleife wiederholt aufgerufen wird).
+    & node @nodeArgs 2>&1 | ForEach-Object { Write-Host $_ }
 }
 
 function Invoke-Konvertieren {
@@ -189,26 +197,40 @@ function Invoke-Konvertieren {
     if ($Debuggen) { $nodeArgs += "--debug" }
 
     Write-Host ""
-    & node @nodeArgs
+    # Wie bei Invoke-Generator: explizit an Write-Host weiterleiten, damit
+    # die Ausgabe live sichtbar bleibt und nicht in einen Funktions- oder
+    # Schleifen-Rueckgabewert einfliesst (wichtig, seit Show-Aktionsmenue in
+    # einer Schleife wiederholt aufgerufen wird).
+    & node @nodeArgs 2>&1 | ForEach-Object { Write-Host $_ }
 }
 
 function Show-Aktionsmenue {
     param([string]$AusgabeOrdnerPfad, [string]$EintraegeDateiPfad, [bool]$Debuggen = $false)
 
-    Write-Host ""
-    Write-Host "Was moechtest du als Naechstes tun?"
-    Write-Host "  (1) Skalieren     - Schilder auf eine Zielhoehe (mm) skalieren"
-    Write-Host "  (2) Pruefen       - Barcode scannen und Inhalt verifizieren"
-    Write-Host "  (3) Konvertieren  - Bilder normalisieren (Transparenz entfernen, sRGB, 8-Bit-PNG)"
-    Write-Host "  (0) Keine Auswahl"
-    Write-Host ""
-    $wahl = Read-Host "Auswahl (0-3)"
+    # Laeuft in einer Schleife, damit nacheinander mehrere Aktionen ausgefuehrt
+    # werden koennen (z. B. erst Skalieren, danach gleich noch Pruefen), ohne
+    # das Skript jedes Mal neu zu starten. Beendet wird die Schleife nur durch
+    # explizite Auswahl von "0" oder durch einfaches Enter (leere Eingabe).
+    while ($true) {
+        Write-Host ""
+        Write-Host "Was moechtest du als Naechstes tun?"
+        Write-Host "  (1) Skalieren     - Schilder auf eine Zielhoehe (mm) skalieren"
+        Write-Host "  (2) Pruefen       - Barcode scannen und Inhalt verifizieren"
+        Write-Host "  (3) Konvertieren  - Bilder normalisieren (Transparenz entfernen, sRGB, 8-Bit-PNG)"
+        Write-Host "  (0) Fertig / Verlassen"
+        Write-Host ""
+        $wahl = Read-Host "Auswahl (0-3)"
 
-    switch ($wahl) {
-        "1" { Invoke-Skalieren -QuellOrdner $AusgabeOrdnerPfad -Debuggen $Debuggen }
-        "2" { Invoke-Pruefen -QuellOrdner $AusgabeOrdnerPfad -Eintraege $EintraegeDateiPfad -Debuggen $Debuggen }
-        "3" { Invoke-Konvertieren -QuellOrdner $AusgabeOrdnerPfad -Debuggen $Debuggen }
-        default { Write-Host "Keine Auswahl getroffen." }
+        if ([string]::IsNullOrWhiteSpace($wahl) -or $wahl -eq "0") {
+            return
+        }
+
+        switch ($wahl) {
+            "1" { Invoke-Skalieren -QuellOrdner $AusgabeOrdnerPfad -Debuggen $Debuggen }
+            "2" { Invoke-Pruefen -QuellOrdner $AusgabeOrdnerPfad -Eintraege $EintraegeDateiPfad -Debuggen $Debuggen }
+            "3" { Invoke-Konvertieren -QuellOrdner $AusgabeOrdnerPfad -Debuggen $Debuggen }
+            default { Write-Host "Ungueltige Auswahl. Bitte 0, 1, 2 oder 3 eingeben." }
+        }
     }
 }
 

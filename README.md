@@ -686,7 +686,7 @@ Was möchtest du als Nächstes tun?
   (1) Skalieren
   (2) Prüfen
   (3) Konvertieren
-  (0) Keine Auswahl
+  (0) Fertig / Verlassen
 Auswahl (0-3):
 ```
 
@@ -695,7 +695,12 @@ Auswahl (0-3):
 | `1` Skalieren | Fragt nach Zielhöhe (mm), Zielordner (Standard `<Ausgabe>\skaliert`) und ob überschrieben werden soll, dann `node skalieren.mjs ...` |
 | `2` Prüfen | Fragt optional nach der Eintragsdatei für den Vollständigkeitsabgleich, dann `node pruefen.mjs ...` |
 | `3` Konvertieren | Fragt nach Zielordner (Standard `<Ausgabe>\konvertiert`), Hintergrundfarbe (Standard `#ffffff`) und ob überschrieben werden soll, dann `node konvertieren.mjs ...` |
-| `0` / Enter | Keine weitere Aktion, Skript endet |
+| `0` / Enter | Menü verlassen, Skript endet |
+
+Das Menü **erscheint nach jeder Aktion erneut** — du kannst also z. B. erst
+`1` (Skalieren) und danach direkt noch `2` (Prüfen) wählen, ohne `barcode.ps1`
+zwischendurch neu zu starten. Erst eine explizite `0` oder leeres Enter
+beendet die Schleife.
 
 Das Menü erscheint **nur im interaktiven Modus** — wird `barcode.ps1` mit
 den drei Pflichtparametern (oder über `node barcode.mjs`) direkt aufgerufen,
