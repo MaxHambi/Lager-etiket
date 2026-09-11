@@ -26,11 +26,27 @@
  * config.json -> output.prefix) und Dateiendung werden entfernt.
  *
  * Exit-Code: 0 = alle Schilder korrekt, 1 = mindestens ein Fehler.
+ *
+ * Vor dem Dekodieren wird jedes Bild ueber sharp normalisiert: ein eventuell
+ * vorhandener Alphakanal wird auf weissem Hintergrund plattgemacht (flatten),
+ * und das Ergebnis wird als einfaches 8-Bit-sRGB-PNG neu kodiert. Das nimmt
+ * dem Decoder ungewoehnliche Eingaben (Transparenz, 16-Bit-Farbtiefe,
+ * Paletten-PNGs, exotische ICC-Profile) aus dem Weg, bevor sie ueberhaupt zum
+ * Problem werden koennen.
  */
 
 import { readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
 import { basename, extname, join } from "node:path";
+import sharp from "sharp";
 import { readBarcodes } from "zxing-wasm/reader";
+
+async function normalisiereBild(bytes) {
+  return sharp(bytes)
+    .flatten({ background: "#ffffff" })
+    .toColorspace("srgb")
+    .png({ bitdepth: 8 })
+    .toBuffer();
+}
 
 function parseArgs(argv) {
   const args = { praefix: "lagerplatz_" };
@@ -107,11 +123,21 @@ function ableitenErwartet(dateiname, praefix) {
 }
 
 async function pruefeDatei(pfad, erwartet) {
-  const bytes = readFileSync(pfad);
-  const treffer = await readBarcodes(bytes, {
+  const rohbytes = readFileSync(pfad);
+  const bytes = await normalisiereBild(rohbytes);
+  let treffer = await readBarcodes(bytes, {
     formats: ["Code128"],
     tryHarder: true,
   });
+
+  // Fallback: falls die Normalisierung selbst (unwahrscheinlich) das Bild
+  // verschlechtert, zusaetzlich mit den unveraenderten Originalbytes versuchen.
+  if (treffer.length === 0) {
+    treffer = await readBarcodes(rohbytes, {
+      formats: ["Code128"],
+      tryHarder: true,
+    });
+  }
 
   if (treffer.length === 0) {
     return {
