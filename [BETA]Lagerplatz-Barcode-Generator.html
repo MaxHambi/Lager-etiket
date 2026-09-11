@@ -16,6 +16,27 @@
   --font-ui: -apple-system, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
   --font-mono: "SF Mono", "Cascadia Code", Consolas, "Courier New", monospace;
 }
+#splash-screen{
+  position:fixed; inset:0; z-index:9999;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  text-align:center; background:var(--crust); cursor:pointer; padding:24px;
+  transition:opacity .6s ease, visibility .6s ease;
+}
+#splash-screen.hidden{ opacity:0; visibility:hidden; pointer-events:none; }
+#splash-screen h1{ font-size:1.8rem; margin:0 0 18px; letter-spacing:.03em; }
+#splash-screen h1 .accent{ color:var(--red); }
+#splash-screen p{ color:var(--subtext1); margin:6px 0; max-width:560px; }
+#splash-screen p code{
+  background:var(--surface0); color:var(--teal);
+  padding:2px 6px; border-radius:6px; font-family:var(--font-mono);
+}
+#splash-screen .hint{
+  margin-top:28px; font-size:.85rem; color:var(--overlay1);
+  animation:splashPulse 1.8s ease-in-out infinite;
+}
+@keyframes splashPulse{ 0%,100%{opacity:.5;} 50%{opacity:1;} }
+body.splash-active{ overflow:hidden; }
+
 *{box-sizing:border-box;}
 html,body{margin:0;padding:0;}
 body{
@@ -184,6 +205,25 @@ footer a{color:var(--overlay1);}
 </style>
 </head>
 <body>
+  <div id="splash-screen">
+  <h1><span class="accent">UNBEFUGTE NUTZUNG UNTERSAGT</span></h1>
+  <p>Interaktive HTML-Version des <code>barcode.ps1</code>-Werkzeugs — Code&nbsp;128, lokal &amp; offline.</p>
+  <p>© 2026 Max Hambi | <a href="mailto:max.hambi@pm.me">max.hambi@pm.me</a> | <a href="https://github.com/MaxHambi" target="_blank" rel="noopener">Github</a></p>
+  <p>Made with ❤️ | Verwendung außerhalb Auto-Kabel Rülzheim ist nicht gestattet!</p>
+  <h2><span class="accent">BETA VERSION Stand v1.0.1.1</span></h2>
+</div>
+<script>
+(function(){
+  var splash = document.getElementById('splash-screen');
+  document.body.classList.add('splash-active');
+  function dismiss(){
+    splash.classList.add('hidden');
+    document.body.classList.remove('splash-active');
+    splash.removeEventListener('click', dismiss);
+  }
+  splash.addEventListener('click', dismiss);
+})();
+</script>
 <div class="wrap">
 
   <header class="top">
@@ -321,7 +361,11 @@ footer a{color:var(--overlay1);}
 
   <footer>
     Code&nbsp;128 via <a href="https://github.com/lindell/JsBarcode" target="_blank" rel="noopener">JsBarcode</a> (MIT-Lizenz, inline eingebettet — keine Internetverbindung zur Laufzeit nötig).<br>
-    Ergänzt das <code>barcode.ps1</code> / <code>barcode.mjs</code>-Kommandozeilenwerkzeug für die Kommissionierung im Lager.
+    Ergänzt das <code>barcode.ps1</code> / <code>barcode.mjs</code>-Kommandozeilenwerkzeug für die Kommissionierung im Lager.<br>
+    <br>
+    © 2026 Max Hambi | <a href="mailto:max.hambi@pm.me">max.hambi@pm.me</a> | <a href="https://github.com/MaxHambi">Github</a><br>
+    Made with ❤️ | Verwendung außerhalb Auto-Kabel Rülzheim ist nicht gestattet!
+
   </footer>
 </div>
 

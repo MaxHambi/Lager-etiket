@@ -1,12 +1,12 @@
 **********************
 PowerShell transcript start
-Start time: 20260910220109
+Start time: 20260911105423
 Username: MAXHAMBI\Max Hambi
 RunAs User: MAXHAMBI\Max Hambi
 Configuration Name: 
 Machine: MAXHAMBI (Microsoft Windows NT 10.0.26200.0)
 Host Application: C:\Program Files\PowerShell\7\pwsh.dll
-Process ID: 25776
+Process ID: 7592
 PSVersion: 7.6.5
 PSEdition: Core
 GitCommitId: 7.6.5
@@ -19,5 +19,5 @@ WSManStackVersion: 3.0
 **********************
 **********************
 PowerShell transcript end
-End time: 20260910220114
+End time: 20260911105432
 **********************
