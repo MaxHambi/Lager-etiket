@@ -120,9 +120,14 @@ async function scaleOne(inputPath, outputDir, targetHeightPx, dpi, overwrite, lo
   return { skipped: false, fileName, origW, origH, newWidth, newHeight, scale };
 }
 
+// Modulweite Referenz, damit der äußere catch-Handler unten (bei einem
+// unerwarteten Fehler) ebenfalls in die Log-Datei schreiben kann.
+let aktiverLog = null;
+
 async function main() {
   const args = parseArgs(process.argv.slice(2));
   const log = erstelleLogger("skalieren", { debug: args.debug });
+  aktiverLog = log;
   log.debug("Geparste Argumente", args);
   log.info(`Log-Datei: ${log.pfad}`);
   if (args.debug) log.info("Debug-Modus aktiv (Stufe: debug) — es werden mehr Details erfasst.");
@@ -212,5 +217,6 @@ async function main() {
 
 main().catch((err) => {
   console.error("Fehler:", err.message);
+  if (aktiverLog) aktiverLog.error(`Unerwarteter Fehler: ${err.message}`, { stack: err.stack });
   process.exit(1);
 });

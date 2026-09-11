@@ -41,7 +41,7 @@
  * log/pruefen_<zeitstempel>.log — siehe logger.mjs.
  */
 
-import { readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
 import { basename, extname, join } from "node:path";
 import sharp from "sharp";
 import { readBarcodes } from "zxing-wasm/reader";
@@ -242,6 +242,10 @@ function schreibeCsv(pfad, ergebnisse) {
   writeFileSync(pfad, zeilen.join("\n") + "\n", "utf-8");
 }
 
+// Modulweite Referenz, damit der äußere catch-Handler unten (bei einem
+// unerwarteten Fehler) ebenfalls in die Log-Datei schreiben kann.
+let aktiverLog = null;
+
 async function main() {
   const args = parseArgs(process.argv.slice(2));
 
@@ -251,6 +255,7 @@ async function main() {
   }
 
   const log = erstelleLogger("pruefen", { debug: args.debug });
+  aktiverLog = log;
   log.debug("Geparste Argumente", args);
   log.info(`Log-Datei: ${log.pfad}`);
   if (args.debug) log.info("Debug-Modus aktiv (Stufe: debug) — es werden mehr Details erfasst.");
@@ -269,14 +274,14 @@ async function main() {
   const gesamtStart = Date.now();
 
   if (args.datei) {
-    if (!statSync(args.datei).isFile()) {
+    if (!existsSync(args.datei) || !statSync(args.datei).isFile()) {
       log.error(`Datei nicht gefunden: ${args.datei}`);
       process.exit(2);
     }
     const erwartet = args.erwartet ?? ableitenErwartet(args.datei, args.praefix);
     ergebnisse.push(await pruefeDatei(args.datei, erwartet, log));
   } else {
-    if (!statSync(args.ordner).isDirectory()) {
+    if (!existsSync(args.ordner) || !statSync(args.ordner).isDirectory()) {
       log.error(`Ordner nicht gefunden: ${args.ordner}`);
       process.exit(2);
     }
@@ -350,5 +355,6 @@ async function main() {
 
 main().catch((err) => {
   console.error("Unerwarteter Fehler:", err.message ?? err);
+  if (aktiverLog) aktiverLog.error(`Unerwarteter Fehler: ${err.message ?? err}`, { stack: err.stack });
   process.exit(1);
 });

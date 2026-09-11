@@ -594,7 +594,9 @@ gleichzeitig an zwei Stellen:
 
 - **Konsole** — wie bisher, farbig, zur direkten Kontrolle während des Laufs.
 - **Log-Datei** — zusätzlich unter `log/<skriptname>_<zeitstempel>.log`, z. B.
-  `log/barcode_20260911_110152.log`. Dieser `log/`-Ordner liegt direkt neben
+  `log/barcode_20260911_110152_483.log` (Zeitstempel bis auf die Millisekunde
+  genau, damit zwei Läufe in derselben Sekunde nie dieselbe Datei
+  überschreiben). Dieser `log/`-Ordner liegt direkt neben
   den Skripten und ist **nicht** derselbe wie `logs/` (Plural) — Letzterer
   enthält weiterhin die vollständigen PowerShell-Transkripte von
   `barcode.ps1`. Beide Ordner bestehen unabhängig voneinander.

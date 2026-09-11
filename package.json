@@ -6,6 +6,9 @@
   "dependencies": {
     "etiket": "^0.11.0",
     "sharp": "^0.35.4",
+    "triple-beam": "^1.4.1",
+    "winston": "^3.19.0",
+    "winston-transport": "^4.9.0",
     "zxing-wasm": "^3.1.4"
   }
 }
