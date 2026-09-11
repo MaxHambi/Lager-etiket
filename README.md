@@ -29,10 +29,12 @@ Ergebnisse aus beiden Wegen identisch aussehen.
 9. [Workflow: config.json ändern](#workflow-configjson-ändern)
 10. [Workflow: Skript (barcode.mjs) ändern](#workflow-skript-barcodemjs-ändern)
 11. [Workflow: HTML-Tool anpassen](#workflow-html-tool-anpassen)
-12. [Kommandozeilen-Referenz](#kommandozeilen-referenz)
-13. [Troubleshooting](#troubleshooting)
-14. [Produktionsprüfung vor dem großen Lauf](#produktionsprüfung-vor-dem-großen-lauf)
-15. [Quellen / Lizenzen](#quellen--lizenzen)
+12. [Fertige Schilder nachträglich skalieren (skalieren.ps1)](#fertige-schilder-nachträglich-skalieren-skalierenps1)
+13. [Barcode automatisch scannen & prüfen (pruefen.ps1)](#barcode-automatisch-scannen--prüfen-pruefenps1)
+14. [Kommandozeilen-Referenz](#kommandozeilen-referenz)
+15. [Troubleshooting](#troubleshooting)
+16. [Produktionsprüfung vor dem großen Lauf](#produktionsprüfung-vor-dem-großen-lauf)
+17. [Quellen / Lizenzen](#quellen--lizenzen)
 
 ---
 
@@ -42,14 +44,18 @@ Ergebnisse aus beiden Wegen identisch aussehen.
 lager-barcode-generator/
 ├── barcode.ps1                          PowerShell-Wrapper (interaktiv + Parameter)
 ├── barcode.mjs                           Eigentliche Generator-Logik (Node.js)
+├── skalieren.ps1                         PowerShell-Wrapper zum nachträglichen Skalieren fertiger Schilder
+├── skalieren.mjs                         Skalierungs-Logik (Node.js, Zielhöhe in mm)
+├── pruefen.ps1                           PowerShell-Wrapper: Barcode auf fertigen Schildern scannen & prüfen
+├── pruefen.mjs                           Prüflogik (Node.js, dekodiert Code 128 per zxing-wasm)
 ├── config.json                           Layout-Konfiguration (Barcode, Position, Ausgabe)
 ├── eintraege.txt                         Liste der Lagerplätze, eine pro Zeile
-├── package.json / package-lock.json      Node-Abhängigkeiten (etiket, sharp)
+├── package.json / package-lock.json      Node-Abhängigkeiten (etiket, sharp, zxing-wasm)
 ├── templates/                            Eigene PNG-Vorlagen hier ablegen
 │   ├── MV-AB.png
 │   └── MV-C.png
 ├── output/                               Fertige Schilder landen hier
-├── logs/                                 Protokoll jedes barcode.ps1-Laufs
+├── logs/                                 Protokoll jedes barcode.ps1-/skalieren.ps1-Laufs
 ├── Lagerplatz-Barcode-Generator.html     Interaktives Offline-Tool für den Browser
 └── README.md                             Diese Anleitung
 ```
@@ -323,6 +329,195 @@ Wichtig bei Anpassungen:
   in die Datei eingebettet werden.
 - Nach jeder Änderung: Datei im Browser neu laden, Vorlage laden,
   „Vorschau erzeugen" klicken und das Ergebnis visuell prüfen.
+
+---
+
+## Fertige Schilder nachträglich skalieren (skalieren.ps1)
+
+Werden dieselben Schilder an unterschiedlichen Orten angebracht, ist oft eine
+andere physische Größe nötig. `skalieren.ps1` / `skalieren.mjs` skalieren
+bereits fertige PNG-Schilder (Vorlage + Barcode, schon zusammengefügt) auf
+eine gewünschte **Zielhöhe in Millimetern** — die Breite wird dabei exakt
+proportional mitskaliert, das Seitenverhältnis bleibt unverändert.
+
+### Verwendung
+
+Einzelne Datei:
+
+```powershell
+.\skalieren.ps1 -Datei .\output\lagerplatz_01A01.png -Hoehe 15 -Output .\output-15mm
+```
+
+Ganzer Ordner (alle `.png`-Dateien darin):
+
+```powershell
+.\skalieren.ps1 -Ordner .\output -Hoehe 15 -Output .\output-15mm
+```
+
+Ohne Parameter gestartet fragt das Skript interaktiv nach Datei/Ordner,
+Zielhöhe, Ausgabeordner und ob vorhandene Dateien überschrieben werden sollen.
+
+### Wie die Umrechnung funktioniert
+
+```text
+Zielhöhe_px = round(Zielhöhe_mm / 25.4 * DPI)
+Skalierungsfaktor = Zielhöhe_px / Originalhöhe_px
+Zielbreite_px = round(Originalbreite_px * Skalierungsfaktor)
+```
+
+Die Umrechnung erfolgt standardmäßig mit **300 DPI** (identisch zur
+Standard-Ausgabeauflösung von `barcode.mjs`) und lässt sich mit `-Dpi`
+übersteuern, falls die Original-Schilder mit einer anderen Auflösung erzeugt
+wurden. Die resultierende PNG-Datei erhält dieselbe DPI-Angabe in den
+Metadaten, damit sie beim Drucken in tatsächlicher Größe exakt die
+gewünschte Höhe ergibt.
+
+### Bleibt der Barcode danach lesbar?
+
+Ja — solange die Verkleinerung nicht zu extrem ausfällt. Das Skript skaliert
+mit einem hochwertigen Resampling-Filter (`lanczos3`), das Barcode-Kanten
+deutlich schärfer hält als einfache Verfahren. Wird ein Schild auf **unter
+50 % der Originalgröße** verkleinert, gibt das Skript automatisch eine
+Warnung aus, da die Barcode-Balken dann so dünn werden können, dass
+Scanner Probleme bekommen. Beispiel aus einem echten Testlauf:
+
+```text
+Skaliert: lagerplatz_01A01.png  200x100 -> 94x47 px (47% der Originalgröße)
+  Warnung: "lagerplatz_01A01.png" wird auf unter 50% der Originalgröße verkleinert. ...
+```
+
+Bei einer solchen Warnung unbedingt vor dem vollständigen Lauf ein paar
+skalierte Testschilder mit einem echten Scanner prüfen (siehe
+[Produktionsprüfung](#produktionsprüfung-vor-dem-großen-lauf)) — dieselbe
+Grundregel gilt letztlich für jede Skalierung, auch ohne Warnung.
+
+### Parameter-Referenz
+
+| Parameter | Pflicht | Bedeutung |
+|---|---|---|
+| `-Datei` | ja (oder `-Ordner`) | Pfad zu einem einzelnen fertigen Schild (PNG) |
+| `-Ordner` | ja (oder `-Datei`) | Ordner mit mehreren fertigen Schildern — alle `.png`-Dateien darin werden verarbeitet |
+| `-Hoehe` | ja | Zielhöhe in Millimetern |
+| `-Output` | ja | Ausgabeordner für die skalierten Schilder (wird bei Bedarf angelegt) |
+| `-Dpi` | nein | Auflösung für die mm→Pixel-Umrechnung, Standard `300` |
+| `-Overwrite` | nein | Vorhandene Dateien im Ausgabeordner überschreiben |
+
+`-Datei` und `-Ordner` schließen sich gegenseitig aus — es muss genau eine
+der beiden Optionen angegeben werden.
+
+Direkter Aufruf ohne PowerShell:
+
+```powershell
+node .\skalieren.mjs --ordner .\output --hoehe 15 --output .\output-15mm --dpi 300 --overwrite
+```
+
+---
+
+## Barcode automatisch scannen & prüfen (pruefen.ps1)
+
+Statt nur nach Augenmaß zu prüfen, ob ein Barcode noch "gut aussieht",
+dekodiert `pruefen.ps1` / `pruefen.mjs` den Barcode auf einem fertigen
+Schild wirklich — also so, wie es später ein Scanner im Lager tun würde —
+und vergleicht das Ergebnis mit dem erwarteten Lagerplatz-Code. Das
+funktioniert für frisch erzeugte Schilder aus `barcode.ps1` genauso wie für
+bereits skalierte Schilder aus `skalieren.ps1` — damit lässt sich nach jeder
+Skalierung automatisiert bestätigen, dass der Barcode noch korrekt lesbar
+ist.
+
+### Verwendung
+
+Einzelne Datei (erwarteter Code wird automatisch aus dem Dateinamen abgeleitet):
+
+```powershell
+.\pruefen.ps1 -Datei .\output\lagerplatz_01A01.png
+```
+
+Ganzer Ordner, inklusive Vollständigkeitsabgleich gegen die Eintragsdatei
+und CSV-Bericht:
+
+```powershell
+.\pruefen.ps1 -Ordner .\output-15mm -Eintraege .\eintraege.txt -Report .\pruefbericht.csv
+```
+
+Ohne Parameter gestartet fragt das Skript interaktiv nach Datei/Ordner und
+optional nach einer Eintragsdatei für den Vollständigkeitsabgleich.
+
+Die Konsolen-Ausgabe zeigt für jedes Schild Dateiname, erwarteten Code,
+tatsächlich dekodierten Code und einen Status (`OK` / `FEHLER`), zum
+Beispiel:
+
+```text
+Datei                 Erwartet   Dekodiert   Status  Hinweis
+--------------------------------------------------------------------------------
+lagerplatz_01A01.png  01A01      01A01       OK
+lagerplatz_01A02.png  01A02      01A02       OK
+
+2 von 2 Schildern korrekt geprüft.
+```
+
+Wird ein Barcode gar nicht gefunden oder stimmt der dekodierte Text nicht
+mit dem erwarteten Lagerplatz-Code überein, meldet das Skript `FEHLER` für
+dieses Schild und beendet sich am Ende mit Exit-Code `1` — nützlich, um den
+Lauf z. B. in einem eigenen Batch-Skript automatisch abzubrechen, falls
+irgendein Schild nicht in Ordnung ist.
+
+### Woher der Decoder kommt
+
+Zum Dekodieren wird [`zxing-wasm`](https://www.npmjs.com/package/zxing-wasm)
+verwendet — ein WebAssembly-Port der etablierten ZXing-Bibliothek. Das ist
+kein zufällig gewähltes Werkzeug: Das `etiket`-Projekt, das für die
+Barcode-Erzeugung in `barcode.mjs`/`skalieren.mjs` sorgt, verifiziert seine
+eigenen erzeugten Code-128-Barcodes in seiner Testsuite ebenfalls per
+Round-Trip-Scan mit `zxing-wasm` (neben `rxing` und `gozxing`) — siehe die
+[etiket-Projektseite](https://github.com/productdevbook/etiket), Abschnitt
+"Verified formats". `pruefen.ps1` wendet also denselben Prüfansatz auf die
+fertigen, bereits mit der Vorlage zusammengesetzten Schilder an. `zxing-wasm`
+läuft rein in WebAssembly ohne native Abhängigkeiten (kein `zbar`/`libzbar`
+nötig) und funktioniert identisch unter Windows, macOS und Linux.
+
+### Einmalige Einrichtung
+
+`zxing-wasm` muss einmalig als Abhängigkeit installiert werden:
+
+```powershell
+cd C:\Lager\lager-barcode-generator
+npm install zxing-wasm
+```
+
+Danach steht `pruefen.mjs`/`pruefen.ps1` wie gewohnt zur Verfügung.
+
+### Wie zuverlässig ist die Prüfung bei kleinen Schildern?
+
+Bei eigenen Tests mit einem echten, produktionsgroßen Schild (2362×856 px,
+DPI 300) wurde derselbe Barcode-Inhalt bis herunter zu einer skalierten
+Zielhöhe von 15mm noch zuverlässig korrekt dekodiert, bei 10mm und darunter
+nicht mehr. Dieser konkrete Schwellenwert gilt nur für diesen einen Test und
+hängt von Vorlage, Barcode-Länge und `config.json`-Einstellungen
+(`moduleSize` etc.) ab — er ersetzt keine eigene Prüfung. Genau deshalb ist
+`pruefen.ps1` nach jeder Skalierung hilfreich: Statt sich auf einen
+pauschalen Prozentsatz zu verlassen, wird für jedes tatsächlich erzeugte
+Schild einzeln bestätigt, ob der Barcode noch korrekt ausgelesen werden
+kann. Eine erfolgreiche Software-Dekodierung ist ein starkes Indiz, ersetzt
+aber bei sehr kleinen oder für den späteren Einsatzort kritischen Schildern
+nicht den echten Scannertest aus der
+[Produktionsprüfung](#produktionsprüfung-vor-dem-großen-lauf).
+
+### Parameter-Referenz
+
+| Parameter | Pflicht | Bedeutung |
+|---|---|---|
+| `-Datei` | ja (oder `-Ordner`) | Pfad zu einem einzelnen zu prüfenden Schild (PNG) |
+| `-Ordner` | ja (oder `-Datei`) | Ordner mit mehreren Schildern — alle `.png`-Dateien darin werden geprüft |
+| `-Erwartet` | nein | Erwarteter Barcode-Inhalt (nur bei `-Datei`; sonst aus Dateiname abgeleitet) |
+| `-Praefix` | nein | Dateiname-Präfix vor dem Lagerplatz-Code, Standard `lagerplatz_` (passend zu `config.json` → `output.prefix`) |
+| `-Eintraege` | nein | Pfad zu einer `eintraege.txt` — prüft zusätzlich, dass jeder dort gelistete Lagerplatz auch als korrekt lesbares Schild vorhanden ist |
+| `-Report` | nein | Schreibt das Ergebnis zusätzlich als CSV-Datei |
+
+Direkter Aufruf ohne PowerShell:
+
+```powershell
+node .\pruefen.mjs --ordner .\output-15mm --eintraege .\eintraege.txt --report .\pruefbericht.csv
+```
 
 ---
 
