@@ -98,7 +98,19 @@ function Invoke-Generator {
     if ($Ueberschreiben) { $nodeArgs += "--overwrite" }
     if ($Debuggen) { $nodeArgs += "--debug" }
 
-    & node @nodeArgs
+    # Wichtig: "& node @nodeArgs" NICHT direkt als letzte Anweisung stehen
+    # lassen. Wird das Ergebnis dieser Funktion einer Variable zugewiesen
+    # (wie unten bei "$exitCode = Invoke-Generator ..."), fasst PowerShell
+    # ALLE waehrend der Funktion erzeugten Ausgabeobjekte zusammen - also
+    # auch jede einzelne Konsolenzeile von node/winston - nicht nur den
+    # "return"-Wert. $exitCode wuerde dann zu einem Array aus Log-Text plus
+    # Exitcode statt einer einfachen Zahl, wodurch spaeter "$exitCode -eq 0"
+    # falsch auswertet und (a) das Aktionsmenue nie erscheint und (b) die
+    # eigentliche node-Ausgabe auf der Konsole verschwindet, statt live
+    # angezeigt zu werden. Durch die explizite Weiterleitung an Write-Host
+    # (Konsole+Fehlerstrom zusammengefuehrt via 2>&1) bleibt die Ausgabe
+    # sofort sichtbar, ohne den Funktions-Rueckgabewert zu verunreinigen.
+    & node @nodeArgs 2>&1 | ForEach-Object { Write-Host $_ }
     return $LASTEXITCODE
 }
 
