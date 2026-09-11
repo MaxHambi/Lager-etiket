@@ -32,10 +32,11 @@ Ergebnisse aus beiden Wegen identisch aussehen.
 12. [Fertige Schilder nachträglich skalieren (skalieren.mjs)](#fertige-schilder-nachträglich-skalieren-skalierenmjs)
 13. [Barcode automatisch scannen & prüfen (pruefen.mjs)](#barcode-automatisch-scannen--prüfen-pruefenmjs)
 14. [Bilder normalisieren (konvertieren.mjs)](#bilder-normalisieren-konvertierenmjs)
-15. [Kommandozeilen-Referenz](#kommandozeilen-referenz)
-16. [Troubleshooting](#troubleshooting)
-17. [Produktionsprüfung vor dem großen Lauf](#produktionsprüfung-vor-dem-großen-lauf)
-18. [Quellen / Lizenzen](#quellen--lizenzen)
+15. [Logging & --debug](#logging--debug)
+16. [Kommandozeilen-Referenz](#kommandozeilen-referenz)
+17. [Troubleshooting](#troubleshooting)
+18. [Produktionsprüfung vor dem großen Lauf](#produktionsprüfung-vor-dem-großen-lauf)
+19. [Quellen / Lizenzen](#quellen--lizenzen)
 
 ---
 
@@ -52,14 +53,19 @@ lager-barcode-generator/
 │                                          per `node` ausgeführt — normalisiert Bilder vor dem Scan automatisch
 ├── konvertieren.mjs                      Bild-Normalisierung (Transparenz entfernen, sRGB, 8-Bit-PNG);
 │                                          eigenständig nutzbar UND automatisch von skalieren.mjs/pruefen.mjs verwendet
+├── logger.mjs                            Gemeinsames Logging-Modul (winston) für alle .mjs-Skripte —
+│                                          nicht direkt aufrufen, wird von den anderen Skripten importiert
 ├── config.json                           Layout-Konfiguration (Barcode, Position, Ausgabe)
 ├── eintraege.txt                         Liste der Lagerplätze, eine pro Zeile
-├── package.json / package-lock.json      Node-Abhängigkeiten (etiket, sharp, zxing-wasm)
+├── package.json / package-lock.json      Node-Abhängigkeiten (etiket, sharp, zxing-wasm, winston)
 ├── templates/                            Eigene PNG-Vorlagen hier ablegen
 │   ├── MV-AB.png
 │   └── MV-C.png
 ├── output/                               Fertige Schilder landen hier
-├── logs/                                 Protokoll jedes barcode.ps1-Laufs
+├── log/                                  Protokoll jedes einzelnen Skriptlaufs (barcode/skalieren/pruefen/
+│                                          konvertieren.mjs), siehe [Logging & --debug](#logging--debug)
+├── logs/                                 Vollständiges PowerShell-Transkript jedes barcode.ps1-Laufs
+│                                          (eigener, älterer Mechanismus — nicht zu verwechseln mit log/)
 ├── Lagerplatz-Barcode-Generator.html     Interaktives Offline-Tool für den Browser
 └── README.md                             Diese Anleitung
 ```
@@ -416,6 +422,7 @@ Grundregel gilt letztlich für jede Skalierung, auch ohne Warnung.
 | `--output` | ja | Ausgabeordner für die skalierten Schilder (wird bei Bedarf angelegt) |
 | `--dpi` | nein | Auflösung für die mm→Pixel-Umrechnung, Standard `300` |
 | `--overwrite` | nein | Vorhandene Dateien im Ausgabeordner überschreiben |
+| `--debug` | nein | Höchste Logging-Stufe aktivieren (siehe [Logging & --debug](#logging--debug)) |
 
 `--datei` und `--ordner` schließen sich gegenseitig aus — es muss genau eine
 der beiden Optionen angegeben werden.
@@ -523,6 +530,7 @@ nicht den echten Scannertest aus der
 | `--praefix` | nein | Dateiname-Präfix vor dem Lagerplatz-Code, Standard `lagerplatz_` (passend zu `config.json` → `output.prefix`) |
 | `--eintraege` | nein | Pfad zu einer `eintraege.txt` — prüft zusätzlich, dass jeder dort gelistete Lagerplatz auch als korrekt lesbares Schild vorhanden ist |
 | `--report` | nein | Schreibt das Ergebnis zusätzlich als CSV-Datei |
+| `--debug` | nein | Höchste Logging-Stufe aktivieren (siehe [Logging & --debug](#logging--debug)) |
 
 ```powershell
 node .\pruefen.mjs --ordner .\output-15mm --eintraege .\eintraege.txt --report .\pruefbericht.csv
@@ -573,13 +581,85 @@ node .\konvertieren.mjs --ordner .\output --output .\output-normalisiert
 | `--output` | ja | Ausgabeordner für die normalisierten PNGs (wird bei Bedarf angelegt) |
 | `--hintergrund` | nein | Hintergrundfarbe für Transparenz, Standard `#ffffff` |
 | `--overwrite` | nein | Vorhandene Dateien im Ausgabeordner überschreiben |
+| `--debug` | nein | Höchste Logging-Stufe aktivieren (siehe [Logging & --debug](#logging--debug)) |
+
+---
+
+## Logging & --debug
+
+Jedes der vier `.mjs`-Skripte (`barcode.mjs`, `skalieren.mjs`, `pruefen.mjs`,
+`konvertieren.mjs`) protokolliert seinen Lauf über ein gemeinsames Modul
+(`logger.mjs`, basiert auf [winston](https://github.com/winstonjs/winston))
+gleichzeitig an zwei Stellen:
+
+- **Konsole** — wie bisher, farbig, zur direkten Kontrolle während des Laufs.
+- **Log-Datei** — zusätzlich unter `log/<skriptname>_<zeitstempel>.log`, z. B.
+  `log/barcode_20260911_110152.log`. Dieser `log/`-Ordner liegt direkt neben
+  den Skripten und ist **nicht** derselbe wie `logs/` (Plural) — Letzterer
+  enthält weiterhin die vollständigen PowerShell-Transkripte von
+  `barcode.ps1`. Beide Ordner bestehen unabhängig voneinander.
+
+Es gibt zwei Logging-Stufen:
+
+| Stufe | Wann aktiv | Was wird erfasst |
+|---|---|---|
+| **Normal** (Standard) | ohne `--debug` | Allgemeine, nützliche Informationen: Start/Ende eines Laufs, Anzahl verarbeiteter Dateien, Ergebnis je Datei, Warnungen, Fehler |
+| **Debug** (höchste Stufe) | mit `--debug` | Zusätzlich alle Detailinformationen: geparste Kommandozeilen-Argumente, geladene `config.json`, Bildmetadaten vor/nach der Normalisierung, genaue Skalierungs- und Platzierungsberechnungen, rohe Dekodier-Treffer bei der Prüfung, Timing pro Datei und pro Lauf, vollständige Fehler-Stacktraces |
+
+Beispiel:
+
+```powershell
+# Normal — allgemeine Informationen
+node .\pruefen.mjs --ordner .\output
+
+# Debug — maximale Detailtiefe, zusätzlich in log/pruefen_<zeitstempel>.log
+node .\pruefen.mjs --ordner .\output --debug
+```
+
+Die Konsolen-Ausgabe im Normal-Modus bleibt dabei unverändert zum bisherigen
+Verhalten — `--debug` fügt nur zusätzliche `[DEBUG]`-Zeilen hinzu und schreibt
+mehr Details in die Log-Datei; nichts, was vorher sichtbar war, verschwindet.
+
+Jeder Lauf erzeugt eine eigene, neue Log-Datei (Zeitstempel im Dateinamen) —
+alte Log-Dateien werden nie überschrieben oder automatisch gelöscht. Bei
+vielen Läufen empfiehlt es sich, den `log/`-Ordner von Zeit zu Zeit manuell
+aufzuräumen.
+
+### Warum winston statt eines Eigenbaus
+
+[winston](https://www.npmjs.com/package/winston) ist eine etablierte,
+weit verbreitete Node.js-Logging-Bibliothek (mehrere Millionen wöchentliche
+Downloads) mit nativer Unterstützung für mehrere gleichzeitige Ziele
+("Transports") — hier Konsole **und** Datei parallel —, Log-Stufen-Filterung
+und flexiblem, gut lesbarem Textformat. Das ursprünglich vorgeschlagene
+Paket [`abstract-logging`](https://www.npmjs.com/package/abstract-logging)
+wurde geprüft, ist aber für diesen Zweck nicht geeignet: Es ist laut eigener
+Beschreibung nur eine No-Op-Schnittstelle ("This module provides an
+interface for modules to include so that they can support logging via an
+external logger... All methods are no operation functions") — ein reiner
+Platzhalter für Bibliotheken, die selbst keinen Logger mitbringen wollen. Es
+schreibt nichts in eine Datei und kennt keine Stufen, weshalb winston hier
+die passende Wahl ist.
+
+### Einmalige Einrichtung
+
+`winston` muss einmalig als Abhängigkeit installiert werden (wie zuvor schon
+bei `zxing-wasm`):
+
+```powershell
+cd C:\Lager\lager-barcode-generator
+npm install winston
+```
+
+Danach steht das Logging in allen vier Skripten automatisch zur Verfügung —
+keine weitere Einrichtung nötig.
 
 ---
 
 ## Kommandozeilen-Referenz
 
 ```powershell
-.\barcode.ps1 <Eintraege-Datei> <Vorlage-Datei> <Ausgabe-Ordner> [-Config <Pfad>] [-Overwrite]
+.\barcode.ps1 <Eintraege-Datei> <Vorlage-Datei> <Ausgabe-Ordner> [-Config <Pfad>] [-Overwrite] [-Debug]
 ```
 
 | Parameter | Pflicht | Bedeutung |
@@ -589,6 +669,7 @@ node .\konvertieren.mjs --ordner .\output --output .\output-normalisiert
 | `Ausgabe-Ordner` | ja | Zielordner für die fertigen Schilder (wird bei Bedarf angelegt) |
 | `-Config` | nein | Alternative `config.json`, Standard: `config.json` im Skriptordner |
 | `-Overwrite` | nein | Vorhandene Dateien im Ausgabeordner überschreiben |
+| `-Debug` | nein | Wird durchgereicht an `node barcode.mjs --debug` — höchste Logging-Stufe (siehe [Logging & --debug](#logging--debug)) |
 
 Ohne jeden Parameter startet der interaktive Modus mit Dateiauswahl-Dialogen.
 
@@ -622,7 +703,7 @@ automatisierte Läufe nicht auf eine Benutzereingabe warten.
 Direkter Aufruf ohne PowerShell (z. B. wenn `Set-ExecutionPolicy` blockiert):
 
 ```powershell
-node .\barcode.mjs .\eintraege.txt .\templates\vorlage1.png .\output --config config.json --overwrite
+node .\barcode.mjs .\eintraege.txt .\templates\vorlage1.png .\output --config config.json --overwrite --debug
 ```
 
 Falls PowerShell die Ausführung von `.ps1`-Dateien verweigert, einmalig:

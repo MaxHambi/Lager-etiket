@@ -4,20 +4,26 @@
 // Code-128-Barcode mit lesbarem Klartext darunter (via "etiket"), zentriert ihn
 // im konfigurierten Bereich einer PNG-Vorlage (via "sharp") und speichert das
 // fertige Schild als PNG.
+//
+// Logging: --debug aktiviert die höchste Logging-Stufe (u.a. geparste
+// Konfiguration, Platzierungsberechnung pro Schild, Timing). Ohne --debug
+// gilt die normale Stufe. Jeder Lauf schreibt zusätzlich eine Log-Datei
+// unter log/barcode_<zeitstempel>.log — siehe logger.mjs.
 
 import fs from "node:fs";
 import path from "node:path";
 import { barcode } from "etiket/barcode";
 import sharp from "sharp";
+import { erstelleLogger } from "./logger.mjs";
 
 function printUsage() {
   console.error(
-    "Verwendung: node barcode.mjs <eintraege-datei> <vorlage-datei> <ausgabe-ordner> [--config config.json] [--overwrite]"
+    "Verwendung: node barcode.mjs <eintraege-datei> <vorlage-datei> <ausgabe-ordner> [--config config.json] [--overwrite] [--debug]"
   );
 }
 
 function parseArgs(argv) {
-  const args = { overwrite: false, config: "config.json" };
+  const args = { overwrite: false, config: "config.json", debug: false };
   const positional = [];
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
@@ -25,6 +31,8 @@ function parseArgs(argv) {
       args.overwrite = true;
     } else if (a === "--config" || a === "-Config") {
       args.config = argv[++i];
+    } else if (a === "--debug" || a === "-Debug") {
+      args.debug = true;
     } else {
       positional.push(a);
     }
@@ -58,7 +66,7 @@ function sanitizeFileName(text) {
   return text.replace(/[\\/:*?"<>|]/g, "_");
 }
 
-async function buildLabelPng(text, cfg, dpi) {
+async function buildLabelPng(text, cfg, dpi, log) {
   const b = cfg.barcode;
   const svg = barcode(text, {
     type: "code128",
@@ -78,11 +86,12 @@ async function buildLabelPng(text, cfg, dpi) {
   const rendered = sharp(Buffer.from(svg), { density: dpi });
   const meta = await rendered.metadata();
   const buffer = await rendered.png().toBuffer();
+  log.debug("Barcode-PNG erzeugt", { text, breite: meta.width, hoehe: meta.height, dpi });
   return { buffer, width: meta.width, height: meta.height };
 }
 
-async function composeLabel(text, templatePath, cfg, dpi) {
-  const label = await buildLabelPng(text, cfg, dpi);
+async function composeLabel(text, templatePath, cfg, dpi, log) {
+  const label = await buildLabelPng(text, cfg, dpi, log);
   const templateMeta = await sharp(templatePath).metadata();
 
   const area = cfg.placement.area ?? {};
@@ -92,8 +101,9 @@ async function composeLabel(text, templatePath, cfg, dpi) {
   const areaHeight = area.height ?? templateMeta.height - top;
 
   if (left + areaWidth > templateMeta.width || top + areaHeight > templateMeta.height) {
-    console.warn(
-      `  Warnung: Zielbereich (left=${left}, top=${top}, ${areaWidth}x${areaHeight}) reicht über die Vorlagengröße (${templateMeta.width}x${templateMeta.height}) hinaus.`
+    log.warn(
+      `Zielbereich (left=${left}, top=${top}, ${areaWidth}x${areaHeight}) reicht über die Vorlagengröße (${templateMeta.width}x${templateMeta.height}) hinaus.`,
+      { text }
     );
   }
 
@@ -118,6 +128,15 @@ async function composeLabel(text, templatePath, cfg, dpi) {
   const posLeft = Math.round(left + (areaWidth - finalWidth) / 2 + offsetX);
   const posTop = Math.round(top + (areaHeight - finalHeight) / 2 + offsetY);
 
+  log.debug("Platzierungsberechnung", {
+    text,
+    templateGroesse: { breite: templateMeta.width, hoehe: templateMeta.height },
+    bereich: { left, top, areaWidth, areaHeight },
+    skalierungsfaktor: scale,
+    finalGroesse: { finalWidth, finalHeight },
+    position: { posLeft, posTop },
+  });
+
   return sharp(templatePath)
     .composite([{ input: finalBuffer, left: posLeft, top: posTop }])
     .withMetadata({ density: dpi })
@@ -127,36 +146,42 @@ async function composeLabel(text, templatePath, cfg, dpi) {
 
 async function main() {
   const args = parseArgs(process.argv.slice(2));
+  const log = erstelleLogger("barcode", { debug: args.debug });
+  log.debug("Geparste Argumente", args);
+  log.info(`Log-Datei: ${log.pfad}`);
+  if (args.debug) log.info("Debug-Modus aktiv (Stufe: debug) — es werden mehr Details erfasst.");
+
   if (!args.entriesFile || !args.templateFile || !args.outputDir) {
     printUsage();
     process.exit(1);
   }
 
   if (!fs.existsSync(args.entriesFile)) {
-    console.error(`Eintragsdatei nicht gefunden: ${args.entriesFile}`);
+    log.error(`Eintragsdatei nicht gefunden: ${args.entriesFile}`);
     process.exit(1);
   }
   if (!fs.existsSync(args.templateFile)) {
-    console.error(`Vorlagendatei nicht gefunden: ${args.templateFile}`);
+    log.error(`Vorlagendatei nicht gefunden: ${args.templateFile}`);
     process.exit(1);
   }
   if (!fs.existsSync(args.config)) {
-    console.error(`Konfigurationsdatei nicht gefunden: ${args.config}`);
+    log.error(`Konfigurationsdatei nicht gefunden: ${args.config}`);
     process.exit(1);
   }
 
   const cfg = JSON.parse(fs.readFileSync(args.config, "utf8"));
+  log.debug("Geladene Konfiguration", cfg);
   const dpi = cfg.output?.dpi ?? 300;
   const entries = readEntries(args.entriesFile);
   fs.mkdirSync(args.outputDir, { recursive: true });
 
-  console.log(`${entries.length} Eintraege gefunden.`);
-  console.log(`Vorlage: ${args.templateFile}`);
-  console.log(`Ausgabe: ${args.outputDir}`);
-  console.log("");
+  log.info(`${entries.length} Eintraege gefunden.`);
+  log.info(`Vorlage: ${args.templateFile}`);
+  log.info(`Ausgabe: ${args.outputDir}`);
 
   let created = 0;
   let skipped = 0;
+  const gesamtStart = Date.now();
 
   for (const entry of entries) {
     const fileName = `${cfg.output?.prefix ?? ""}${sanitizeFileName(entry)}.png`;
@@ -164,19 +189,26 @@ async function main() {
 
     const overwrite = args.overwrite || cfg.output?.overwrite === true;
     if (fs.existsSync(outPath) && !overwrite) {
-      console.log(`Uebersprungen (existiert bereits): ${fileName}`);
+      log.info(`Uebersprungen (existiert bereits): ${fileName}`);
       skipped++;
       continue;
     }
 
-    const png = await composeLabel(entry, args.templateFile, cfg, dpi);
-    fs.writeFileSync(outPath, png);
-    console.log(`Erstellt: ${fileName}`);
-    created++;
+    const start = Date.now();
+    try {
+      const png = await composeLabel(entry, args.templateFile, cfg, dpi, log);
+      fs.writeFileSync(outPath, png);
+      log.info(`Erstellt: ${fileName}`, { dauerMs: Date.now() - start });
+      created++;
+    } catch (err) {
+      log.error(`Fehler bei Eintrag "${entry}": ${err.message}`);
+      log.debug("Stacktrace", { stack: err.stack });
+    }
   }
 
-  console.log("");
-  console.log(`Fertig. ${created} erstellt, ${skipped} uebersprungen.`);
+  log.info(`Fertig. ${created} erstellt, ${skipped} uebersprungen.`, {
+    gesamtDauerMs: Date.now() - gesamtStart,
+  });
 }
 
 main().catch((err) => {

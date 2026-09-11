@@ -18,8 +18,8 @@
  * Linux.
  *
  * Nutzung:
- *   node pruefen.mjs --datei <pfad.png> [--erwartet <text>]
- *   node pruefen.mjs --ordner <pfad> [--praefix lagerplatz_] [--eintraege <pfad>] [--report <pfad.csv>]
+ *   node pruefen.mjs --datei <pfad.png> [--erwartet <text>] [--debug]
+ *   node pruefen.mjs --ordner <pfad> [--praefix lagerplatz_] [--eintraege <pfad>] [--report <pfad.csv>] [--debug]
  *
  * Erwarteter Text wird, falls nicht per --erwartet angegeben, aus dem
  * Dateinamen abgeleitet: Präfix (Standard "lagerplatz_", passend zu
@@ -34,15 +34,22 @@
  * 16-Bit-Farbtiefe, Paletten-PNGs, exotische ICC-Profile) aus dem Weg, bevor
  * sie ueberhaupt zum Problem werden koennen. Dieselbe Normalisierung steht
  * auch als eigenstaendiges Skript zur Verfuegung: konvertieren.mjs.
+ *
+ * Logging: --debug aktiviert die höchste Logging-Stufe (u.a. rohe
+ * Dekodier-Treffer, Bildmetadaten, Timing pro Datei). Ohne --debug gilt die
+ * normale Stufe. Jeder Lauf schreibt zusätzlich eine Log-Datei unter
+ * log/pruefen_<zeitstempel>.log — siehe logger.mjs.
  */
 
 import { readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
 import { basename, extname, join } from "node:path";
+import sharp from "sharp";
 import { readBarcodes } from "zxing-wasm/reader";
 import { normalisiereBild } from "./konvertieren.mjs";
+import { erstelleLogger } from "./logger.mjs";
 
 function parseArgs(argv) {
-  const args = { praefix: "lagerplatz_" };
+  const args = { praefix: "lagerplatz_", debug: false };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     switch (a) {
@@ -63,6 +70,9 @@ function parseArgs(argv) {
         break;
       case "--report":
         args.report = argv[++i];
+        break;
+      case "--debug":
+        args.debug = true;
         break;
       case "--hilfe":
       case "--help":
@@ -96,6 +106,8 @@ Optionen:
   --eintraege <pfad>   eintraege.txt zum Abgleich: prüft, dass jeder dort gelistete
                        Lagerplatz auch als Schild vorhanden und korrekt lesbar ist
   --report <pfad.csv>  Ergebnis zusätzlich als CSV-Datei schreiben
+  --debug              Höchste Logging-Stufe aktivieren (mehr Details in Konsole
+                       und Log-Datei unter log/)
 `);
 }
 
@@ -115,22 +127,46 @@ function ableitenErwartet(dateiname, praefix) {
   return basis;
 }
 
-async function pruefeDatei(pfad, erwartet) {
+async function pruefeDatei(pfad, erwartet, log) {
+  const start = Date.now();
   const rohbytes = readFileSync(pfad);
+  const rohMeta = await sharp(rohbytes).metadata();
+  log.debug("Metadaten vor Normalisierung", {
+    datei: basename(pfad),
+    breite: rohMeta.width,
+    hoehe: rohMeta.height,
+    kanaele: rohMeta.channels,
+    alpha: !!rohMeta.hasAlpha,
+    format: rohMeta.format,
+  });
+
   const bytes = await normalisiereBild(rohbytes);
   let treffer = await readBarcodes(bytes, {
     formats: ["Code128"],
     tryHarder: true,
   });
+  log.debug("Dekodier-Versuch (normalisiert)", {
+    datei: basename(pfad),
+    trefferAnzahl: treffer.length,
+    treffer: treffer.map((t) => ({ text: t.text, isValid: t.isValid, format: t.format })),
+  });
 
   // Fallback: falls die Normalisierung selbst (unwahrscheinlich) das Bild
   // verschlechtert, zusaetzlich mit den unveraenderten Originalbytes versuchen.
+  let fallbackVerwendet = false;
   if (treffer.length === 0) {
+    fallbackVerwendet = true;
     treffer = await readBarcodes(rohbytes, {
       formats: ["Code128"],
       tryHarder: true,
     });
+    log.debug("Dekodier-Versuch (Fallback, Originalbytes)", {
+      datei: basename(pfad),
+      trefferAnzahl: treffer.length,
+    });
   }
+
+  log.debug("Dauer Einzelprüfung", { datei: basename(pfad), dauerMs: Date.now() - start, fallbackVerwendet });
 
   if (treffer.length === 0) {
     return {
@@ -209,28 +245,39 @@ function schreibeCsv(pfad, ergebnisse) {
 async function main() {
   const args = parseArgs(process.argv.slice(2));
 
-  if (args.hilfe || (!args.datei && !args.ordner)) {
+  if (args.hilfe) {
     zeigeHilfe();
-    process.exit(args.hilfe ? 0 : 2);
+    process.exit(0);
+  }
+
+  const log = erstelleLogger("pruefen", { debug: args.debug });
+  log.debug("Geparste Argumente", args);
+  log.info(`Log-Datei: ${log.pfad}`);
+  if (args.debug) log.info("Debug-Modus aktiv (Stufe: debug) — es werden mehr Details erfasst.");
+
+  if (!args.datei && !args.ordner) {
+    zeigeHilfe();
+    process.exit(2);
   }
 
   if (args.datei && args.ordner) {
-    console.error("Bitte nur --datei ODER --ordner angeben, nicht beides.");
+    log.error("Bitte nur --datei ODER --ordner angeben, nicht beides.");
     process.exit(2);
   }
 
   const ergebnisse = [];
+  const gesamtStart = Date.now();
 
   if (args.datei) {
     if (!statSync(args.datei).isFile()) {
-      console.error(`Datei nicht gefunden: ${args.datei}`);
+      log.error(`Datei nicht gefunden: ${args.datei}`);
       process.exit(2);
     }
     const erwartet = args.erwartet ?? ableitenErwartet(args.datei, args.praefix);
-    ergebnisse.push(await pruefeDatei(args.datei, erwartet));
+    ergebnisse.push(await pruefeDatei(args.datei, erwartet, log));
   } else {
     if (!statSync(args.ordner).isDirectory()) {
-      console.error(`Ordner nicht gefunden: ${args.ordner}`);
+      log.error(`Ordner nicht gefunden: ${args.ordner}`);
       process.exit(2);
     }
     const dateien = readdirSync(args.ordner)
@@ -238,18 +285,27 @@ async function main() {
       .sort();
 
     if (dateien.length === 0) {
-      console.error(`Keine .png-Dateien in ${args.ordner} gefunden.`);
+      log.error(`Keine .png-Dateien in ${args.ordner} gefunden.`);
       process.exit(2);
     }
+
+    log.info(`${dateien.length} Datei(en) im Ordner ${args.ordner} werden geprüft.`);
 
     for (const f of dateien) {
       const pfad = join(args.ordner, f);
       const erwartet = ableitenErwartet(f, args.praefix);
-      ergebnisse.push(await pruefeDatei(pfad, erwartet));
+      ergebnisse.push(await pruefeDatei(pfad, erwartet, log));
     }
   }
 
   drucke(ergebnisse);
+  for (const e of ergebnisse) {
+    if (e.status === "OK") {
+      log.info(`${e.datei}: OK (dekodiert "${e.dekodiert}")`);
+    } else {
+      log.warn(`${e.datei}: FEHLER — ${e.hinweis}`, { erwartet: e.erwartet, dekodiert: e.dekodiert });
+    }
+  }
 
   let vollstaendigkeitsfehler = 0;
   if (args.eintraege) {
@@ -264,22 +320,28 @@ async function main() {
         `\nVollständigkeitsprüfung gegen ${args.eintraege}: ${fehlende.length} Eintrag/Einträge ohne korrekt lesbares Schild:`,
       );
       for (const f of fehlende) console.log(`  - ${f}`);
+      log.warn(`Vollständigkeitsprüfung: ${fehlende.length} Eintrag/Einträge fehlen`, { fehlende });
     } else {
       console.log(
         `\nVollständigkeitsprüfung gegen ${args.eintraege}: alle ${erwarteteListe.length} Einträge korrekt lesbar vorhanden.`,
       );
+      log.info(`Vollständigkeitsprüfung: alle ${erwarteteListe.length} Einträge korrekt lesbar vorhanden.`);
     }
   }
 
   if (args.report) {
     schreibeCsv(args.report, ergebnisse);
     console.log(`\nCSV-Bericht geschrieben: ${args.report}`);
+    log.info(`CSV-Bericht geschrieben: ${args.report}`);
   }
 
   const fehlerAnzahl = ergebnisse.filter((e) => e.status !== "OK").length;
   console.log(
     `\n${ergebnisse.length - fehlerAnzahl} von ${ergebnisse.length} Schildern korrekt geprüft.`,
   );
+  log.info(`Fertig. ${ergebnisse.length - fehlerAnzahl} von ${ergebnisse.length} Schildern korrekt geprüft.`, {
+    gesamtDauerMs: Date.now() - gesamtStart,
+  });
 
   if (fehlerAnzahl > 0 || vollstaendigkeitsfehler > 0) {
     process.exit(1);

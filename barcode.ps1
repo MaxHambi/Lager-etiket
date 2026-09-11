@@ -14,6 +14,12 @@ param(
     [switch]$Overwrite
 )
 
+# Hinweis: -Debug ist bereits ein von [CmdletBinding()] automatisch bereitgestellter
+# gemeinsamer Parameter (setzt $DebugPreference) - deshalb hier nicht erneut als
+# eigener [switch]$Debug deklariert, sondern ueber $PSBoundParameters abgegriffen.
+$DebugModus = $PSBoundParameters.ContainsKey('Debug')
+if ($DebugModus) { $DebugPreference = 'Continue' }
+
 $ErrorActionPreference = "Stop"
 $scriptDir  = Split-Path -Parent $MyInvocation.MyCommand.Path
 $mainScript = Join-Path $scriptDir "barcode.mjs"
@@ -75,7 +81,8 @@ function Invoke-Generator {
         [string]$Vorlage,
         [string]$Ausgabe,
         [string]$Cfg,
-        [bool]$Ueberschreiben
+        [bool]$Ueberschreiben,
+        [bool]$Debuggen = $false
     )
 
     if (-not (Get-Command node -ErrorAction SilentlyContinue)) {
@@ -89,13 +96,14 @@ function Invoke-Generator {
 
     $nodeArgs = @($mainScript, $Eintraege, $Vorlage, $Ausgabe, "--config", $Cfg)
     if ($Ueberschreiben) { $nodeArgs += "--overwrite" }
+    if ($Debuggen) { $nodeArgs += "--debug" }
 
     & node @nodeArgs
     return $LASTEXITCODE
 }
 
 function Invoke-Skalieren {
-    param([string]$QuellOrdner)
+    param([string]$QuellOrdner, [bool]$Debuggen = $false)
 
     if (-not (Test-Path $skalierenScript)) {
         Write-Warning "skalieren.mjs wurde nicht gefunden unter: $skalierenScript"
@@ -117,13 +125,14 @@ function Invoke-Skalieren {
 
     $nodeArgs = @($skalierenScript, "--ordner", $QuellOrdner, "--hoehe", $hoehe, "--output", $ziel)
     if ($overwriteFlag) { $nodeArgs += "--overwrite" }
+    if ($Debuggen) { $nodeArgs += "--debug" }
 
     Write-Host ""
     & node @nodeArgs
 }
 
 function Invoke-Pruefen {
-    param([string]$QuellOrdner, [string]$Eintraege)
+    param([string]$QuellOrdner, [string]$Eintraege, [bool]$Debuggen = $false)
 
     if (-not (Test-Path $pruefenScript)) {
         Write-Warning "pruefen.mjs wurde nicht gefunden unter: $pruefenScript"
@@ -139,13 +148,14 @@ function Invoke-Pruefen {
             $nodeArgs += $Eintraege
         }
     }
+    if ($Debuggen) { $nodeArgs += "--debug" }
 
     Write-Host ""
     & node @nodeArgs
 }
 
 function Invoke-Konvertieren {
-    param([string]$QuellOrdner)
+    param([string]$QuellOrdner, [bool]$Debuggen = $false)
 
     if (-not (Test-Path $konvertierenScript)) {
         Write-Warning "konvertieren.mjs wurde nicht gefunden unter: $konvertierenScript"
@@ -164,13 +174,14 @@ function Invoke-Konvertieren {
 
     $nodeArgs = @($konvertierenScript, "--ordner", $QuellOrdner, "--output", $ziel, "--hintergrund", $hintergrund)
     if ($overwriteFlag) { $nodeArgs += "--overwrite" }
+    if ($Debuggen) { $nodeArgs += "--debug" }
 
     Write-Host ""
     & node @nodeArgs
 }
 
 function Show-Aktionsmenue {
-    param([string]$AusgabeOrdnerPfad, [string]$EintraegeDateiPfad)
+    param([string]$AusgabeOrdnerPfad, [string]$EintraegeDateiPfad, [bool]$Debuggen = $false)
 
     Write-Host ""
     Write-Host "Was moechtest du als Naechstes tun?"
@@ -182,16 +193,21 @@ function Show-Aktionsmenue {
     $wahl = Read-Host "Auswahl (0-3)"
 
     switch ($wahl) {
-        "1" { Invoke-Skalieren -QuellOrdner $AusgabeOrdnerPfad }
-        "2" { Invoke-Pruefen -QuellOrdner $AusgabeOrdnerPfad -Eintraege $EintraegeDateiPfad }
-        "3" { Invoke-Konvertieren -QuellOrdner $AusgabeOrdnerPfad }
+        "1" { Invoke-Skalieren -QuellOrdner $AusgabeOrdnerPfad -Debuggen $Debuggen }
+        "2" { Invoke-Pruefen -QuellOrdner $AusgabeOrdnerPfad -Eintraege $EintraegeDateiPfad -Debuggen $Debuggen }
+        "3" { Invoke-Konvertieren -QuellOrdner $AusgabeOrdnerPfad -Debuggen $Debuggen }
         default { Write-Host "Keine Auswahl getroffen." }
     }
 }
 
 $exitCode = 0
 
-if ($PSBoundParameters.Count -eq 0) {
+# -Debug (gemeinsamer Parameter) selbst zaehlt bereits als "gebundener Parameter" -
+# fuer die Erkennung des interaktiven Modus wird er deshalb hier herausgerechnet,
+# damit ".\barcode.ps1 -Debug" (ohne weitere Parameter) weiterhin interaktiv startet.
+$gebundenOhneDebug = $PSBoundParameters.Count - [int]$DebugModus
+
+if ($gebundenOhneDebug -eq 0) {
 
     # ================= Interaktiver Modus =================
     Show-Banner
@@ -237,13 +253,13 @@ if ($PSBoundParameters.Count -eq 0) {
     Write-Host "  Ueberschreiben: $ueberschreibenFlag"
     Write-Host ""
 
-    $exitCode = Invoke-Generator -Eintraege $EintraegeDatei -Vorlage $VorlageDatei -Ausgabe $AusgabeOrdner -Cfg $Config -Ueberschreiben $ueberschreibenFlag
+    $exitCode = Invoke-Generator -Eintraege $EintraegeDatei -Vorlage $VorlageDatei -Ausgabe $AusgabeOrdner -Cfg $Config -Ueberschreiben $ueberschreibenFlag -Debuggen $DebugModus
 
     Write-Host ""
     Write-Host "Fertig. Protokoll gespeichert unter: $logFile"
 
     if ($exitCode -eq 0) {
-        Show-Aktionsmenue -AusgabeOrdnerPfad $AusgabeOrdner -EintraegeDateiPfad $EintraegeDatei
+        Show-Aktionsmenue -AusgabeOrdnerPfad $AusgabeOrdner -EintraegeDateiPfad $EintraegeDatei -Debuggen $DebugModus
     }
 
     Write-Host ""
@@ -254,11 +270,11 @@ else {
 
     # ================= Direkter Modus (mit Parametern) =================
     if ([string]::IsNullOrWhiteSpace($EintraegeDatei) -or [string]::IsNullOrWhiteSpace($VorlageDatei) -or [string]::IsNullOrWhiteSpace($AusgabeOrdner)) {
-        Write-Error "Verwendung: .\barcode.ps1 <Eintraege-Datei> <Vorlage-Datei> <Ausgabe-Ordner> [-Config config.json] [-Overwrite]"
+        Write-Error "Verwendung: .\barcode.ps1 <Eintraege-Datei> <Vorlage-Datei> <Ausgabe-Ordner> [-Config config.json] [-Overwrite] [-Debug]"
         $exitCode = 1
     }
     else {
-        $exitCode = Invoke-Generator -Eintraege $EintraegeDatei -Vorlage $VorlageDatei -Ausgabe $AusgabeOrdner -Cfg $Config -Ueberschreiben $Overwrite.IsPresent
+        $exitCode = Invoke-Generator -Eintraege $EintraegeDatei -Vorlage $VorlageDatei -Ausgabe $AusgabeOrdner -Cfg $Config -Ueberschreiben $Overwrite.IsPresent -Debuggen $DebugModus
     }
 }
 
