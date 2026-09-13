@@ -18,25 +18,44 @@ Ergebnisse aus beiden Wegen identisch aussehen.
 
 ## Inhaltsverzeichnis
 
-1. [Projektstruktur](#projektstruktur)
-2. [Voraussetzungen](#voraussetzungen)
-3. [Schnellstart (PowerShell/Node)](#schnellstart-powershellnode)
-4. [Schnellstart (HTML-Tool)](#schnellstart-html-tool)
-5. [Eintragsdatei-Format](#eintragsdatei-format)
-6. [config.json — alle Einstellungen](#configjson--alle-einstellungen)
-7. [Workflow: Neue Vorlage einrichten](#workflow-neue-vorlage-einrichten)
-8. [Workflow: Layout anpassen](#workflow-layout-anpassen)
-9. [Workflow: config.json ändern](#workflow-configjson-ändern)
-10. [Workflow: Skript (barcode.mjs) ändern](#workflow-skript-barcodemjs-ändern)
-11. [Workflow: HTML-Tool anpassen](#workflow-html-tool-anpassen)
-12. [Fertige Schilder nachträglich skalieren (skalieren.mjs)](#fertige-schilder-nachträglich-skalieren-skalierenmjs)
-13. [Barcode automatisch scannen & prüfen (pruefen.mjs)](#barcode-automatisch-scannen--prüfen-pruefenmjs)
-14. [Bilder normalisieren (konvertieren.mjs)](#bilder-normalisieren-konvertierenmjs)
-15. [Logging & --debug](#logging--debug)
-16. [Kommandozeilen-Referenz](#kommandozeilen-referenz)
-17. [Troubleshooting](#troubleshooting)
-18. [Produktionsprüfung vor dem großen Lauf](#produktionsprüfung-vor-dem-großen-lauf)
-19. [Quellen / Lizenzen](#quellen--lizenzen)
+- [Lager-Barcode-Generator](#lager-barcode-generator)
+  - [Inhaltsverzeichnis](#inhaltsverzeichnis)
+  - [Projektstruktur](#projektstruktur)
+  - [Voraussetzungen](#voraussetzungen)
+  - [Schnellstart (PowerShell/Node)](#schnellstart-powershellnode)
+  - [Schnellstart (HTML-Tool)](#schnellstart-html-tool)
+  - [Eintragsdatei-Format](#eintragsdatei-format)
+  - [config.json — alle Einstellungen](#configjson--alle-einstellungen)
+    - [`barcode` — Aussehen von Barcode + Text](#barcode--aussehen-von-barcode--text)
+    - [`placement` — Position auf der Vorlage](#placement--position-auf-der-vorlage)
+    - [`output` — Dateiausgabe](#output--dateiausgabe)
+  - [Workflow: Neue Vorlage einrichten](#workflow-neue-vorlage-einrichten)
+  - [Workflow: Layout anpassen](#workflow-layout-anpassen)
+  - [Workflow: config.json ändern](#workflow-configjson-ändern)
+  - [Workflow: Skript (barcode.mjs) ändern](#workflow-skript-barcodemjs-ändern)
+  - [Workflow: HTML-Tool anpassen](#workflow-html-tool-anpassen)
+  - [Fertige Schilder nachträglich skalieren (skalieren.mjs)](#fertige-schilder-nachträglich-skalieren-skalierenmjs)
+    - [Verwendung](#verwendung)
+    - [Wie die Umrechnung funktioniert](#wie-die-umrechnung-funktioniert)
+    - [Bleibt der Barcode danach lesbar?](#bleibt-der-barcode-danach-lesbar)
+    - [Parameter-Referenz](#parameter-referenz)
+  - [Barcode automatisch scannen \& prüfen (pruefen.mjs)](#barcode-automatisch-scannen--prüfen-pruefenmjs)
+    - [Verwendung](#verwendung-1)
+    - [Woher der Decoder kommt](#woher-der-decoder-kommt)
+    - [Einmalige Einrichtung](#einmalige-einrichtung)
+    - [Wie zuverlässig ist die Prüfung bei kleinen Schildern?](#wie-zuverlässig-ist-die-prüfung-bei-kleinen-schildern)
+    - [Parameter-Referenz](#parameter-referenz-1)
+  - [Bilder normalisieren (konvertieren.mjs)](#bilder-normalisieren-konvertierenmjs)
+    - [Verwendung](#verwendung-2)
+    - [Parameter-Referenz](#parameter-referenz-2)
+  - [Logging \& --debug](#logging----debug)
+    - [Warum winston statt eines Eigenbaus](#warum-winston-statt-eines-eigenbaus)
+    - [Einmalige Einrichtung](#einmalige-einrichtung-1)
+  - [Kommandozeilen-Referenz](#kommandozeilen-referenz)
+    - [Aktionsmenü nach dem interaktiven Lauf](#aktionsmenü-nach-dem-interaktiven-lauf)
+  - [Troubleshooting](#troubleshooting)
+  - [Produktionsprüfung vor dem großen Lauf](#produktionsprüfung-vor-dem-großen-lauf)
+  - [Quellen / Lizenzen](#quellen--lizenzen)
 
 ---
 
@@ -70,8 +89,7 @@ lager-barcode-generator/
 └── README.md                             Diese Anleitung
 ```
 
-`skalieren.ps1` und `pruefen.ps1` (PowerShell-Wrapper) gibt es bewusst nicht
-mehr — `skalieren.mjs` und `pruefen.mjs` werden direkt per `node` aufgerufen.
+`skalieren.mjs` und `pruefen.mjs` werden direkt per `node` aufgerufen.
 `barcode.ps1` selbst bleibt erhalten und bietet nach jedem erfolgreichen Lauf
 ein Menü an, über das sich Skalieren, Prüfen und Konvertieren ohne manuellen
 `node`-Aufruf anstoßen lassen (siehe
