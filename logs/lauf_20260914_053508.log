@@ -1,0 +1,32 @@
+**********************
+Beginn des PowerShell-Transkripts
+Startzeit: 20260914053508
+Benutzername: MAXHAMBI\Max Hambi
+RunAs-Benutzer: MAXHAMBI\Max Hambi
+Konfigurationsname: 
+Computer: MAXHAMBI (Microsoft Windows NT 10.0.26200.0)
+Hostanwendung: C:\Program Files\PowerShell\7\pwsh.dll
+Prozess-ID: 8664
+PSVersion: 7.6.6
+PSEdition: Core
+GitCommitId: 7.6.6
+OS: Microsoft Windows 10.0.26200
+Platform: Win32NT
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1, 6.0, 7.0
+PSRemotingProtocolVersion: 2.4
+SerializationVersion: 1.1.0.1
+WSManStackVersion: 3.0
+**********************
+2026-09-14 05:35:08 [info] Log-Datei: C:\Lager\lager-barcode-generator\log\barcode_20260914_053508_589.log
+2026-09-14 05:35:08 [info] 4 Eintraege gefunden.
+2026-09-14 05:35:08 [info] Vorlage: .\Templates\MV-A.png
+2026-09-14 05:35:08 [info] Ausgabe: .\test\output\
+2026-09-14 05:35:09 [info] Erstellt: test_01A01.png {"dauerMs":499}
+2026-09-14 05:35:09 [info] Erstellt: test_01B01.png {"dauerMs":436}
+2026-09-14 05:35:10 [info] Erstellt: test_01C01.png {"dauerMs":464}
+2026-09-14 05:35:10 [info] Erstellt: test_0102030405060708.png {"dauerMs":613}
+2026-09-14 05:35:10 [info] Fertig. 4 erstellt, 0 uebersprungen. {"gesamtDauerMs":2016}
+**********************
+Ende des PowerShell-Transkripts
+Endzeit: 20260914053510
+**********************

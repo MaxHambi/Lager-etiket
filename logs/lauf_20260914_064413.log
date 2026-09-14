@@ -1,0 +1,201 @@
+**********************
+Beginn des PowerShell-Transkripts
+Startzeit: 20260914064413
+Benutzername: MAXHAMBI\Max Hambi
+RunAs-Benutzer: MAXHAMBI\Max Hambi
+Konfigurationsname: 
+Computer: MAXHAMBI (Microsoft Windows NT 10.0.26200.0)
+Hostanwendung: C:\Program Files\PowerShell\7\pwsh.dll -NoProfile -ExecutionPolicy Bypass -Command Import-Module 'c:\Users\Max Hambi\.vscode\extensions\ms-vscode.powershell-2025.4.0\modules\PowerShellEditorServices\PowerShellEditorServices.psd1'; Start-EditorServices -HostName 'Visual Studio Code Host' -HostProfileId 'Microsoft.VSCode' -HostVersion '2025.4.0' -BundledModulesPath 'c:\Users\Max Hambi\.vscode\extensions\ms-vscode.powershell-2025.4.0\modules' -EnableConsoleRepl -StartupBanner "PowerShell Extension v2025.4.0
+Copyright (c) Microsoft Corporation.
+
+https://aka.ms/vscode-powershell
+Type 'help' to get help.
+" -LogLevel 'Warning' -LogPath 'c:\Users\Max Hambi\AppData\Roaming\Code\logs\20260914T051853\window1\exthost\ms-vscode.powershell' -SessionDetailsPath 'c:\Users\Max Hambi\AppData\Roaming\Code\User\globalStorage\ms-vscode.powershell\sessions\PSES-VSCode-20716-829502.json' -FeatureFlags @() 
+Prozess-ID: 22828
+PSVersion: 7.6.6
+PSEdition: Core
+GitCommitId: 7.6.6
+OS: Microsoft Windows 10.0.26200
+Platform: Win32NT
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1, 6.0, 7.0
+PSRemotingProtocolVersion: 2.4
+SerializationVersion: 1.1.0.1
+WSManStackVersion: 3.0
+**********************
+2026-09-14 06:44:13 [info] Log-Datei: C:\Lager\lager-barcode-generator\log\barcode_20260914_064413_275.log
+2026-09-14 06:44:13 [info] 168 Eintraege gefunden.
+2026-09-14 06:44:13 [info] Vorlage: .\Templates\MV.png
+2026-09-14 06:44:13 [info] Ausgabe: .\output\01020304-C\
+2026-09-14 06:44:13 [info] Erstellt: 01C01.png {"dauerMs":289}
+2026-09-14 06:44:13 [info] Erstellt: 01C02.png {"dauerMs":304}
+2026-09-14 06:44:14 [info] Erstellt: 01C03.png {"dauerMs":295}
+2026-09-14 06:44:14 [info] Erstellt: 01C04.png {"dauerMs":287}
+2026-09-14 06:44:14 [info] Erstellt: 01C05.png {"dauerMs":304}
+2026-09-14 06:44:15 [info] Erstellt: 01C06.png {"dauerMs":283}
+2026-09-14 06:44:15 [info] Erstellt: 01C07.png {"dauerMs":258}
+2026-09-14 06:44:15 [info] Erstellt: 01C08.png {"dauerMs":270}
+2026-09-14 06:44:15 [info] Erstellt: 01C09.png {"dauerMs":271}
+2026-09-14 06:44:16 [info] Erstellt: 01C10.png {"dauerMs":246}
+2026-09-14 06:44:16 [info] Erstellt: 01C11.png {"dauerMs":334}
+2026-09-14 06:44:16 [info] Erstellt: 01C12.png {"dauerMs":240}
+2026-09-14 06:44:16 [info] Erstellt: 01C13.png {"dauerMs":242}
+2026-09-14 06:44:17 [info] Erstellt: 01C14.png {"dauerMs":244}
+2026-09-14 06:44:17 [info] Erstellt: 01C15.png {"dauerMs":245}
+2026-09-14 06:44:17 [info] Erstellt: 01C16.png {"dauerMs":240}
+2026-09-14 06:44:17 [info] Erstellt: 01C17.png {"dauerMs":260}
+2026-09-14 06:44:18 [info] Erstellt: 01C18.png {"dauerMs":238}
+2026-09-14 06:44:18 [info] Erstellt: 01C19.png {"dauerMs":254}
+2026-09-14 06:44:18 [info] Erstellt: 01C20.png {"dauerMs":251}
+2026-09-14 06:44:18 [info] Erstellt: 01C21.png {"dauerMs":234}
+2026-09-14 06:44:19 [info] Erstellt: 01C22.png {"dauerMs":258}
+2026-09-14 06:44:19 [info] Erstellt: 01C23.png {"dauerMs":250}
+2026-09-14 06:44:19 [info] Erstellt: 01C24.png {"dauerMs":237}
+2026-09-14 06:44:19 [info] Erstellt: 01C25.png {"dauerMs":244}
+2026-09-14 06:44:20 [info] Erstellt: 01C26.png {"dauerMs":254}
+2026-09-14 06:44:20 [info] Erstellt: 01C27.png {"dauerMs":244}
+2026-09-14 06:44:20 [info] Erstellt: 01C28.png {"dauerMs":251}
+2026-09-14 06:44:20 [info] Erstellt: 01C29.png {"dauerMs":246}
+2026-09-14 06:44:21 [info] Erstellt: 01C30.png {"dauerMs":237}
+2026-09-14 06:44:21 [info] Erstellt: 01C31.png {"dauerMs":322}
+2026-09-14 06:44:21 [info] Erstellt: 01C32.png {"dauerMs":237}
+2026-09-14 06:44:21 [info] Erstellt: 01C33.png {"dauerMs":263}
+2026-09-14 06:44:22 [info] Erstellt: 02C01.png {"dauerMs":259}
+2026-09-14 06:44:22 [info] Erstellt: 02C02.png {"dauerMs":245}
+2026-09-14 06:44:22 [info] Erstellt: 02C03.png {"dauerMs":244}
+2026-09-14 06:44:22 [info] Erstellt: 02C04.png {"dauerMs":269}
+2026-09-14 06:44:23 [info] Erstellt: 02C05.png {"dauerMs":275}
+2026-09-14 06:44:23 [info] Erstellt: 02C06.png {"dauerMs":283}
+2026-09-14 06:44:23 [info] Erstellt: 02C07.png {"dauerMs":252}
+2026-09-14 06:44:24 [info] Erstellt: 02C08.png {"dauerMs":250}
+2026-09-14 06:44:24 [info] Erstellt: 02C09.png {"dauerMs":257}
+2026-09-14 06:44:24 [info] Erstellt: 02C10.png {"dauerMs":250}
+2026-09-14 06:44:24 [info] Erstellt: 02C11.png {"dauerMs":256}
+2026-09-14 06:44:25 [info] Erstellt: 02C12.png {"dauerMs":260}
+2026-09-14 06:44:25 [info] Erstellt: 02C13.png {"dauerMs":238}
+2026-09-14 06:44:25 [info] Erstellt: 02C14.png {"dauerMs":260}
+2026-09-14 06:44:25 [info] Erstellt: 02C15.png {"dauerMs":248}
+2026-09-14 06:44:26 [info] Erstellt: 02C16.png {"dauerMs":250}
+2026-09-14 06:44:26 [info] Erstellt: 02C17.png {"dauerMs":267}
+2026-09-14 06:44:26 [info] Erstellt: 02C18.png {"dauerMs":322}
+2026-09-14 06:44:26 [info] Erstellt: 02C19.png {"dauerMs":251}
+2026-09-14 06:44:27 [info] Erstellt: 02C20.png {"dauerMs":251}
+2026-09-14 06:44:27 [info] Erstellt: 02C21.png {"dauerMs":250}
+2026-09-14 06:44:27 [info] Erstellt: 02C22.png {"dauerMs":251}
+2026-09-14 06:44:27 [info] Erstellt: 02C23.png {"dauerMs":279}
+2026-09-14 06:44:28 [info] Erstellt: 02C24.png {"dauerMs":250}
+2026-09-14 06:44:28 [info] Erstellt: 02C25.png {"dauerMs":256}
+2026-09-14 06:44:28 [info] Erstellt: 02C26.png {"dauerMs":253}
+2026-09-14 06:44:28 [info] Erstellt: 02C27.png {"dauerMs":253}
+2026-09-14 06:44:29 [info] Erstellt: 02C28.png {"dauerMs":256}
+2026-09-14 06:44:29 [info] Erstellt: 02C29.png {"dauerMs":254}
+2026-09-14 06:44:29 [info] Erstellt: 02C30.png {"dauerMs":258}
+2026-09-14 06:44:29 [info] Erstellt: 02C31.png {"dauerMs":248}
+2026-09-14 06:44:30 [info] Erstellt: 02C32.png {"dauerMs":242}
+2026-09-14 06:44:30 [info] Erstellt: 02C33.png {"dauerMs":251}
+2026-09-14 06:44:30 [info] Erstellt: 03C01.png {"dauerMs":249}
+2026-09-14 06:44:30 [info] Erstellt: 03C02.png {"dauerMs":250}
+2026-09-14 06:44:31 [info] Erstellt: 03C03.png {"dauerMs":252}
+2026-09-14 06:44:31 [info] Erstellt: 03C04.png {"dauerMs":334}
+2026-09-14 06:44:31 [info] Erstellt: 03C05.png {"dauerMs":284}
+2026-09-14 06:44:32 [info] Erstellt: 03C06.png {"dauerMs":263}
+2026-09-14 06:44:32 [info] Erstellt: 03C07.png {"dauerMs":253}
+2026-09-14 06:44:32 [info] Erstellt: 03C08.png {"dauerMs":262}
+2026-09-14 06:44:32 [info] Erstellt: 03C09.png {"dauerMs":263}
+2026-09-14 06:44:33 [info] Erstellt: 03C10.png {"dauerMs":272}
+2026-09-14 06:44:33 [info] Erstellt: 03C11.png {"dauerMs":252}
+2026-09-14 06:44:33 [info] Erstellt: 03C12.png {"dauerMs":246}
+2026-09-14 06:44:33 [info] Erstellt: 03C13.png {"dauerMs":284}
+2026-09-14 06:44:34 [info] Erstellt: 03C14.png {"dauerMs":243}
+2026-09-14 06:44:34 [info] Erstellt: 03C15.png {"dauerMs":294}
+2026-09-14 06:44:34 [info] Erstellt: 03C16.png {"dauerMs":319}
+2026-09-14 06:44:35 [info] Erstellt: 03C17.png {"dauerMs":278}
+2026-09-14 06:44:35 [info] Erstellt: 03C18.png {"dauerMs":261}
+2026-09-14 06:44:35 [info] Erstellt: 03C19.png {"dauerMs":246}
+2026-09-14 06:44:35 [info] Erstellt: 03C20.png {"dauerMs":256}
+2026-09-14 06:44:36 [info] Erstellt: 03C21.png {"dauerMs":256}
+2026-09-14 06:44:36 [info] Erstellt: 03C22.png {"dauerMs":259}
+2026-09-14 06:44:36 [info] Erstellt: 03C23.png {"dauerMs":252}
+2026-09-14 06:44:37 [info] Erstellt: 03C24.png {"dauerMs":344}
+2026-09-14 06:44:37 [info] Erstellt: 03C25.png {"dauerMs":250}
+2026-09-14 06:44:37 [info] Erstellt: 03C26.png {"dauerMs":266}
+2026-09-14 06:44:37 [info] Erstellt: 03C27.png {"dauerMs":261}
+2026-09-14 06:44:38 [info] Erstellt: 03C28.png {"dauerMs":294}
+2026-09-14 06:44:38 [info] Erstellt: 03C29.png {"dauerMs":243}
+2026-09-14 06:44:38 [info] Erstellt: 03C30.png {"dauerMs":279}
+2026-09-14 06:44:38 [info] Erstellt: 03C31.png {"dauerMs":248}
+2026-09-14 06:44:39 [info] Erstellt: 03C32.png {"dauerMs":274}
+2026-09-14 06:44:39 [info] Erstellt: 03C33.png {"dauerMs":254}
+2026-09-14 06:44:39 [info] Erstellt: 03C34.png {"dauerMs":272}
+2026-09-14 06:44:39 [info] Erstellt: 03C35.png {"dauerMs":275}
+2026-09-14 06:44:40 [info] Erstellt: 03C36.png {"dauerMs":287}
+2026-09-14 06:44:40 [info] Erstellt: 03C37.png {"dauerMs":263}
+2026-09-14 06:44:40 [info] Erstellt: 03C38.png {"dauerMs":274}
+2026-09-14 06:44:41 [info] Erstellt: 03C39.png {"dauerMs":272}
+2026-09-14 06:44:41 [info] Erstellt: 03C40.png {"dauerMs":259}
+2026-09-14 06:44:41 [info] Erstellt: 03C41.png {"dauerMs":247}
+2026-09-14 06:44:41 [info] Erstellt: 03C42.png {"dauerMs":258}
+2026-09-14 06:44:42 [info] Erstellt: 03C43.png {"dauerMs":261}
+2026-09-14 06:44:42 [info] Erstellt: 03C44.png {"dauerMs":330}
+2026-09-14 06:44:42 [info] Erstellt: 03C45.png {"dauerMs":274}
+2026-09-14 06:44:42 [info] Erstellt: 03C46.png {"dauerMs":264}
+2026-09-14 06:44:43 [info] Erstellt: 03C47.png {"dauerMs":275}
+2026-09-14 06:44:43 [info] Erstellt: 03C48.png {"dauerMs":264}
+2026-09-14 06:44:43 [info] Erstellt: 03C49.png {"dauerMs":297}
+2026-09-14 06:44:44 [info] Erstellt: 03C50.png {"dauerMs":252}
+2026-09-14 06:44:44 [info] Erstellt: 03C51.png {"dauerMs":269}
+2026-09-14 06:44:44 [info] Erstellt: 04C01.png {"dauerMs":254}
+2026-09-14 06:44:44 [info] Erstellt: 04C02.png {"dauerMs":287}
+2026-09-14 06:44:45 [info] Erstellt: 04C03.png {"dauerMs":263}
+2026-09-14 06:44:45 [info] Erstellt: 04C04.png {"dauerMs":260}
+2026-09-14 06:44:45 [info] Erstellt: 04C05.png {"dauerMs":263}
+2026-09-14 06:44:45 [info] Erstellt: 04C06.png {"dauerMs":257}
+2026-09-14 06:44:46 [info] Erstellt: 04C07.png {"dauerMs":261}
+2026-09-14 06:44:46 [info] Erstellt: 04C08.png {"dauerMs":262}
+2026-09-14 06:44:46 [info] Erstellt: 04C09.png {"dauerMs":287}
+2026-09-14 06:44:46 [info] Erstellt: 04C10.png {"dauerMs":259}
+2026-09-14 06:44:47 [info] Erstellt: 04C11.png {"dauerMs":255}
+2026-09-14 06:44:47 [info] Erstellt: 04C12.png {"dauerMs":263}
+2026-09-14 06:44:47 [info] Erstellt: 04C13.png {"dauerMs":347}
+2026-09-14 06:44:48 [info] Erstellt: 04C14.png {"dauerMs":254}
+2026-09-14 06:44:48 [info] Erstellt: 04C15.png {"dauerMs":262}
+2026-09-14 06:44:48 [info] Erstellt: 04C16.png {"dauerMs":272}
+2026-09-14 06:44:48 [info] Erstellt: 04C17.png {"dauerMs":253}
+2026-09-14 06:44:49 [info] Erstellt: 04C18.png {"dauerMs":259}
+2026-09-14 06:44:49 [info] Erstellt: 04C19.png {"dauerMs":270}
+2026-09-14 06:44:49 [info] Erstellt: 04C20.png {"dauerMs":289}
+2026-09-14 06:44:49 [info] Erstellt: 04C21.png {"dauerMs":268}
+2026-09-14 06:44:50 [info] Erstellt: 04C22.png {"dauerMs":266}
+2026-09-14 06:44:50 [info] Erstellt: 04C23.png {"dauerMs":271}
+2026-09-14 06:44:50 [info] Erstellt: 04C24.png {"dauerMs":265}
+2026-09-14 06:44:51 [info] Erstellt: 04C25.png {"dauerMs":263}
+2026-09-14 06:44:51 [info] Erstellt: 04C26.png {"dauerMs":261}
+2026-09-14 06:44:51 [info] Erstellt: 04C27.png {"dauerMs":261}
+2026-09-14 06:44:51 [info] Erstellt: 04C28.png {"dauerMs":254}
+2026-09-14 06:44:52 [info] Erstellt: 04C29.png {"dauerMs":281}
+2026-09-14 06:44:52 [info] Erstellt: 04C30.png {"dauerMs":262}
+2026-09-14 06:44:52 [info] Erstellt: 04C31.png {"dauerMs":269}
+2026-09-14 06:44:52 [info] Erstellt: 04C32.png {"dauerMs":306}
+2026-09-14 06:44:53 [info] Erstellt: 04C33.png {"dauerMs":376}
+2026-09-14 06:44:53 [info] Erstellt: 04C34.png {"dauerMs":277}
+2026-09-14 06:44:53 [info] Erstellt: 04C35.png {"dauerMs":265}
+2026-09-14 06:44:54 [info] Erstellt: 04C36.png {"dauerMs":268}
+2026-09-14 06:44:54 [info] Erstellt: 04C37.png {"dauerMs":263}
+2026-09-14 06:44:54 [info] Erstellt: 04C38.png {"dauerMs":263}
+2026-09-14 06:44:54 [info] Erstellt: 04C39.png {"dauerMs":287}
+2026-09-14 06:44:55 [info] Erstellt: 04C40.png {"dauerMs":269}
+2026-09-14 06:44:55 [info] Erstellt: 04C41.png {"dauerMs":261}
+2026-09-14 06:44:55 [info] Erstellt: 04C42.png {"dauerMs":280}
+2026-09-14 06:44:56 [info] Erstellt: 04C43.png {"dauerMs":273}
+2026-09-14 06:44:56 [info] Erstellt: 04C44.png {"dauerMs":257}
+2026-09-14 06:44:56 [info] Erstellt: 04C45.png {"dauerMs":263}
+2026-09-14 06:44:56 [info] Erstellt: 04C46.png {"dauerMs":275}
+2026-09-14 06:44:57 [info] Erstellt: 04C47.png {"dauerMs":277}
+2026-09-14 06:44:57 [info] Erstellt: 04C48.png {"dauerMs":261}
+2026-09-14 06:44:57 [info] Erstellt: 04C49.png {"dauerMs":264}
+2026-09-14 06:44:57 [info] Erstellt: 04C50.png {"dauerMs":350}
+2026-09-14 06:44:58 [info] Erstellt: 04C51.png {"dauerMs":261}
+2026-09-14 06:44:58 [info] Fertig. 168 erstellt, 0 uebersprungen. {"gesamtDauerMs":44936}
+**********************
+Ende des PowerShell-Transkripts
+Endzeit: 20260914064458
+**********************

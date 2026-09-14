@@ -1,0 +1,101 @@
+**********************
+Beginn des PowerShell-Transkripts
+Startzeit: 20260914063856
+Benutzername: MAXHAMBI\Max Hambi
+RunAs-Benutzer: MAXHAMBI\Max Hambi
+Konfigurationsname: 
+Computer: MAXHAMBI (Microsoft Windows NT 10.0.26200.0)
+Hostanwendung: C:\Program Files\PowerShell\7\pwsh.dll -NoProfile -ExecutionPolicy Bypass -Command Import-Module 'c:\Users\Max Hambi\.vscode\extensions\ms-vscode.powershell-2025.4.0\modules\PowerShellEditorServices\PowerShellEditorServices.psd1'; Start-EditorServices -HostName 'Visual Studio Code Host' -HostProfileId 'Microsoft.VSCode' -HostVersion '2025.4.0' -BundledModulesPath 'c:\Users\Max Hambi\.vscode\extensions\ms-vscode.powershell-2025.4.0\modules' -EnableConsoleRepl -StartupBanner "PowerShell Extension v2025.4.0
+Copyright (c) Microsoft Corporation.
+
+https://aka.ms/vscode-powershell
+Type 'help' to get help.
+" -LogLevel 'Warning' -LogPath 'c:\Users\Max Hambi\AppData\Roaming\Code\logs\20260914T051853\window1\exthost\ms-vscode.powershell' -SessionDetailsPath 'c:\Users\Max Hambi\AppData\Roaming\Code\User\globalStorage\ms-vscode.powershell\sessions\PSES-VSCode-20716-829502.json' -FeatureFlags @() 
+Prozess-ID: 22828
+PSVersion: 7.6.6
+PSEdition: Core
+GitCommitId: 7.6.6
+OS: Microsoft Windows 10.0.26200
+Platform: Win32NT
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1, 6.0, 7.0
+PSRemotingProtocolVersion: 2.4
+SerializationVersion: 1.1.0.1
+WSManStackVersion: 3.0
+**********************
+2026-09-14 06:38:57 [info] Log-Datei: C:\Lager\lager-barcode-generator\log\barcode_20260914_063857_111.log
+2026-09-14 06:38:57 [info] 68 Eintraege gefunden.
+2026-09-14 06:38:57 [info] Vorlage: .\Templates\MV-B.png
+2026-09-14 06:38:57 [info] Ausgabe: .\output\03-04-B\
+2026-09-14 06:38:57 [info] Erstellt: 03B01.png {"dauerMs":315}
+2026-09-14 06:38:57 [info] Erstellt: 03B02.png {"dauerMs":369}
+2026-09-14 06:38:58 [info] Erstellt: 03B03.png {"dauerMs":309}
+2026-09-14 06:38:58 [info] Erstellt: 03B04.png {"dauerMs":313}
+2026-09-14 06:38:58 [info] Erstellt: 03B05.png {"dauerMs":295}
+2026-09-14 06:38:59 [info] Erstellt: 03B06.png {"dauerMs":278}
+2026-09-14 06:38:59 [info] Erstellt: 03B07.png {"dauerMs":279}
+2026-09-14 06:38:59 [info] Erstellt: 03B08.png {"dauerMs":275}
+2026-09-14 06:38:59 [info] Erstellt: 03B09.png {"dauerMs":261}
+2026-09-14 06:39:00 [info] Erstellt: 03B10.png {"dauerMs":258}
+2026-09-14 06:39:00 [info] Erstellt: 03B11.png {"dauerMs":298}
+2026-09-14 06:39:00 [info] Erstellt: 03B12.png {"dauerMs":248}
+2026-09-14 06:39:00 [info] Erstellt: 03B13.png {"dauerMs":275}
+2026-09-14 06:39:01 [info] Erstellt: 03B14.png {"dauerMs":240}
+2026-09-14 06:39:01 [info] Erstellt: 03B15.png {"dauerMs":253}
+2026-09-14 06:39:01 [info] Erstellt: 03B16.png {"dauerMs":262}
+2026-09-14 06:39:01 [info] Erstellt: 03B17.png {"dauerMs":242}
+2026-09-14 06:39:02 [info] Erstellt: 03B18.png {"dauerMs":259}
+2026-09-14 06:39:02 [info] Erstellt: 03B19.png {"dauerMs":252}
+2026-09-14 06:39:02 [info] Erstellt: 03B20.png {"dauerMs":271}
+2026-09-14 06:39:02 [info] Erstellt: 03B21.png {"dauerMs":246}
+2026-09-14 06:39:03 [info] Erstellt: 03B22.png {"dauerMs":253}
+2026-09-14 06:39:03 [info] Erstellt: 03B23.png {"dauerMs":247}
+2026-09-14 06:39:03 [info] Erstellt: 03B24.png {"dauerMs":264}
+2026-09-14 06:39:03 [info] Erstellt: 03B25.png {"dauerMs":251}
+2026-09-14 06:39:04 [info] Erstellt: 03B26.png {"dauerMs":244}
+2026-09-14 06:39:04 [info] Erstellt: 03B27.png {"dauerMs":246}
+2026-09-14 06:39:04 [info] Erstellt: 03B28.png {"dauerMs":240}
+2026-09-14 06:39:04 [info] Erstellt: 03B29.png {"dauerMs":240}
+2026-09-14 06:39:05 [info] Erstellt: 03B30.png {"dauerMs":249}
+2026-09-14 06:39:05 [info] Erstellt: 03B31.png {"dauerMs":315}
+2026-09-14 06:39:05 [info] Erstellt: 03B32.png {"dauerMs":255}
+2026-09-14 06:39:06 [info] Erstellt: 03B33.png {"dauerMs":265}
+2026-09-14 06:39:06 [info] Erstellt: 03B34.png {"dauerMs":248}
+2026-09-14 06:39:06 [info] Erstellt: 04B01.png {"dauerMs":270}
+2026-09-14 06:39:06 [info] Erstellt: 04B02.png {"dauerMs":257}
+2026-09-14 06:39:07 [info] Erstellt: 04B03.png {"dauerMs":288}
+2026-09-14 06:39:07 [info] Erstellt: 04B04.png {"dauerMs":273}
+2026-09-14 06:39:07 [info] Erstellt: 04B05.png {"dauerMs":253}
+2026-09-14 06:39:07 [info] Erstellt: 04B06.png {"dauerMs":243}
+2026-09-14 06:39:08 [info] Erstellt: 04B07.png {"dauerMs":270}
+2026-09-14 06:39:08 [info] Erstellt: 04B08.png {"dauerMs":242}
+2026-09-14 06:39:08 [info] Erstellt: 04B09.png {"dauerMs":255}
+2026-09-14 06:39:08 [info] Erstellt: 04B10.png {"dauerMs":254}
+2026-09-14 06:39:09 [info] Erstellt: 04B11.png {"dauerMs":250}
+2026-09-14 06:39:09 [info] Erstellt: 04B12.png {"dauerMs":250}
+2026-09-14 06:39:09 [info] Erstellt: 04B13.png {"dauerMs":283}
+2026-09-14 06:39:09 [info] Erstellt: 04B14.png {"dauerMs":248}
+2026-09-14 06:39:10 [info] Erstellt: 04B15.png {"dauerMs":263}
+2026-09-14 06:39:10 [info] Erstellt: 04B16.png {"dauerMs":331}
+2026-09-14 06:39:10 [info] Erstellt: 04B17.png {"dauerMs":254}
+2026-09-14 06:39:11 [info] Erstellt: 04B18.png {"dauerMs":272}
+2026-09-14 06:39:11 [info] Erstellt: 04B19.png {"dauerMs":256}
+2026-09-14 06:39:11 [info] Erstellt: 04B20.png {"dauerMs":256}
+2026-09-14 06:39:11 [info] Erstellt: 04B21.png {"dauerMs":246}
+2026-09-14 06:39:12 [info] Erstellt: 04B22.png {"dauerMs":252}
+2026-09-14 06:39:12 [info] Erstellt: 04B23.png {"dauerMs":258}
+2026-09-14 06:39:12 [info] Erstellt: 04B24.png {"dauerMs":274}
+2026-09-14 06:39:12 [info] Erstellt: 04B25.png {"dauerMs":274}
+2026-09-14 06:39:13 [info] Erstellt: 04B26.png {"dauerMs":269}
+2026-09-14 06:39:13 [info] Erstellt: 04B27.png {"dauerMs":252}
+2026-09-14 06:39:13 [info] Erstellt: 04B28.png {"dauerMs":262}
+2026-09-14 06:39:13 [info] Erstellt: 04B29.png {"dauerMs":271}
+2026-09-14 06:39:14 [info] Erstellt: 04B30.png {"dauerMs":273}
+2026-09-14 06:39:14 [info] Erstellt: 04B31.png {"dauerMs":268}
+2026-09-14 06:39:14 [info] Erstellt: 04B32.png {"dauerMs":262}
+2026-09-14 06:39:14 [info] Erstellt: 04B33.png {"dauerMs":273}
+2026-09-14 06:39:15 [info] Erstellt: 04B34.png {"dauerMs":257}
+2026-09-14 06:39:15 [info] Fertig. 68 erstellt, 0 uebersprungen. {"gesamtDauerMs":18135}
+**********************
+Ende des PowerShell-Transkripts
+Endzeit: 20260914063915
+**********************

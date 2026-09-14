@@ -1,0 +1,5 @@
+$test = .\barcode.ps1 .\test\data.txt .\Templates\MV-A.png .\test\output\ -Config .\config2.json
+$A = .\barcode.ps1 .\0102A.txt .\Templates\MV-A.png .\output\01-02-A\ -Config .\config.json
+$B = .\barcode.ps1 .\0102B.txt .\Templates\MV-B.png .\output\01-02-B\ -Config .\config.json
+
+$generate = $A && $B

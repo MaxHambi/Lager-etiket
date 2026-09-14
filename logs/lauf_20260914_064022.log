@@ -1,0 +1,31 @@
+**********************
+Beginn des PowerShell-Transkripts
+Startzeit: 20260914064022
+Benutzername: MAXHAMBI\Max Hambi
+RunAs-Benutzer: MAXHAMBI\Max Hambi
+Konfigurationsname: 
+Computer: MAXHAMBI (Microsoft Windows NT 10.0.26200.0)
+Hostanwendung: C:\Program Files\PowerShell\7\pwsh.dll -NoProfile -ExecutionPolicy Bypass -Command Import-Module 'c:\Users\Max Hambi\.vscode\extensions\ms-vscode.powershell-2025.4.0\modules\PowerShellEditorServices\PowerShellEditorServices.psd1'; Start-EditorServices -HostName 'Visual Studio Code Host' -HostProfileId 'Microsoft.VSCode' -HostVersion '2025.4.0' -BundledModulesPath 'c:\Users\Max Hambi\.vscode\extensions\ms-vscode.powershell-2025.4.0\modules' -EnableConsoleRepl -StartupBanner "PowerShell Extension v2025.4.0
+Copyright (c) Microsoft Corporation.
+
+https://aka.ms/vscode-powershell
+Type 'help' to get help.
+" -LogLevel 'Warning' -LogPath 'c:\Users\Max Hambi\AppData\Roaming\Code\logs\20260914T051853\window1\exthost\ms-vscode.powershell' -SessionDetailsPath 'c:\Users\Max Hambi\AppData\Roaming\Code\User\globalStorage\ms-vscode.powershell\sessions\PSES-VSCode-20716-829502.json' -FeatureFlags @() 
+Prozess-ID: 22828
+PSVersion: 7.6.6
+PSEdition: Core
+GitCommitId: 7.6.6
+OS: Microsoft Windows 10.0.26200
+Platform: Win32NT
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1, 6.0, 7.0
+PSRemotingProtocolVersion: 2.4
+SerializationVersion: 1.1.0.1
+WSManStackVersion: 3.0
+**********************
+2026-09-14 06:40:22 [info] Log-Datei: C:\Lager\lager-barcode-generator\log\barcode_20260914_064022_793.log
+Fehler: Doppelter Eintrag "03A34" in Zeile 68 von ".\0304A.txt". Abgebrochen, bevor doppelte Schilder entstehen.
+2026-09-14 06:40:22 [error] Unerwarteter Fehler: Doppelter Eintrag "03A34" in Zeile 68 von ".\0304A.txt". Abgebrochen, bevor doppelte Schilder entstehen. {"stack":"Error: Doppelter Eintrag \"03A34\" in Zeile 68 von \".\\0304A.txt\". Abgebrochen, bevor doppelte Schilder entstehen.\n    at file:///C:/Lager/lager-barcode-generator/barcode.mjs:53:13\n    at Array.forEach (<anonymous>)\n    at readEntries (file:///C:/Lager/lager-barcode-generator/barcode.mjs:49:9)\n    at main (file:///C:/Lager/lager-barcode-generator/barcode.mjs:180:19)\n    at file:///C:/Lager/lager-barcode-generator/barcode.mjs:219:1\n    at ModuleJob.run (node:internal/modules/esm/module_job:439:25)\n    at async node:internal/modules/esm/loader:643:26\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)"}
+**********************
+Ende des PowerShell-Transkripts
+Endzeit: 20260914064022
+**********************

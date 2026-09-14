@@ -1,0 +1,9 @@
+2026-09-14 05:31:57 [info] Log-Datei: C:\Lager\lager-barcode-generator\log\barcode_20260914_053157_885.log
+2026-09-14 05:31:57 [info] 4 Eintraege gefunden.
+2026-09-14 05:31:57 [info] Vorlage: .\Templates\MV-A.png
+2026-09-14 05:31:57 [info] Ausgabe: .\test\output\
+2026-09-14 05:31:58 [info] Erstellt: lagerplatz_01A01.png {"dauerMs":545}
+2026-09-14 05:31:58 [info] Erstellt: lagerplatz_01B01.png {"dauerMs":503}
+2026-09-14 05:31:59 [info] Erstellt: lagerplatz_01C01.png {"dauerMs":567}
+2026-09-14 05:32:00 [info] Erstellt: lagerplatz_0102030405060708.png {"dauerMs":671}
+2026-09-14 05:32:00 [info] Fertig. 4 erstellt, 0 uebersprungen. {"gesamtDauerMs":2291}

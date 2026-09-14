@@ -1,0 +1,49 @@
+2026-09-14 05:50:21 [info] Log-Datei: C:\Lager\lager-barcode-generator\log\barcode_20260914_055021_802.log
+2026-09-14 05:50:21 [info] 44 Eintraege gefunden.
+2026-09-14 05:50:21 [info] Vorlage: .\Templates\MV-B.png
+2026-09-14 05:50:21 [info] Ausgabe: .\output\01-02-B\
+2026-09-14 05:50:22 [info] Erstellt: test_01B01.png {"dauerMs":553}
+2026-09-14 05:50:23 [info] Erstellt: test_01B02.png {"dauerMs":664}
+2026-09-14 05:50:23 [info] Erstellt: test_01B03.png {"dauerMs":624}
+2026-09-14 05:50:24 [info] Erstellt: test_01B04.png {"dauerMs":624}
+2026-09-14 05:50:24 [info] Erstellt: test_01B05.png {"dauerMs":563}
+2026-09-14 05:50:25 [info] Erstellt: test_01B06.png {"dauerMs":496}
+2026-09-14 05:50:25 [info] Erstellt: test_01B07.png {"dauerMs":488}
+2026-09-14 05:50:26 [info] Erstellt: test_01B08.png {"dauerMs":481}
+2026-09-14 05:50:26 [info] Erstellt: test_01B09.png {"dauerMs":466}
+2026-09-14 05:50:27 [info] Erstellt: test_01B10.png {"dauerMs":569}
+2026-09-14 05:50:27 [info] Erstellt: test_01B11.png {"dauerMs":496}
+2026-09-14 05:50:28 [info] Erstellt: test_01B12.png {"dauerMs":517}
+2026-09-14 05:50:28 [info] Erstellt: test_01B13.png {"dauerMs":491}
+2026-09-14 05:50:29 [info] Erstellt: test_01B14.png {"dauerMs":436}
+2026-09-14 05:50:29 [info] Erstellt: test_01B15.png {"dauerMs":424}
+2026-09-14 05:50:30 [info] Erstellt: test_01B16.png {"dauerMs":466}
+2026-09-14 05:50:30 [info] Erstellt: test_01B17.png {"dauerMs":473}
+2026-09-14 05:50:31 [info] Erstellt: test_01B18.png {"dauerMs":465}
+2026-09-14 05:50:31 [info] Erstellt: test_01B19.png {"dauerMs":427}
+2026-09-14 05:50:31 [info] Erstellt: test_01B20.png {"dauerMs":429}
+2026-09-14 05:50:32 [info] Erstellt: test_01B21.png {"dauerMs":471}
+2026-09-14 05:50:32 [info] Erstellt: test_01B22.png {"dauerMs":445}
+2026-09-14 05:50:33 [info] Erstellt: test_02B01.png {"dauerMs":433}
+2026-09-14 05:50:33 [info] Erstellt: test_02B02.png {"dauerMs":460}
+2026-09-14 05:50:34 [info] Erstellt: test_02B03.png {"dauerMs":423}
+2026-09-14 05:50:34 [info] Erstellt: test_02B04.png {"dauerMs":436}
+2026-09-14 05:50:35 [info] Erstellt: test_02B05.png {"dauerMs":437}
+2026-09-14 05:50:35 [info] Erstellt: test_02B06.png {"dauerMs":518}
+2026-09-14 05:50:36 [info] Erstellt: test_02B07.png {"dauerMs":454}
+2026-09-14 05:50:36 [info] Erstellt: test_02B08.png {"dauerMs":437}
+2026-09-14 05:50:36 [info] Erstellt: test_02B09.png {"dauerMs":424}
+2026-09-14 05:50:37 [info] Erstellt: test_02B10.png {"dauerMs":464}
+2026-09-14 05:50:37 [info] Erstellt: test_02B11.png {"dauerMs":410}
+2026-09-14 05:50:38 [info] Erstellt: test_02B12.png {"dauerMs":433}
+2026-09-14 05:50:38 [info] Erstellt: test_02B13.png {"dauerMs":455}
+2026-09-14 05:50:39 [info] Erstellt: test_02B14.png {"dauerMs":418}
+2026-09-14 05:50:39 [info] Erstellt: test_02B15.png {"dauerMs":438}
+2026-09-14 05:50:40 [info] Erstellt: test_02B16.png {"dauerMs":459}
+2026-09-14 05:50:40 [info] Erstellt: test_02B17.png {"dauerMs":473}
+2026-09-14 05:50:40 [info] Erstellt: test_02B18.png {"dauerMs":436}
+2026-09-14 05:50:41 [info] Erstellt: test_02B19.png {"dauerMs":460}
+2026-09-14 05:50:41 [info] Erstellt: test_02B20.png {"dauerMs":478}
+2026-09-14 05:50:42 [info] Erstellt: test_02B21.png {"dauerMs":437}
+2026-09-14 05:50:42 [info] Erstellt: test_02B22.png {"dauerMs":433}
+2026-09-14 05:50:42 [info] Fertig. 44 erstellt, 0 uebersprungen. {"gesamtDauerMs":20942}

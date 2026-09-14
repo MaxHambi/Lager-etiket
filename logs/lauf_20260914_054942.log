@@ -1,0 +1,77 @@
+**********************
+Beginn des PowerShell-Transkripts
+Startzeit: 20260914054942
+Benutzername: MAXHAMBI\Max Hambi
+RunAs-Benutzer: MAXHAMBI\Max Hambi
+Konfigurationsname: 
+Computer: MAXHAMBI (Microsoft Windows NT 10.0.26200.0)
+Hostanwendung: C:\Program Files\PowerShell\7\pwsh.dll -NoProfile -ExecutionPolicy Bypass -Command Import-Module 'c:\Users\Max Hambi\.vscode\extensions\ms-vscode.powershell-2025.4.0\modules\PowerShellEditorServices\PowerShellEditorServices.psd1'; Start-EditorServices -HostName 'Visual Studio Code Host' -HostProfileId 'Microsoft.VSCode' -HostVersion '2025.4.0' -BundledModulesPath 'c:\Users\Max Hambi\.vscode\extensions\ms-vscode.powershell-2025.4.0\modules' -EnableConsoleRepl -StartupBanner "PowerShell Extension v2025.4.0
+Copyright (c) Microsoft Corporation.
+
+https://aka.ms/vscode-powershell
+Type 'help' to get help.
+" -LogLevel 'Warning' -LogPath 'c:\Users\Max Hambi\AppData\Roaming\Code\logs\20260914T051853\window1\exthost\ms-vscode.powershell' -SessionDetailsPath 'c:\Users\Max Hambi\AppData\Roaming\Code\User\globalStorage\ms-vscode.powershell\sessions\PSES-VSCode-20716-829502.json' -FeatureFlags @() 
+Prozess-ID: 22828
+PSVersion: 7.6.6
+PSEdition: Core
+GitCommitId: 7.6.6
+OS: Microsoft Windows 10.0.26200
+Platform: Win32NT
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1, 6.0, 7.0
+PSRemotingProtocolVersion: 2.4
+SerializationVersion: 1.1.0.1
+WSManStackVersion: 3.0
+**********************
+2026-09-14 05:49:42 [info] Log-Datei: C:\Lager\lager-barcode-generator\log\barcode_20260914_054942_425.log
+2026-09-14 05:49:42 [info] 44 Eintraege gefunden.
+2026-09-14 05:49:42 [info] Vorlage: .\Templates\MV-A.png
+2026-09-14 05:49:42 [info] Ausgabe: .\output\01-02-A\
+2026-09-14 05:49:43 [info] Erstellt: test_01A01.png {"dauerMs":607}
+2026-09-14 05:49:43 [info] Erstellt: test_01A02.png {"dauerMs":537}
+2026-09-14 05:49:44 [info] Erstellt: test_01A03.png {"dauerMs":539}
+2026-09-14 05:49:44 [info] Erstellt: test_01A04.png {"dauerMs":776}
+2026-09-14 05:49:45 [info] Erstellt: test_01A05.png {"dauerMs":582}
+2026-09-14 05:49:45 [info] Erstellt: test_01A06.png {"dauerMs":503}
+2026-09-14 05:49:46 [info] Erstellt: test_01A07.png {"dauerMs":501}
+2026-09-14 05:49:47 [info] Erstellt: test_01A08.png {"dauerMs":509}
+2026-09-14 05:49:47 [info] Erstellt: test_01A09.png {"dauerMs":473}
+2026-09-14 05:49:47 [info] Erstellt: test_01A10.png {"dauerMs":457}
+2026-09-14 05:49:48 [info] Erstellt: test_01A11.png {"dauerMs":460}
+2026-09-14 05:49:48 [info] Erstellt: test_01A12.png {"dauerMs":460}
+2026-09-14 05:49:49 [info] Erstellt: test_01A13.png {"dauerMs":453}
+2026-09-14 05:49:49 [info] Erstellt: test_01A14.png {"dauerMs":452}
+2026-09-14 05:49:50 [info] Erstellt: test_01A15.png {"dauerMs":442}
+2026-09-14 05:49:50 [info] Erstellt: test_01A16.png {"dauerMs":511}
+2026-09-14 05:49:51 [info] Erstellt: test_01A17.png {"dauerMs":441}
+2026-09-14 05:49:51 [info] Erstellt: test_01A18.png {"dauerMs":452}
+2026-09-14 05:49:52 [info] Erstellt: test_01A19.png {"dauerMs":462}
+2026-09-14 05:49:52 [info] Erstellt: test_01A20.png {"dauerMs":530}
+2026-09-14 05:49:53 [info] Erstellt: test_01A21.png {"dauerMs":456}
+2026-09-14 05:49:53 [info] Erstellt: test_01A22.png {"dauerMs":445}
+2026-09-14 05:49:53 [info] Erstellt: test_02A01.png {"dauerMs":426}
+2026-09-14 05:49:54 [info] Erstellt: test_02A02.png {"dauerMs":438}
+2026-09-14 05:49:54 [info] Erstellt: test_02A03.png {"dauerMs":416}
+2026-09-14 05:49:55 [info] Erstellt: test_02A04.png {"dauerMs":427}
+2026-09-14 05:49:55 [info] Erstellt: test_02A05.png {"dauerMs":430}
+2026-09-14 05:49:56 [info] Erstellt: test_02A06.png {"dauerMs":435}
+2026-09-14 05:49:56 [info] Erstellt: test_02A07.png {"dauerMs":408}
+2026-09-14 05:49:56 [info] Erstellt: test_02A08.png {"dauerMs":423}
+2026-09-14 05:49:57 [info] Erstellt: test_02A09.png {"dauerMs":468}
+2026-09-14 05:49:57 [info] Erstellt: test_02A10.png {"dauerMs":418}
+2026-09-14 05:49:58 [info] Erstellt: test_02A11.png {"dauerMs":415}
+2026-09-14 05:49:58 [info] Erstellt: test_02A12.png {"dauerMs":424}
+2026-09-14 05:49:59 [info] Erstellt: test_02A13.png {"dauerMs":405}
+2026-09-14 05:49:59 [info] Erstellt: test_02A14.png {"dauerMs":436}
+2026-09-14 05:49:59 [info] Erstellt: test_02A15.png {"dauerMs":431}
+2026-09-14 05:50:00 [info] Erstellt: test_02A16.png {"dauerMs":469}
+2026-09-14 05:50:00 [info] Erstellt: test_02A17.png {"dauerMs":435}
+2026-09-14 05:50:01 [info] Erstellt: test_02A18.png {"dauerMs":427}
+2026-09-14 05:50:01 [info] Erstellt: test_02A19.png {"dauerMs":446}
+2026-09-14 05:50:02 [info] Erstellt: test_02A20.png {"dauerMs":457}
+2026-09-14 05:50:02 [info] Erstellt: test_02A21.png {"dauerMs":415}
+2026-09-14 05:50:03 [info] Erstellt: test_02A22.png {"dauerMs":419}
+2026-09-14 05:50:03 [info] Fertig. 44 erstellt, 0 uebersprungen. {"gesamtDauerMs":20565}
+**********************
+Ende des PowerShell-Transkripts
+Endzeit: 20260914055003
+**********************
