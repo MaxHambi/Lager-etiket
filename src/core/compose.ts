@@ -5,8 +5,8 @@
  * barcode.mjs — Änderungen immer in beiden Dateien synchron halten,
  * damit Browser- und PowerShell-Ergebnisse identisch sind.
  */
-import type { AppConfig } from "../types/config.js";
-import { renderBarcodeCanvas } from "./barcode.js";
+import type { AppConfig } from "../types/config.ts";
+import { renderBarcodeCanvas } from "./barcode.ts";
 
 /** Ergebnis einer Komposition: fertiges Canvas + Platzierungs-Info. */
 export interface ComposeResult {

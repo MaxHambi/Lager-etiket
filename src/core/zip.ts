@@ -2,7 +2,7 @@
  * Minimaler ZIP-Writer (Speichermethode "Store", keine Kompression).
  * Reine Logik ohne DOM-Zugriffe (Blob-Ausgabe).
  */
-import { crc32 } from "./crc32.js";
+import { crc32 } from "./crc32.ts";
 
 /** Eine Datei im ZIP-Archiv. */
 export interface ZipEntry {

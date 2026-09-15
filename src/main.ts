@@ -2,16 +2,16 @@
  * Einstiegspunkt des HTML-Tools.
  * Initialisiert alle UI-Module und verdrahtet sie miteinander.
  */
-import { initSplash } from "./ui/splash.js";
-import { Logger } from "./ui/logger.js";
-import { TemplatePicker } from "./ui/template-picker.js";
-import { EntriesUI } from "./ui/entries-ui.js";
-import { ConfigUI } from "./ui/config-ui.js";
-import { PreviewUI } from "./ui/preview.js";
-import { GeneratorUI } from "./ui/generator.js";
-import { applyConfig, toggleAreaFields } from "./core/config.js";
-import { DEFAULT_CONFIG } from "./types/config.js";
-import { $ } from "./ui/dom.js";
+import { initSplash } from "./ui/splash.ts";
+import { Logger } from "./ui/logger.ts";
+import { TemplatePicker } from "./ui/template-picker.ts";
+import { EntriesUI } from "./ui/entries-ui.ts";
+import { ConfigUI } from "./ui/config-ui.ts";
+import { PreviewUI } from "./ui/preview.ts";
+import { GeneratorUI } from "./ui/generator.ts";
+import { applyConfig, toggleAreaFields } from "./core/config.ts";
+import { DEFAULT_CONFIG } from "./types/config.ts";
+import { $ } from "./ui/dom.ts";
 
 function bootstrap(): void {
   initSplash();

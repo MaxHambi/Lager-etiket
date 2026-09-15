@@ -1,8 +1,8 @@
 /**
  * Protokoll (Log-Panel): Zeitstempel + farbcodierte Zeilen.
  */
-import { $ } from "./dom.js";
-import { downloadBlob } from "../core/download.js";
+import { $ } from "./dom.ts";
+import { downloadBlob } from "../core/download.ts";
 
 /** Log-Stufen mit zugehöriger CSS-Klasse im Log-Panel. */
 export type LogLevel = "info" | "ok" | "warn" | "err";

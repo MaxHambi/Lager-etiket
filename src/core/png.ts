@@ -2,7 +2,7 @@
  * PNG-Nachbearbeitung: pHYs-Chunk einfügen (physische Auflösung / DPI).
  * Reine Logik ohne DOM-Zugriffe (nur Blob/ArrayBuffer).
  */
-import { crc32 } from "./crc32.js";
+import { crc32 } from "./crc32.ts";
 
 /** PNG-Signatur-Ende + IHDR: Die IHDR ist immer 25 Bytes lang (4+4+13+4). */
 const IHDR_END = 33;

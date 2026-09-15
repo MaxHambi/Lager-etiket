@@ -1,9 +1,9 @@
 /**
  * Einträge: Textarea, Datei-Import, Validierung, Auswahl für die Vorschau.
  */
-import { $ } from "./dom.js";
-import type { Logger } from "./logger.js";
-import { parseEntries } from "../core/entries.js";
+import { $ } from "./dom.ts";
+import type { Logger } from "./logger.ts";
+import { parseEntries } from "../core/entries.ts";
 
 /**
  * Verwaltet die Eintragsquelle (Textarea + .txt-Import) und das

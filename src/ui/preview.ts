@@ -1,11 +1,11 @@
 /**
  * Vorschau: komponiert einen einzelnen Eintrag und zeigt ihn an.
  */
-import { $ } from "./dom.js";
-import type { Logger } from "./logger.js";
-import type { TemplatePicker } from "./template-picker.js";
-import { readConfig } from "../core/config.js";
-import { composeLabel } from "../core/compose.js";
+import { $ } from "./dom.ts";
+import type { Logger } from "./logger.ts";
+import type { TemplatePicker } from "./template-picker.ts";
+import { readConfig } from "../core/config.ts";
+import { composeLabel } from "../core/compose.ts";
 
 /**
  * Verdrahtet den "Vorschau erzeugen"-Button.

@@ -1,8 +1,8 @@
 /**
  * Vorlagen-Auswahl: Dropzone (Klick + Drag & Drop), Vorschau, Metadaten.
  */
-import { $ } from "./dom.js";
-import type { Logger } from "./logger.js";
+import { $ } from "./dom.ts";
+import type { Logger } from "./logger.ts";
 
 /**
  * Verwaltet das Laden der PNG-Vorlage.

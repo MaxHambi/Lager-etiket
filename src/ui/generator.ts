@@ -2,17 +2,17 @@
  * Stapel-Erzeugung: alle Schilder generieren, Fortschritt anzeigen,
  * Thumbnails + ZIP-Download bereitstellen.
  */
-import { $ } from "./dom.js";
-import type { Logger } from "./logger.js";
-import type { TemplatePicker } from "./template-picker.js";
-import type { EntriesUI } from "./entries-ui.js";
-import { readConfig } from "../core/config.js";
-import { composeLabel } from "../core/compose.js";
-import { canvasToPngBlob } from "../core/barcode.js";
-import { injectPhysDpi } from "../core/png.js";
-import { sanitizeFileName } from "../core/entries.js";
-import { makeZip } from "../core/zip.js";
-import { downloadBlob } from "../core/download.js";
+import { $ } from "./dom.ts";
+import type { Logger } from "./logger.ts";
+import type { TemplatePicker } from "./template-picker.ts";
+import type { EntriesUI } from "./entries-ui.ts";
+import { readConfig } from "../core/config.ts";
+import { composeLabel } from "../core/compose.ts";
+import { canvasToPngBlob } from "../core/barcode.ts";
+import { injectPhysDpi } from "../core/png.ts";
+import { sanitizeFileName } from "../core/entries.ts";
+import { makeZip } from "../core/zip.ts";
+import { downloadBlob } from "../core/download.ts";
 
 /** Ein fertiges Schild (Name, Blob, Objekt-URL). */
 interface GeneratedResult {

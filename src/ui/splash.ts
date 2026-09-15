@@ -1,7 +1,7 @@
 /**
  * Splash-Screen: deckt die App bis zum ersten Klick ab.
  */
-import { $ } from "./dom.js";
+import { $ } from "./dom.ts";
 
 /**
  * Aktiviert den Splash-Screen: setzt die body-Klasse `splash-active`

@@ -3,7 +3,7 @@
  * Kapselt die Bibliothek hinter einer typisierten Funktion.
  */
 import JsBarcode from "jsbarcode";
-import type { BarcodeConfig } from "../types/config.js";
+import type { BarcodeConfig } from "../types/config.ts";
 
 /**
  * Rendert einen Code-128-Barcode (mit Klartext darunter) auf ein neues Canvas.

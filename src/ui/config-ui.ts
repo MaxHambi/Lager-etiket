@@ -2,11 +2,11 @@
  * Konfigurations-UI: config.json Import/Export, Zurücksetzen,
  * Umschalter für den automatischen Zielbereich.
  */
-import { $ } from "./dom.js";
-import type { Logger } from "./logger.js";
-import { readConfig, applyConfig, toggleAreaFields } from "../core/config.js";
-import { DEFAULT_CONFIG } from "../types/config.js";
-import { downloadBlob } from "../core/download.js";
+import { $ } from "./dom.ts";
+import type { Logger } from "./logger.ts";
+import { readConfig, applyConfig, toggleAreaFields } from "../core/config.ts";
+import { DEFAULT_CONFIG } from "../types/config.ts";
+import { downloadBlob } from "../core/download.ts";
 
 /**
  * Verdrahtet die Config-Buttons (Export/Import/Reset) und den

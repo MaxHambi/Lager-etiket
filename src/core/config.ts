@@ -2,8 +2,8 @@
  * Konfigurations-Handling: Formularwerte <-> AppConfig-Objekt.
  * UI-Modul: liest und schreibt die Formularfelder.
  */
-import { $ } from "../ui/dom.js";
-import type { AppConfig } from "../types/config.js";
+import { $ } from "../ui/dom.ts";
+import type { AppConfig } from "../types/config.ts";
 
 /** Wandelt einen Wert in eine Zahl um, mit Fallback. */
 function num(v: string, d: number): number {
