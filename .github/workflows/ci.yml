@@ -75,7 +75,7 @@ jobs:
         run: npm run build
 
       - name: Build-Artefakt hochladen (7 Tage aufbewahren)
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: app-bundle
           path: dist/app.js
