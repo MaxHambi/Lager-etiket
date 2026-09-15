@@ -8,7 +8,13 @@ on:
     paths:
       - 'index.html'
       - 'config.json'
-      - .gitignore
+      - 'src/**'
+      - 'assets/**'
+      - 'build.mjs'
+      - 'tsconfig.json'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/sync-pages.yml'
 
 # Erlaubnis geben, damit der Bot in den Branch schreiben darf
 permissions:
@@ -23,22 +29,45 @@ jobs:
         with:
           fetch-depth: 0 # Lädt alle Branches herunter, damit der Bot wechseln kann
 
+      - name: Node.js einrichten
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'npm'
+
+      - name: Abhängigkeiten installieren
+        run: npm ci
+
+      - name: HTML-Tool bauen (Typecheck + Bundle)
+        run: npm run build
+
+      - name: Build-Artefakte sichern (dist ist nicht Teil von master)
+        run: |
+          cp -r dist /tmp/app-dist
+          cp -r assets /tmp/app-assets
+
       - name: Dateien auf gh-pages synchronisieren
         run: |
           # Dem Bot eine Identität für Git geben
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          
+
           # Zum gh-pages branch wechseln
           git checkout gh-pages
-          
-          # Neueste Version der Dateien aus dem Hauptbranch holen
+
+          # Aktuelle Quelldateien aus dem Hauptbranch holen
           git checkout master -- index.html config.json
-          
+
+          # Gebaute Dateien aus dem Job übernehmen (vor dem Branch-Wechsel gesichert)
+          rm -rf assets dist
+          cp -r /tmp/app-assets assets
+          cp -r /tmp/app-dist dist
+
           # Prüfen, ob sich die Dateien überhaupt verändert haben
+          git add -A index.html config.json assets dist
           if git diff --staged --quiet; then
             echo "Keine Änderungen zu synchronisieren."
           else
-            git commit -m "Automatisches Update von index.html und config.json und gitignore"
+            git commit -m "Automatisches Update von index.html, config.json, assets und dist"
             git push origin gh-pages
           fi
