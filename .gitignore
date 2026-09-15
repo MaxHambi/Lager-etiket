@@ -1,0 +1,10 @@
+package-lock.json
+node_modules/
+config.bak
+mv01.txt
+mv02.txt
+mv03.txt
+mv04.txt
+mv05.txt
+mv06.txt
+output/
