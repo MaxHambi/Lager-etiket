@@ -33,10 +33,11 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '24'
-          cache: 'npm'
+          # Kein npm-Cache möglich: package-lock.json ist in diesem Repo gitignored
 
       - name: Abhängigkeiten installieren
-        run: npm ci
+        # npm install statt npm ci, da package-lock.json in diesem Repo gitignored ist
+        run: npm install --no-audit --no-fund
 
       - name: HTML-Tool bauen (Typecheck + Bundle)
         run: npm run build
