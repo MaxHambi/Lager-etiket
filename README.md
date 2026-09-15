@@ -9,7 +9,7 @@ Es gibt zwei gleichwertige Wege, das Tool zu benutzen:
 | Werkzeug | Wofür |
 |---|---|
 | `barcode.ps1` / `barcode.mjs` (PowerShell / Node.js) | Produktionsläufe, große Stückzahlen, automatisierbar |
-| `Lagerplatz-Barcode-Generator.html` | Schnelle Einzeltests oder kleine Stapel direkt im Browser, komplett offline, keine Installation |
+| `index.html` (+ `src/`, `assets/`, `dist/`) | Schnelle Einzeltests oder kleine Stapel direkt im Browser, komplett offline |
 
 Beide verwenden **exakt dieselbe Positionierungs- und Skalierungslogik**, damit
 Ergebnisse aus beiden Wegen identisch aussehen.
@@ -34,6 +34,9 @@ Ergebnisse aus beiden Wegen identisch aussehen.
   - [Workflow: config.json ändern](#workflow-configjson-ändern)
   - [Workflow: Skript (barcode.mjs) ändern](#workflow-skript-barcodemjs-ändern)
   - [Workflow: HTML-Tool anpassen](#workflow-html-tool-anpassen)
+    - [Entwicklung: Build, Lint, Test](#entwicklung-build-lint-test)
+    - [CI-Workflows](#ci-workflows)
+  - [Themes](#themes)
   - [Fertige Schilder nachträglich skalieren (skalieren.mjs)](#fertige-schilder-nachträglich-skalieren-skalierenmjs)
     - [Verwendung](#verwendung)
     - [Wie die Umrechnung funktioniert](#wie-die-umrechnung-funktioniert)
@@ -85,7 +88,16 @@ lager-barcode-generator/
 │                                          konvertieren.mjs), siehe [Logging & --debug](#logging--debug)
 ├── logs/                                 Vollständiges PowerShell-Transkript jedes barcode.ps1-Laufs
 │                                          (eigener, älterer Mechanismus — nicht zu verwechseln mit log/)
-├── Lagerplatz-Barcode-Generator.html     Interaktives Offline-Tool für den Browser
+├── index.html                            Interaktives Offline-Tool für den Browser (nur Markup,
+│                                          lädt assets/css und dist/app.js)
+├── src/                                  TypeScript-Quellcode des HTML-Tools
+│   ├── core/                             DOM-freie Logik (entries, barcode, compose, png, zip, …)
+│   ├── ui/                               DOM-Module (Logger, TemplatePicker, GeneratorUI, …)
+│   └── types/                            Konfigurations-Typen (kompatibel zu config.json)
+├── assets/css/                           Stylesheets: base.css + components.css + themes/
+├── test/unit/                            Unit-Tests (node --test)
+├── build.mjs                             esbuild-Build (erzeugt dist/app.js)
+├── tsconfig.json / eslint.config.js      Typcheck- bzw. Lint-Konfiguration
 └── README.md                             Diese Anleitung
 ```
 
@@ -101,8 +113,11 @@ ein Menü an, über das sich Skalieren, Prüfen und Konvertieren ohne manuellen
 
 - **Nur für den PowerShell/Node-Weg:** Node.js **24 oder neuer**
   ([nodejs.org](https://nodejs.org)), Windows PowerShell.
-- **Für das HTML-Tool:** nichts weiter als ein aktueller Browser (Chrome,
-  Edge, Firefox). Keine Installation, keine Internetverbindung nötig.
+- **Für das HTML-Tool (GitHub Pages):** nichts weiter als ein aktueller
+  Browser (Chrome, Edge, Firefox). Keine Installation, keine
+  Internetverbindung zur Nutzung nötig.
+- **Für das HTML-Tool lokal bzw. zur Entwicklung:** zusätzlich Node.js (siehe
+  oben) für `npm install`, Build, Lint und Tests.
 
 Nach der Node-Installation einmalig prüfen:
 
@@ -134,14 +149,26 @@ Ergebnis: für jede Zeile in `eintraege.txt` entsteht eine Datei
 
 ## Schnellstart (HTML-Tool)
 
-1. `Lagerplatz-Barcode-Generator.html` per Doppelklick öffnen (startet im
-   Standardbrowser).
-2. Vorlage per Klick oder Drag & Drop in die Dropzone laden.
-3. Lagerplätze eintragen oder per „Datei laden (.txt)" importieren.
-4. Layout bei Bedarf anpassen (siehe [config.json](#configjson--alle-einstellungen) —
+Einmalig bauen und lokal starten:
+
+```powershell
+npm install          # einmalig, benötigt Internet
+npm run build        # Typcheck + Bundle → dist/app.js
+npx serve .          # lokaler Server (ES-Module laden nicht per Doppelklick)
+```
+
+Danach im Browser (z. B. http://localhost:3000):
+
+1. Vorlage per Klick oder Drag & Drop in die Dropzone laden.
+2. Lagerplätze eintragen oder per „Datei laden (.txt)" importieren.
+3. Layout bei Bedarf anpassen (siehe [config.json](#configjson--alle-einstellungen) —
    dieselben Felder stehen im Formular).
-5. „Vorschau erzeugen" zum Testen eines einzelnen Eintrags.
-6. „Alle Schilder erzeugen" → danach „Alle als ZIP herunterladen".
+4. „Vorschau erzeugen" zum Testen eines einzelnen Eintrags.
+5. „Alle Schilder erzeugen" → danach „Alle als ZIP herunterladen".
+
+Auf [GitHub Pages](https://maxhambi.github.io/Lager-etiket/) ist das Tool
+ohne Build direkt nutzbar — der Sync-Workflow baut automatisch bei jedem
+Push auf `master`.
 
 Die aktuelle Konfiguration lässt sich im HTML-Tool über „config.json
 exportieren" sichern und über „config.json laden" wieder einspielen — so
@@ -341,29 +368,76 @@ Vorgehen bei Änderungen:
 `barcode.ps1` selbst muss für reine Layout-/Logik-Änderungen **nicht**
 angepasst werden — es reicht immer, `barcode.mjs` bzw. `config.json` zu
 ändern. Der PowerShell-Wrapper ist nur für Bedienung (interaktiver Modus,
-Dateiauswahl-Dialoge, Protokollierung in `logs\`) zuständig.
+Dateiauswahl-Dialoge, Protokollierung in `logs\`) zuständig.## Workflow: HTML-Tool anpassen
 
-## Workflow: HTML-Tool anpassen
+Das HTML-Tool ist modular aufgebaut: TypeScript-Quellcode unter `src/`,
+Stylesheets unter `assets/css/`, gebündelt via esbuild zu `dist/app.js`.
+Die zentrale Logik (`composeLabel()` in `src/core/compose.ts`) ist bewusst
+identisch zu `barcode.mjs` aufgebaut, damit beide Werkzeuge dieselben
+Ergebnisse liefern.
 
-Das HTML-Tool ist eine einzelne, in sich geschlossene Datei
-(`Lagerplatz-Barcode-Generator.html`) mit eingebettetem CSS/JS und der
-inline eingebetteten Bibliothek [JsBarcode](https://github.com/lindell/JsBarcode)
-für die Code-128-Erzeugung im Browser. Die zentrale Logik
-(`composeLabel()` in der Datei) ist bewusst identisch zu `barcode.mjs`
-aufgebaut, damit beide Werkzeuge dieselben Ergebnisse liefern.
+Struktur:
+
+| Pfad | Inhalt |
+|---|---|
+| `src/core/` | DOM-freie Logik: Einträge (`entries.ts`), Barcode (`barcode.ts`), Komposition (`compose.ts`), DPI (`png.ts`), ZIP (`zip.ts`), CRC32 (`crc32.ts`), Download (`download.ts`) |
+| `src/ui/` | DOM-Module: `Logger`, `TemplatePicker`, `EntriesUI`, `ConfigUI`, `PreviewUI`, `GeneratorUI`, Splash-Screen |
+| `src/types/` | Konfigurations-Typen (`AppConfig` u. a., kompatibel zu `config.json`) |
+| `assets/css/` | `base.css` + `components.css` + Themes (siehe [Themes](#themes)) |
+| `test/unit/` | Unit-Tests via `node --test` |
 
 Wichtig bei Anpassungen:
 
-- Änderungen direkt in der `<script>`-Sektion der HTML-Datei vornehmen (kein
-  Build-Schritt nötig — einfach speichern und Browser neu laden/aktualisieren).
-- Die Positions-/Skalierungsformel in `composeLabel()` sollte bei Änderungen
-  an `barcode.mjs` synchron gehalten werden, sonst weichen Browser- und
-  PowerShell-Ergebnisse voneinander ab.
-- Da alles offline laufen soll, dürfen keine externen `<script src="https://...">`-
-  Verweise eingefügt werden — neue Bibliotheken müssten wie JsBarcode direkt
-  in die Datei eingebettet werden.
-- Nach jeder Änderung: Datei im Browser neu laden, Vorlage laden,
-  „Vorschau erzeugen" klicken und das Ergebnis visuell prüfen.
+- Nach Änderungen an `src/` immer `npm run build` ausführen — die HTML-Datei
+  lädt ausschließlich `dist/app.js`.
+- Die Positions-/Skalierungsformel in `src/core/compose.ts` sollte bei
+  Änderungen an `barcode.mjs` synchron gehalten werden, sonst weichen
+  Browser- und PowerShell-Ergebnisse voneinander ab.
+- JsBarcode kommt als npm-Paket (`jsbarcode`) und wird beim Build mit
+  gebündelt — keine externen `<script src="https://...">`-Verweise einfügen,
+  damit alles offline läuft.
+- Komponenten-CSS nutzt ausschließlich Theme-Variablen — keine harten
+  Farben in `components.css` einfügen, sondern neue Variablen im Theme
+  definieren (siehe [Themes](#themes)).
+
+### Entwicklung: Build, Lint, Test
+
+```powershell
+npm run build        # Typcheck (tsc --noEmit) + esbuild-Bundle → dist/app.js
+npm run build:watch  # Build bei jeder Änderung an src/ automatisch
+npm run lint         # ESLint (typescript-eslint)
+npm test             # Unit-Tests (node --test)
+npm run typecheck    # nur der Typcheck
+```
+
+Vor jedem Push sollte lokal gelten: `npm run lint && npm test && npm run build`
+— dieselben drei Prüfungen laufen auch im CI.
+
+### CI-Workflows
+
+| Workflow | Datei | Was er tut |
+|---|---|---|
+| CI | `.github/workflows/ci.yml` | Bei jedem Push/PR auf `master`: **Lint**, **Unit-Tests** und **Build** (Typecheck + esbuild) als drei parallele Jobs; `dist/app.js` wird als Artefakt vorgehalten |
+| Update GitHub Pages | `.github/workflows/sync-pages.yml` | Bei Push auf `master` (wenn `index.html`, `config.json`, `src/`, `assets/` … sich ändern): baut das Tool und synchronisiert `index.html`, `config.json`, `assets/` und `dist/` auf den `gh-pages`-Branch |
+
+## Themes
+
+Das Aussehen des HTML-Tools steuern **Theme-Dateien** — reine
+CSS-Variablen-Sets ohne Komponenten-Styles. Das bisherige Design ist als
+`assets/css/themes/catppuccin.css` gesichert; aktiviert wird es über das
+Attribut `data-theme="catppuccin"` am `<html>`-Element.
+
+**Neues Theme in 3 Schritten:**
+
+1. `assets/css/themes/catppuccin.css` kopieren (z. B. zu `light.css`),
+   `data-theme`-Wert und Variablenwerte anpassen.
+2. In `index.html` ergänzen:
+   `<link rel="stylesheet" href="assets/css/themes/light.css">`
+3. Aktivieren: `data-theme="light"` am `<html>`-Element setzen.
+
+Die vollständige Liste der Pflicht-Variablen und die Rollen-Zuordnung
+(wo wird welche Variable genutzt?) steht in
+[`assets/css/themes/README.md`](assets/css/themes/README.md).
 
 ---
 
@@ -779,5 +853,5 @@ später exakt reproduzieren lassen.
   (PowerShell/Node-Weg)
 - [sharp](https://github.com/lubien/sharp) / [sharp.pixelplumbing.com](https://sharp.pixelplumbing.com/) — Bildkomposition und PNG-Export
 - [JsBarcode](https://github.com/lindell/JsBarcode) (MIT-Lizenz) — Code-128-
-  Erzeugung im Browser, inline eingebettet im HTML-Tool
+  Erzeugung im Browser, als npm-Paket im Build gebündelt
 - [Node.js](https://nodejs.org) — Laufzeitumgebung für `barcode.mjs`
