@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="catppuccin">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lagerplatz-Barcode-Generator</title>
+<link rel="stylesheet" href="assets/css/base.css">
+<link rel="stylesheet" href="assets/css/components.css">
+<link rel="stylesheet" href="assets/css/themes/catppuccin.css">
+</head>
+<body>
+  <div id="splash-screen">
+    <h1><span class="accent">UNBEFUGTE NUTZUNG UNTERSAGT</span></h1>
+    <p>Interaktive HTML-Version des <code>barcode.ps1</code>-Werkzeugs — Code&nbsp;128, lokal &amp; offline.</p>
+    <p>© 2026 Max Hambi | <a href="mailto:max.hambi@pm.me">max.hambi@pm.me</a> | <a href="https://github.com/MaxHambi" target="_blank" rel="noopener">Github</a></p>
+    <p>Made with ❤️ | Verwendung außerhalb Auto-Kabel Rülzheim ist nicht gestattet!</p>
+    <h2><span class="accent">BETA VERSION Stand v3.2.1_dev2</span></h2>
+  </div>  <div id="login-overlay" style="display:none;">
+    <form id="login-form" autocomplete="off">
+      <h2>Zugang bestätigen</h2>
+      <p>Bitte Passwort eingeben, um das Werkzeug zu nutzen.</p>
+      <input type="password" id="login-password" placeholder="Passwort" aria-label="Passwort">
+      <button type="submit" class="btn-primary">Entsperren</button>
+      <div id="login-error" class="login-error" style="display:none;"></div>
+    </form>
+  </div>
+
+  <div class="wrap">
+
+    <header class="top">
+      <div>
+        <h1>Lagerplatz-<span class="accent">Barcode</span>-Generator</h1>
+        <p>Interaktive HTML-Version des <code>barcode.ps1</code>-Werkzeugs — Code&nbsp;128, lokal &amp; offline.</p>
+        <p>© 2026 Max Hambi | <a href="mailto:max.hambi@pm.me">max.hambi@pm.me</a> | <a href="https://github.com/MaxHambi">Github</a> </p>
+        <p> Made with ❤️ | Verwendung außerhalb Auto-Kabel Rülzheim ist nicht gestattet!</p>
+      </div>
+      <span class="badge"><span class="dot"></span>Läuft vollständig offline im Browser</span>
+    </header>
+
+    <div class="grid">
+
+      <div>
+        <div class="card">
+          <h2><span class="num">1</span>Vorlage</h2>
+          <p class="hint">PNG-Vorlage per Klick oder Drag &amp; Drop laden. Der Barcode wird später darauf zentriert.</p>
+          <div class="dropzone" id="dropzone">
+            <div><strong>Klicken</strong> oder Vorlage hierher ziehen (PNG)</div>
+          </div>
+          <input type="file" id="tplFile" accept="image/png,image/*" style="display:none">
+          <div class="tpl-preview" id="tplPreviewWrap" style="display:none;">
+            <img id="tplPreviewImg" alt="Vorlage">
+          </div>
+          <div class="tpl-meta" id="tplMeta"></div>
+        </div>
+
+        <div class="card">
+          <h2><span class="num">2</span>Lagerplätze</h2>
+          <p class="hint">Ein Lagerplatz pro Zeile. Zeilen mit <code>#</code> sind Kommentare, Duplikate brechen die Erzeugung ab.</p>
+          <div class="field">
+            <textarea id="entriesText" rows="8" placeholder="01A01&#10;01A02&#10;01A03&#10;02B01">01A01
+01A02
+01A03
+02B01</textarea>
+          </div>
+          <div class="btn-row">
+            <button class="btn-secondary" onclick="document.getElementById('entriesFile').click()">Datei laden (.txt)</button>
+            <input type="file" id="entriesFile" accept=".txt,text/plain" style="display:none">
+          </div>
+          <div id="entryError" class="hint" style="display:none;color:var(--red);"></div>
+        </div>
+      </div>
+
+      <div>
+        <div class="card">
+          <h2><span class="num">3</span>Konfiguration</h2>
+          <p class="hint">Entspricht <code>config.json</code> — Import/Export möglich, damit HTML- und PowerShell-Tool synchron bleiben.</p>
+
+          <div class="row three">
+            <div class="field"><label>Balkenhöhe (px)</label><input type="number" id="cfgHeight"></div>
+            <div class="field"><label>Strichbreite (px)</label><input type="number" id="cfgBarWidth"></div>
+            <div class="field"><label>Rand (px)</label><input type="number" id="cfgMargin"></div>
+          </div>
+          <div class="row three">
+            <div class="field"><label>Schriftgröße (px)</label><input type="number" id="cfgFontSize"></div>
+            <div class="field"><label>Textabstand (px)</label><input type="number" id="cfgTextMargin"></div>
+            <div class="field"><label>Farbe</label><input type="color" id="cfgColor"></div>
+          </div>
+          <div class="field">
+            <label>Schriftart</label>
+            <input type="text" id="cfgFontFamily">
+          </div>
+
+          <div class="divider"></div>
+
+          <label class="checkline"><input type="checkbox" id="areaAuto"> Zielbereich automatisch (bis Vorlagenrand)</label>
+          <div class="row two" style="margin-top:10px;">
+            <div class="field"><label>Links (px)</label><input type="number" id="cfgLeft"></div>
+            <div class="field"><label>Oben (px)</label><input type="number" id="cfgTop"></div>
+            <div class="field"><label>Breite (px)</label><input type="number" id="cfgWidth"></div>
+            <div class="field"><label>Höhe (px)</label><input type="number" id="cfgHeight2"></div>
+          </div>
+
+          <details class="adv" open>
+            <summary>Erweiterte Platzierung</summary>
+            <div class="row two">
+              <div class="field"><label>Max. Breite (%)</label><input type="number" id="cfgMaxW"></div>
+              <div class="field"><label>Max. Höhe (%)</label><input type="number" id="cfgMaxH"></div>
+              <div class="field"><label>Verschiebung X (px)</label><input type="number" id="cfgOffX"></div>
+              <div class="field"><label>Verschiebung Y (px)</label><input type="number" id="cfgOffY"></div>
+            </div>
+          </details>
+
+          <div class="divider"></div>
+
+          <div class="row two">
+            <div class="field"><label>Dateiname-Präfix</label><input type="text" id="cfgPrefix"></div>
+            <div class="field"><label>DPI (Metadaten)</label><input type="number" id="cfgDpi"></div>
+          </div>
+
+          <div class="btn-row">
+            <button class="btn-ghost" onclick="document.getElementById('configFile').click()">config.json laden</button>
+            <input type="file" id="configFile" accept=".json,application/json" style="display:none">
+            <button class="btn-ghost" id="btnExportConfig">config.json exportieren</button>
+            <button class="btn-ghost" id="btnResetConfig">Zurücksetzen</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2><span class="num">4</span>Vorschau</h2>
+      <div class="entrySelect">
+        <label style="margin:0;">Eintrag:</label>
+        <select id="previewEntry"></select>
+        <label class="checkline" style="margin:0;"><input type="checkbox" id="showArea"> Zielbereich einzeichnen</label>
+        <button class="btn-primary" id="btnPreview">Vorschau erzeugen</button>
+      </div>
+      <div id="previewStage"><span class="empty">Noch keine Vorschau — Vorlage &amp; Eintrag wählen.</span></div>
+    </div>
+
+    <div class="card">
+      <h2><span class="num">5</span>Erzeugen</h2>
+      <div class="btn-row">
+        <button class="btn-green" id="btnGenerateAll" disabled>Alle Schilder erzeugen</button>
+        <button class="btn-secondary" id="btnDownloadZip" disabled>Alle als ZIP herunterladen</button>
+      </div>
+      <div class="progressbar"><div id="progressInner"></div></div>
+    </div>
+
+    <div class="card" id="resultsCard" style="display:none;">
+      <h2><span class="num">6</span>Ergebnisse</h2>
+      <div class="thumbgrid" id="thumbgrid"></div>
+    </div>
+
+    <div class="card">
+      <h2><span class="num">7</span>Protokoll</h2>
+      <div id="log"></div>
+      <div class="btn-row">
+        <button class="btn-ghost" id="btnSaveLog">Protokoll speichern</button>
+      </div>
+    </div>
+
+    <footer>
+      Code&nbsp;128 via <a href="https://github.com/lindell/JsBarcode" target="_blank" rel="noopener">JsBarcode</a> (MIT-Lizenz, gebündelt — keine Internetverbindung zur Laufzeit nötig).<br>
+      Ergänzt das <code>barcode.ps1</code> / <code>barcode.mjs</code>-Kommandozeilenwerkzeug für die Kommissionierung im Lager.<br>
+      <br>
+      © 2026 Max Hambi | <a href="mailto:max.hambi@pm.me">max.hambi@pm.me</a> | <a href="https://github.com/MaxHambi">Github</a><br>
+      Made with ❤️ | Verwendung außerhalb Auto-Kabel Rülzheim ist nicht gestattet!
+
+    </footer>
+  </div>
+
+  <script type="module" src="dist/app.js"></script>
+</body>
+</html>
