@@ -23,6 +23,9 @@ permissions:
 jobs:
   sync:
     runs-on: ubuntu-latest
+    # Environment des Secrets: APP_PASSWORD ist als Environment-Secret im
+    # Environment "github-pages" hinterlegt (nicht als Repository-Secret).
+    environment: github-pages
     steps:
       - name: Checkout Code
         uses: actions/checkout@v5
