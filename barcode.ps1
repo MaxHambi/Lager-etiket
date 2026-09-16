@@ -22,13 +22,18 @@ if ($DebugModus) { $DebugPreference = 'Continue' }
 
 $ErrorActionPreference = "Stop"
 $scriptDir  = Split-Path -Parent $MyInvocation.MyCommand.Path
-$mainScript = Join-Path $scriptDir "barcode.mjs"
-$skalierenScript    = Join-Path $scriptDir "skalieren.mjs"
-$pruefenScript      = Join-Path $scriptDir "pruefen.mjs"
-$konvertierenScript = Join-Path $scriptDir "konvertieren.mjs"
+# CLI-Skripte liegen im Monorepo unter packages/tools (self-contained:
+# Templates, config.json, Eintragslisten und output/ liegen dort ebenfalls)
+$toolsDir            = Join-Path $scriptDir "packages\tools"
+$mainScript          = Join-Path $toolsDir "barcode.mjs"
+$skalierenScript    = Join-Path $toolsDir "skalieren.mjs"
+$pruefenScript      = Join-Path $toolsDir "pruefen.mjs"
+$konvertierenScript = Join-Path $toolsDir "konvertieren.mjs"
+# Standard-Config ebenfalls im tools-Ordner suchen, wenn nicht explizit gesetzt
+if ($Config -eq "config.json") { $Config = Join-Path $toolsDir "config.json" }
 
 # --- Protokollierung: jeder Lauf wird vollstaendig in eine Log-Datei geschrieben ---
-$logDir = Join-Path $scriptDir "logs"
+$logDir = Join-Path $scriptDir "log"
 if (-not (Test-Path $logDir)) { New-Item -ItemType Directory -Path $logDir | Out-Null }
 $logFile = Join-Path $logDir ("lauf_{0}.log" -f (Get-Date -Format "yyyyMMdd_HHmmss"))
 Start-Transcript -Path $logFile -Append | Out-Null
