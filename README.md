@@ -1,3 +1,5 @@
+
+![CodeRabbit Pull Request Reviews](https://img.shields.io/coderabbit/prs/github/MaxHambi/Lager-etiket?utm_source=oss&utm_medium=github&utm_campaign=MaxHambi%2FLager-etiket&labelColor=171717&color=FF570A&link=https%3A%2F%2Fcoderabbit.ai&label=CodeRabbit+Reviews)
 # Lager-Barcode-Generator
 
 Erzeugt aus einer Liste von Lagerplatz-Bezeichnungen (z. B. `01A01`) fertige
