@@ -22,3 +22,6 @@ apps/web/public/compare/compare.html
 apps/web/public/compare/compare.js
 apps/web/public/compare/cli-*.png
 apps/web/public/compare/template.png
+
+# Freebuff-Verwaltungsordner (Worktrees, IDs) nie committen
+.freebuff/
