@@ -1,11 +1,12 @@
-# Architektur — Lagerplatz-Barcode-Generator (HTML-Tool)
+# Architektur — Lagerplatz-Barcode-Generator (Monorepo)
 
-Dieses Dokument beschreibt die Architektur des browserbasierten HTML-Tools:
-Module, Build-Pipeline, Authentifizierung und Datenfluss.
+Dieses Dokument beschreibt die Architektur des Projekts als **Monorepo**
+(npm Workspaces + Turborepo): Module, Build-Pipeline, Authentifizierung
+und Datenfluss.
 
-> Kommandozeilen-Werkzeuge (`barcode.ps1`, `barcode.mjs`, `skalieren.mjs`,
-> `pruefen.mjs`, `konvertieren.mjs`) sind separat dokumentiert in der
-> [Haupt-README](../README.md).
+> Kommandozeilen-Werkzeuge (`barcode.ps1` am Root sowie `barcode.mjs`,
+> `skalieren.mjs`, `pruefen.mjs`, `konvertieren.mjs` in `packages/tools/`)
+> sind separat dokumentiert in der [Haupt-README](../README.md).
 
 ---
 
@@ -19,12 +20,12 @@ graph TB
         CSS["assets/css/<br/>base + components + theme"]
         JS["dist/app.js<br/>(esbuild-Bundle)"]
 
-        subgraph App["Anwendung (src/)"]
+        subgraph App["Anwendung (Workspaces)"]
             direction TB
-            ENTRY["main.ts<br/>(Einstieg)"]
-            UI["ui/ — DOM-Module<br/>Logger · TemplatePicker · EntriesUI<br/>ConfigUI · PreviewUI · GeneratorUI"]
-            CORE["core/ — DOM-freie Logik<br/>entries · compose · barcode<br/>png · zip · crc32 · download"]
-            TYPES["types/config.ts<br/>AppConfig (kompatibel zu config.json)"]
+            ENTRY["apps/web — main.ts<br/>(Einstieg) + auth.ts (Login)"]
+            UI["@lager-etiket/ui — DOM-Module<br/>Logger · TemplatePicker · EntriesUI<br/>ConfigUI · PreviewUI · GeneratorUI"]
+            CORE["@lager-etiket/core — DOM-freie Logik<br/>entries · compose · barcode<br/>png · zip · crc32 · download"]
+            TYPES["@lager-etiket/types<br/>AppConfig (kompatibel zu config.json)"]
         end
 
         WCRYPT["Web Crypto API<br/>(nur geschützter Build)"]
@@ -59,10 +60,10 @@ graph TB
 
 ## 2. Module und Verantwortlichkeiten
 
-### core/ — DOM-freie Logik
+### @lager-etiket/core — DOM-freie Logik
 
 Alle Funktionen sind rein bzw. arbeiten nur mit Blob/ArrayBuffer und sind
-deshalb einzeln unit-testbar (`test/unit/`).
+deshalb einzeln unit-testbar (`packages/core/test/`).
 
 | Modul | Exporte | Zweck |
 |---|---|---|
@@ -72,10 +73,10 @@ deshalb einzeln unit-testbar (`test/unit/`).
 | `png.ts` | `injectPhysDpi` | pHYs-Chunk (DPI) in PNG injizieren |
 | `zip.ts` | `makeZip`, `ZipEntry` | Store-only ZIP-Writer |
 | `crc32.ts` | `crc32` | CRC32 (IEEE) für ZIP + PNG |
-| `config.ts` | `readConfig`, `applyConfig`, `toggleAreaFields` | Formular ↔ `AppConfig` |
+| `config.ts` (in ui) | `readConfig`, `applyConfig`, `toggleAreaFields` | Formular ↔ `AppConfig` |
 | `download.ts` | `downloadBlob` | Browser-Download auslösen |
 
-### ui/ — DOM-Module
+### @lager-etiket/ui — DOM-Module
 
 | Modul | Klasse/Funktionen | Zuständig für |
 |---|---|---|
@@ -93,8 +94,8 @@ deshalb einzeln unit-testbar (`test/unit/`).
 
 | Datei | Wird gebaut als | Zweck |
 |---|---|---|
-| `src/main.ts` | `npm run build` (unverschlüsselt) | Direkte App-Initialisierung |
-| `src/auth.ts` | `node build.mjs --password "…"` (geschützt) | Login + Entschlüsselung, führt dann das `main.ts`-Bundle aus |
+| `apps/web/src/main.ts` | `npm run build:web` (unverschlüsselt) | Direkte App-Initialisierung |
+| `apps/web/src/auth.ts` | `node build.mjs --password "…"` (geschützt) | Login + Entschlüsselung, führt dann das `main.ts`-Bundle aus |
 
 ---
 
@@ -103,12 +104,12 @@ deshalb einzeln unit-testbar (`test/unit/`).
 ```mermaid
 flowchart LR
     subgraph Quellcode
-        SRC["src/**/*.ts"]
-        CSS["assets/css/**"]
-        HTML["index.html"]
+        SRC["packages/*/src/**/*.ts<br/>apps/web/src/**"]
+        CSS["apps/web/assets/css/**"]
+        HTML["apps/web/index.html"]
     end
 
-    subgraph Entwicklung["Entwicklungs-Build (npm run build)"]
+    subgraph Entwicklung["Entwicklungs-Build (npm run build:web)"]
         TSC["tsc --noEmit<br/>(Typcheck)"]
         DEV["esbuild<br/>main.ts → dist/app.js<br/>(IIFE, Sourcemap)"]
     end
@@ -116,7 +117,7 @@ flowchart LR
     subgraph Geschützt["Geschützter Build (node build.mjs --password)"]
         MIN["esbuild<br/>main.ts → IIFE (minifiziert)"]
         ENC["node:crypto<br/>PBKDF2-SHA256 ×210k<br/>AES-256-GCM"]
-        VAULT["src/generated/vault.ts<br/>(base64-Ciphertext, gitignored)"]
+        VAULT["apps/web/src/generated/vault.ts<br/>(base64-Ciphertext, gitignored)"]
         LOADER["esbuild<br/>auth.ts + Vault → dist/app.js<br/>(ohne Sourcemap!)"]
     end
 
@@ -139,10 +140,10 @@ flowchart LR
 
 - Im geschützten Modus wird **kein Sourcemap** erzeugt (would leak den
   Klartext) und minifiziert (kleinerer Ciphertext).
-- `src/generated/vault.ts` entsteht nur beim geschützten Build und ist
+- `apps/web/src/generated/vault.ts` entsteht nur beim geschützten Build und ist
   gitignored — im Repository liegt niemals ein Ciphertext oder Passwort.
 - Der Dev-Build schreibt einen leeren Vault-Stub, damit `tsc` `auth.ts`
-  typchecken kann.
+  typchecken kann (`scripts/gen-vault-stub.mjs`).
 
 ---
 
@@ -236,16 +237,17 @@ flowchart TD
 ```mermaid
 flowchart LR
     PUSH["Push / PR auf master"]
-    subgraph CI["ci.yml (3 parallele Jobs)"]
-        LINT["lint<br/>ESLint"]
-        TEST["test<br/>node --test (22 Tests)"]
-        BUILD["build<br/>tsc + esbuild → Artefakt"]
+    subgraph CI["ci.yml (4 parallele Jobs, via Turbo)"]
+        LINT["lint<br/>ESLint (alle Workspaces)"]
+        TEST["test<br/>node --test (packages/core)"]
+        BUILD["build<br/>turbo run build → Artefakt"]
+        DOCS["docs<br/>TypeDoc-Referenz"]
     end
     subgraph PAGES["sync-pages.yml"]
-        BUILDP["npm ci + Build<br/>(APP_PASSWORD-Secret →<br/>geschützter Build)"]
+        BUILDP["npm ci + turbo build<br/>(APP_PASSWORD-Secret →<br/>geschützter Build)"]
         SYNC["index.html, config.json,<br/>assets/, dist/ → gh-pages"]
     end
-    PUSH --> LINT & TEST & BUILD
+    PUSH --> LINT & TEST & BUILD & DOCS
     PUSH --> BUILDP --> SYNC --> LIVE["GitHub Pages live"]
 ```
 

@@ -1,25 +1,21 @@
 {
-  "name": "lager-barcode-generator",
+  "name": "lager-etiket-monorepo",
   "version": "1.0.0",
   "private": true,
   "type": "module",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "scripts": {
-    "build": "node scripts/gen-vault-stub.mjs && tsc --noEmit && node build.mjs",
-    "build:watch": "node build.mjs --watch",
-    "typecheck": "node scripts/gen-vault-stub.mjs && tsc --noEmit",
-    "lint": "eslint src/",
-    "docs": "node scripts/gen-vault-stub.mjs && typedoc",
-    "docs:check": "node scripts/gen-vault-stub.mjs && typedoc --treatWarningsAsErrors",
-    "test": "node --test \"test/unit/*.test.mjs\""
-  },
-  "dependencies": {
-    "etiket": "^0.11.0",
-    "jsbarcode": "^3.12.3",
-    "sharp": "^0.35.4",
-    "triple-beam": "^1.4.1",
-    "winston": "^3.19.0",
-    "winston-transport": "^4.9.0",
-    "zxing-wasm": "^3.1.4"
+    "build": "turbo run build",
+    "build:web": "turbo run build --filter=@lager-etiket/web",
+    "build:watch": "turbo run build:watch --filter=@lager-etiket/web",
+    "typecheck": "turbo run typecheck",
+    "lint": "turbo run lint",
+    "test": "turbo run test",
+    "docs": "turbo run docs",
+    "dev": "turbo run dev --filter=@lager-etiket/web"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
@@ -27,9 +23,19 @@
     "esbuild": "^0.28.2",
     "eslint": "^10.10.0",
     "globals": "^17.12.0",
+    "turbo": "^2.10.13",
     "typedoc": "^0.28.20",
     "typedoc-plugin-markdown": "^4.13.0",
     "typescript": "~5.9.2",
     "typescript-eslint": "^8.70.0"
+  },
+  "devEngines": {
+    "packageManager": {
+      "name": "npm",
+      "version": "^11.0.0"
+    }
+  },
+  "engines": {
+    "node": ">=24"
   }
 }

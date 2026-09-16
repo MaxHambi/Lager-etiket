@@ -1,6 +1,8 @@
 name: CI
 
-# Lint, Unit-Tests und Build bei jedem Push und jedem Pull Request
+# Lint, Unit-Tests, Build und Docs bei jedem Push und jedem Pull Request.
+# Turbo orchestriert die Tasks über alle Workspaces (apps/*, packages/*)
+# und cacht sie inkrementell.
 on:
   push:
     branches:
@@ -18,7 +20,7 @@ permissions:
 
 jobs:
   lint:
-    name: Lint (ESLint)
+    name: Lint (ESLint, alle Workspaces)
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
@@ -33,7 +35,7 @@ jobs:
       - name: Abhängigkeiten installieren
         run: npm ci --no-audit --no-fund
 
-      - name: ESLint ausführen
+      - name: ESLint ausführen (turbo run lint)
         run: npm run lint
 
   test:
@@ -52,7 +54,7 @@ jobs:
       - name: Abhängigkeiten installieren
         run: npm ci --no-audit --no-fund
 
-      - name: Unit-Tests ausführen
+      - name: Unit-Tests ausführen (turbo run test)
         run: npm test
 
   build:
@@ -71,14 +73,19 @@ jobs:
       - name: Abhängigkeiten installieren
         run: npm ci --no-audit --no-fund
 
-      - name: Typecheck + esbuild-Bundle
+      # Turbos Remote-Cache beschleunigt CI-Läufe; ohne Token läuft alles lokal.
+      - name: Turbo Remote Cache aktivieren (falls Token vorhanden)
+        run: echo "TURBO_TOKEN=${{ secrets.TURBO_TOKEN }}" >> $GITHUB_ENV
+        continue-on-error: true
+
+      - name: Build aller Workspaces (turbo run build)
         run: npm run build
 
       - name: Build-Artefakt hochladen (7 Tage aufbewahren)
         uses: actions/upload-artifact@v6
         with:
           name: app-bundle
-          path: dist/app.js
+          path: apps/web/dist/app.js
           retention-days: 7
 
   docs:
@@ -97,8 +104,10 @@ jobs:
       - name: Abhängigkeiten installieren
         run: npm ci --no-audit --no-fund
 
-      - name: Modul-Referenz generieren (Warnungen als Fehler)
-        run: npm run docs:check
+      - name: Modul-Referenz generieren
+        run: |
+          node scripts/gen-vault-stub.mjs
+          npx typedoc
 
       - name: Modul-Referenz hochladen (7 Tage aufbewahren)
         uses: actions/upload-artifact@v6

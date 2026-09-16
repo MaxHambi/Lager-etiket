@@ -9,7 +9,7 @@ Es gibt zwei gleichwertige Wege, das Tool zu benutzen:
 | Werkzeug | Wofür |
 |---|---|
 | `barcode.ps1` / `barcode.mjs` (PowerShell / Node.js) | Produktionsläufe, große Stückzahlen, automatisierbar |
-| `index.html` (+ `src/`, `assets/`, `dist/`) | Schnelle Einzeltests oder kleine Stapel direkt im Browser, komplett offline |
+| `apps/web/index.html` (+ `packages/`, `dist/`) | Schnelle Einzeltests oder kleine Stapel direkt im Browser, komplett offline |
 
 Beide verwenden **exakt dieselbe Positionierungs- und Skalierungslogik**, damit
 Ergebnisse aus beiden Wegen identisch aussehen.
@@ -66,47 +66,41 @@ Ergebnisse aus beiden Wegen identisch aussehen.
 ## Projektstruktur
 
 ```text
-lager-barcode-generator/
-├── barcode.ps1                          PowerShell-Wrapper (interaktiv + Parameter); bietet am Ende ein
-│                                          Auswahlmenü für Skalieren/Prüfen/Konvertieren an
-├── barcode.mjs                           Eigentliche Generator-Logik (Node.js)
-├── skalieren.mjs                         Skalierungs-Logik (Node.js, Zielhöhe in mm), direkt per `node`
-│                                          ausgeführt — normalisiert Bilder vor dem Skalieren automatisch
-├── pruefen.mjs                           Prüflogik (Node.js, dekodiert Code 128 per zxing-wasm), direkt
-│                                          per `node` ausgeführt — normalisiert Bilder vor dem Scan automatisch
-├── konvertieren.mjs                      Bild-Normalisierung (Transparenz entfernen, sRGB, 8-Bit-PNG);
-│                                          eigenständig nutzbar UND automatisch von skalieren.mjs/pruefen.mjs verwendet
-├── logger.mjs                            Gemeinsames Logging-Modul (winston) für alle .mjs-Skripte —
-│                                          nicht direkt aufrufen, wird von den anderen Skripten importiert
+lager-etiket-monorepo/  (npm Workspaces + Turborepo)
+├── apps/
+│   └── web/                              HTML-Tool ("@lager-etiket/web")
+│       ├── index.html                    Interaktives Offline-Tool (nur Markup,
+│       │                                 lädt assets/css und dist/app.js)
+│       ├── src/                          App-Einstieg: main.ts, auth.ts (Login)
+│       ├── assets/css/                   base.css + components.css + themes/
+│       ├── build.mjs                     esbuild-Build (erzeugt dist/app.js)
+│       └── dist/                         Gebaut — nicht committet
+├── packages/
+│   ├── types/                            "@lager-etiket/types": Konfigurations-Typen
+│   ├── core/                             "@lager-etiket/core": DOM-freie Logik
+│   │                                     (entries, barcode, compose, png, zip, crc32,
+│   │                                     download) + Unit-Tests (test/)
+│   ├── ui/                               "@lager-etiket/ui": DOM-Module (Logger,
+│   │                                     TemplatePicker, ConfigUI, GeneratorUI, …)
+│   └── tools/                            "@lager-etiket/tools": barcode.mjs,
+│                                         skalieren.mjs, konvertieren.mjs,
+│                                         pruefen.mjs, logger.mjs (aus dem Root)
+├── barcode.ps1                           PowerShell-Wrapper (bleibt am Root); bietet
+│                                         am Ende ein Auswahlmenü für Skalieren/
+│                                         Prüfen/Konvertieren an
 ├── config.json                           Layout-Konfiguration (Barcode, Position, Ausgabe)
-├── eintraege.txt                         Liste der Lagerplätze, eine pro Zeile
-├── package.json / package-lock.json      Node-Abhängigkeiten (etiket, sharp, zxing-wasm, winston)
 ├── templates/                            Eigene PNG-Vorlagen hier ablegen
-│   ├── MV-AB.png
-│   └── MV-C.png
 ├── output/                               Fertige Schilder landen hier
-├── log/                                  Protokoll jedes einzelnen Skriptlaufs (barcode/skalieren/pruefen/
-│                                          konvertieren.mjs), siehe [Logging & --debug](#logging--debug)
-├── logs/                                 Vollständiges PowerShell-Transkript jedes barcode.ps1-Laufs
-│                                          (eigener, älterer Mechanismus — nicht zu verwechseln mit log/)
-├── index.html                            Interaktives Offline-Tool für den Browser (nur Markup,
-│                                          lädt assets/css und dist/app.js)
-├── src/                                  TypeScript-Quellcode des HTML-Tools
-│   ├── core/                             DOM-freie Logik (entries, barcode, compose, png, zip, …)
-│   ├── ui/                               DOM-Module (Logger, TemplatePicker, GeneratorUI, …)
-│   └── types/                            Konfigurations-Typen (kompatibel zu config.json)
-├── assets/css/                           Stylesheets: base.css + components.css + themes/
-├── test/unit/                            Unit-Tests (node --test)
-├── build.mjs                             esbuild-Build (erzeugt dist/app.js)
-├── tsconfig.json / eslint.config.js      Typcheck- bzw. Lint-Konfiguration
-└── README.md                             Diese Anleitung
+├── log/ · logs/                          Protokolle der Skriptläufe
+├── turbo.json                            Turborepo-Task-Pipeline (build/lint/test/…)
+├── tsconfig.base.json                    Gemeinsame Compiler-Basis aller Pakete
+├── eslint.config.js · typedoc.json       Lint- bzw. Doc-Konfiguration (zentral)
+└── package.json / package-lock.json      Workspace-Root (npm Workspaces + Turbo)
 ```
 
-`skalieren.mjs` und `pruefen.mjs` werden direkt per `node` aufgerufen.
-`barcode.ps1` selbst bleibt erhalten und bietet nach jedem erfolgreichen Lauf
-ein Menü an, über das sich Skalieren, Prüfen und Konvertieren ohne manuellen
-`node`-Aufruf anstoßen lassen (siehe
-[Kommandozeilen-Referenz](#kommandozeilen-referenz)).
+Die .mjs-Skripte wanderten als `@lager-etiket/tools` in den Workspace; der
+PowerShell-Wrapper `barcode.ps1` bleibt bewusst am Root liegen und ruft sie
+weiterhin so auf:
 
 ---
 
@@ -153,9 +147,9 @@ Ergebnis: für jede Zeile in `eintraege.txt` entsteht eine Datei
 Einmalig bauen und lokal starten:
 
 ```powershell
-npm install          # einmalig, benötigt Internet
-npm run build        # Typcheck + Bundle → dist/app.js
-npx serve .          # lokaler Server (ES-Module laden nicht per Doppelklick)
+npm install          # einmalig, alle Workspaces, benötigt Internet
+npm run build        # turbo run build → apps/web/dist/app.js
+npx serve apps/web   # lokaler Server (ES-Module laden nicht per Doppelklick)
 ```
 
 Danach im Browser (z. B. http://localhost:3000):
@@ -371,29 +365,29 @@ angepasst werden — es reicht immer, `barcode.mjs` bzw. `config.json` zu
 ändern. Der PowerShell-Wrapper ist nur für Bedienung (interaktiver Modus,
 Dateiauswahl-Dialoge, Protokollierung in `logs\`) zuständig.## Workflow: HTML-Tool anpassen
 
-Das HTML-Tool ist modular aufgebaut: TypeScript-Quellcode unter `src/`,
-Stylesheets unter `assets/css/`, gebündelt via esbuild zu `dist/app.js`.
-Die zentrale Logik (`composeLabel()` in `src/core/compose.ts`) ist bewusst
-identisch zu `barcode.mjs` aufgebaut, damit beide Werkzeuge dieselben
+Das HTML-Tool ist als Monorepo aufgebaut: npm Workspaces (`apps/web`,
+`packages/types|core|ui|tools`) mit Turborepo als Task-Orchestrator.
+Die zentrale Logik (`composeLabel()` in `packages/core/src/compose.ts`) ist
+bewusst identisch zu `barcode.mjs` aufgebaut, damit beide Werkzeuge dieselben
 Ergebnisse liefern.
 
 Struktur:
 
-| Pfad | Inhalt |
+| Paket | Inhalt |
 |---|---|
-| `src/core/` | DOM-freie Logik: Einträge (`entries.ts`), Barcode (`barcode.ts`), Komposition (`compose.ts`), DPI (`png.ts`), ZIP (`zip.ts`), CRC32 (`crc32.ts`), Download (`download.ts`) |
-| `src/ui/` | DOM-Module: `Logger`, `TemplatePicker`, `EntriesUI`, `ConfigUI`, `PreviewUI`, `GeneratorUI`, Splash-Screen |
-| `src/types/` | Konfigurations-Typen (`AppConfig` u. a., kompatibel zu `config.json`) |
-| `assets/css/` | `base.css` + `components.css` + Themes (siehe [Themes](#themes)) |
-| `test/unit/` | Unit-Tests via `node --test` |
+| `@lager-etiket/types` | Konfigurations-Typen (`AppConfig` u. a., kompatibel zu `config.json`) |
+| `@lager-etiket/core` | DOM-freie Logik: Einträge, Barcode, Komposition, DPI, ZIP, CRC32, Download |
+| `@lager-etiket/ui` | DOM-Module: `Logger`, `TemplatePicker`, `EntriesUI`, `ConfigUI`, `PreviewUI`, `GeneratorUI`, Splash, Auth-UI |
+| `@lager-etiket/web` | App-Einstieg (`main.ts`, `auth.ts`), `index.html`, Stylesheets, esbuild-Build |
+| `@lager-etiket/tools` | Node-Skripte: `barcode.mjs`, `skalieren.mjs`, `konvertieren.mjs`, `pruefen.mjs`, `logger.mjs` |
 
 Wichtig bei Anpassungen:
 
-- Nach Änderungen an `src/` immer `npm run build` ausführen — die HTML-Datei
-  lädt ausschließlich `dist/app.js`.
-- Die Positions-/Skalierungsformel in `src/core/compose.ts` sollte bei
-  Änderungen an `barcode.mjs` synchron gehalten werden, sonst weichen
-  Browser- und PowerShell-Ergebnisse voneinander ab.
+- Nach Änderungen an `apps/web/src/`, `packages/` immer `npm run build`
+  ausführen — die HTML-Datei lädt ausschließlich `dist/app.js`.
+- Die Positions-/Skalierungsformel in `packages/core/src/compose.ts` sollte
+  bei Änderungen an `packages/tools/barcode.mjs` synchron gehalten werden,
+  sonst weichen Browser- und PowerShell-Ergebnisse voneinander ab.
 - JsBarcode kommt als npm-Paket (`jsbarcode`) und wird beim Build mit
   gebündelt — keine externen `<script src="https://...">`-Verweise einfügen,
   damit alles offline läuft.
@@ -404,22 +398,25 @@ Wichtig bei Anpassungen:
 ### Entwicklung: Build, Lint, Test
 
 ```powershell
-npm run build        # Typcheck (tsc --noEmit) + esbuild-Bundle → dist/app.js
-npm run build:watch  # Build bei jeder Änderung an src/ automatisch
-npm run lint         # ESLint (typescript-eslint)
-npm test             # Unit-Tests (node --test)
-npm run typecheck    # nur der Typcheck
+npm install         # alle Workspaces auf einmal
+npm run build       # turbo run build: typecheck + Bundle → apps/web/dist/app.js
+npm run build:web   # nur die Web-App
+npm run build:watch # Build bei jeder Änderung automatisch
+npm run lint        # turbo run lint (ESLint in allen TS-Workspaces)
+npm test            # turbo run test (node --test in packages/core)
+npm run typecheck   # turbo run typecheck
 ```
 
 Vor jedem Push sollte lokal gelten: `npm run lint && npm test && npm run build`
-— dieselben drei Prüfungen laufen auch im CI.
+— dieselben Prüfungen laufen auch im CI. Turbo cacht alle Tasks inkrementell:
+Unveränderte Pakete werden übersprungen (`>>> FULL TURBO`).
 
 ### CI-Workflows
 
 | Workflow | Datei | Was er tut |
 |---|---|---|
-| CI | `.github/workflows/ci.yml` | Bei jedem Push/PR auf `master`: **Lint**, **Unit-Tests** und **Build** (Typecheck + esbuild) als drei parallele Jobs; `dist/app.js` wird als Artefakt vorgehalten |
-| Update GitHub Pages | `.github/workflows/sync-pages.yml` | Bei Push auf `master` (wenn `index.html`, `config.json`, `src/`, `assets/` … sich ändern): baut das Tool und synchronisiert `index.html`, `config.json`, `assets/` und `dist/` auf den `gh-pages`-Branch |
+| CI | `.github/workflows/ci.yml` | Bei jedem Push/PR auf `master`: **Lint**, **Unit-Tests**, **Build** und **Docs** als parallele Jobs via Turbo; `apps/web/dist/app.js` wird als Artefakt vorgehalten |
+| Update GitHub Pages | `.github/workflows/sync-pages.yml` | Bei Push auf `master` (wenn `apps/web/**`, `packages/**`, `config.json` … sich ändern): baut die Web-App und synchronisiert `index.html`, `config.json`, `assets/` und `dist/` auf den `gh-pages`-Branch |
 
 ### Dokumentation
 
@@ -427,7 +424,7 @@ Vor jedem Push sollte lokal gelten: `npm run lint && npm test && npm run build`
 |---|---|
 | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | Architektur: Module, Build-Pipeline, Auth-Flow und Datenfluss (Mermaid-Diagramme) |
 | [`docs/api/`](docs/api/README.md) | Automatisch generierte Modul-Referenz (TypeDoc) — **nicht manuell bearbeiten** |
-| [`assets/css/themes/README.md`](assets/css/themes/README.md) | Theme-Vertrag: Pflicht-Variablen + Rollen |
+| [`apps/web/assets/css/themes/README.md`](apps/web/assets/css/themes/README.md) | Theme-Vertrag: Pflicht-Variablen + Rollen |
 
 Die Modul-Referenz wird aus dem Quellcode generiert und im CI geprüft
 (`docs`-Job, Warnungen sind Fehler) — sie bleibt damit automatisch synchron
@@ -442,20 +439,20 @@ npm run docs:check  # nur prüfen (für CI), ohne zu schreiben
 
 Das Aussehen des HTML-Tools steuern **Theme-Dateien** — reine
 CSS-Variablen-Sets ohne Komponenten-Styles. Das bisherige Design ist als
-`assets/css/themes/catppuccin.css` gesichert; aktiviert wird es über das
+`apps/web/assets/css/themes/catppuccin.css` gesichert; aktiviert wird es über das
 Attribut `data-theme="catppuccin"` am `<html>`-Element.
 
 **Neues Theme in 3 Schritten:**
 
-1. `assets/css/themes/catppuccin.css` kopieren (z. B. zu `light.css`),
+1. `apps/web/assets/css/themes/catppuccin.css` kopieren (z. B. zu `light.css`),
    `data-theme`-Wert und Variablenwerte anpassen.
 2. In `index.html` ergänzen:
-   `<link rel="stylesheet" href="assets/css/themes/light.css">`
+   `<link rel="stylesheet" href="assets/css/themes/light.css">` (in apps/web/index.html)
 3. Aktivieren: `data-theme="light"` am `<html>`-Element setzen.
 
 Die vollständige Liste der Pflicht-Variablen und die Rollen-Zuordnung
 (wo wird welche Variable genutzt?) steht in
-[`assets/css/themes/README.md`](assets/css/themes/README.md).
+[`apps/web/assets/css/themes/README.md`](apps/web/assets/css/themes/README.md).
 
 ---
 

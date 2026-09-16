@@ -1,9 +1,15 @@
 {
   "$schema": "https://typedoc.org/schema.json",
-  "entryPoints": ["src/main.ts", "src/auth.ts", "src/types/config.ts", "src/core/index.ts", "src/ui/index.ts"],
+  "entryPoints": [
+    "apps/web/src/main.ts",
+    "apps/web/src/auth.ts",
+    "packages/types/src/index.ts",
+    "packages/core/src/index.ts",
+    "packages/ui/src/index.ts"
+  ],
   "out": "docs/api",
   "plugin": ["typedoc-plugin-markdown"],
-  "tsconfig": "tsconfig.json",
+  "tsconfig": "apps/web/tsconfig.json",
   "readme": "none",
   "name": "Lagerplatz-Barcode-Generator — Modul-Referenz",
   "includeVersion": false,

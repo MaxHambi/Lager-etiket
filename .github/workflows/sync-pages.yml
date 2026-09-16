@@ -6,14 +6,17 @@ on:
     branches:
       - master # ACHTUNG: Falls dein Hauptbranch anders heißt, hier anpassen!
     paths:
-      - 'index.html'
+      - 'apps/web/index.html'
+      - 'apps/web/src/**'
+      - 'apps/web/assets/**'
+      - 'apps/web/build.mjs'
+      - 'packages/**'
+      - 'scripts/**'
       - 'config.json'
-      - 'src/**'
-      - 'assets/**'
-      - 'build.mjs'
-      - 'tsconfig.json'
       - 'package.json'
       - 'package-lock.json'
+      - 'turbo.json'
+      - 'tsconfig.base.json'
       - '.github/workflows/sync-pages.yml'
 
 # Erlaubnis geben, damit der Bot in den Branch schreiben darf
@@ -36,29 +39,28 @@ jobs:
         uses: actions/setup-node@v5
         with:
           node-version: '24'
-          # Kein npm-Cache möglich: package-lock.json ist in diesem Repo gitignored
+          cache: 'npm'
 
-      - name: Abhängigkeiten installieren
-        # npm install statt npm ci, da package-lock.json in diesem Repo gitignored ist
-        run: npm install --no-audit --no-fund
+      - name: Abhängigkeiten installieren (alle Workspaces)
+        run: npm ci --no-audit --no-fund
 
-      - name: HTML-Tool bauen (Typecheck + Bundle)
-        # Ist das Repository-Secret APP_PASSWORD gesetzt, wird der geschützte
+      - name: HTML-Tool bauen (Typecheck + Bundle via Turbo)
+        # Ist das Environment-Secret APP_PASSWORD gesetzt, wird der geschützte
         # Build erzeugt (Login-Overlay + AES-verschlüsseltes Bundle).
         # Ohne Secret: unverschlüsselter Entwicklungs-Build.
         env:
           APP_PASSWORD: ${{ secrets.APP_PASSWORD }}
         run: |
           if [ -n "$APP_PASSWORD" ]; then
-            node build.mjs --password "$APP_PASSWORD"
+            cd apps/web && node build.mjs --password "$APP_PASSWORD"
           else
-            npm run build
+            npm run build:web
           fi
 
       - name: Build-Artefakte sichern (dist ist nicht Teil von master)
         run: |
-          cp -r dist /tmp/app-dist
-          cp -r assets /tmp/app-assets
+          cp -r apps/web/dist /tmp/app-dist
+          cp -r apps/web/assets /tmp/app-assets
 
       - name: Dateien auf gh-pages synchronisieren
         run: |
