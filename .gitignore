@@ -25,3 +25,6 @@ apps/web/public/compare/template.png
 
 # Freebuff-Verwaltungsordner (Worktrees, IDs) nie committen
 .freebuff/
+
+dev.md
+AGENTS.md
