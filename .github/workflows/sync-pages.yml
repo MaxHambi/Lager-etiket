@@ -40,7 +40,17 @@ jobs:
         run: npm install --no-audit --no-fund
 
       - name: HTML-Tool bauen (Typecheck + Bundle)
-        run: npm run build
+        # Ist das Repository-Secret APP_PASSWORD gesetzt, wird der geschützte
+        # Build erzeugt (Login-Overlay + AES-verschlüsseltes Bundle).
+        # Ohne Secret: unverschlüsselter Entwicklungs-Build.
+        env:
+          APP_PASSWORD: ${{ secrets.APP_PASSWORD }}
+        run: |
+          if [ -n "$APP_PASSWORD" ]; then
+            node build.mjs --password "$APP_PASSWORD"
+          else
+            npm run build
+          fi
 
       - name: Build-Artefakte sichern (dist ist nicht Teil von master)
         run: |

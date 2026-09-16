@@ -57,6 +57,61 @@ body.splash-active {
   overflow: hidden;
 }
 
+/* ---------- Login-Overlay (geschützter Build) ---------- */
+#login-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--crust);
+  padding: 24px;
+}
+#login-overlay form {
+  background: var(--base);
+  border: 1px solid var(--surface0);
+  border-radius: var(--radius);
+  padding: 28px 26px;
+  width: 100%;
+  max-width: 360px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  text-align: center;
+}
+#login-overlay h2 {
+  margin: 0;
+  font-size: 1.15rem;
+  color: var(--text);
+}
+#login-overlay p {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--subtext0);
+}
+#login-overlay input[type="password"] {
+  width: 100%;
+  background: var(--surface0);
+  border: 1px solid var(--surface1);
+  color: var(--text);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-family: var(--font-ui);
+  font-size: 0.9rem;
+  outline: none;
+  transition: border-color 0.15s;
+  text-align: center;
+}
+#login-overlay input[type="password"]:focus {
+  border-color: var(--mauve);
+}
+.login-error {
+  font-size: 0.8rem;
+  color: var(--red);
+  font-weight: 600;
+}
+
 /* ---------- Header ---------- */
 header.top {
   display: flex;
