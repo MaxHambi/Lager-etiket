@@ -1,0 +1,40 @@
+:root[data-theme="catppuccin-latte"] {
+  /* Catppuccin Latte 🌻 — offizielle Palette v1.8.0 */
+  /* https://github.com/catppuccin/palette */
+
+  /* Flächen */
+  --base: #eff1f5;
+  --mantle: #e6e9ef;
+  --crust: #dce0e8;
+  --surface0: #ccd0da;
+  --surface1: #bcc0cc;
+  --surface2: #acb0be;
+
+  /* Text */
+  --text: #4c4f69;
+  --subtext1: #5c5f77;
+  --subtext0: #6c6f85;
+  --overlay0: #9ca0b0;
+  --overlay1: #8c8fa1;
+  --overlay2: #7c7f93;
+
+  /* Akzentfarben */
+  --mauve: #8839ef;
+  --blue: #1e66f5;
+  --green: #40a02b;
+  --red: #d20f39;
+  --yellow: #df8e1d;
+  --peach: #fe640b;
+  --pink: #ea76cb;
+  --teal: #179299;
+
+  /* Form */
+  --radius: 10px;
+  --font-ui: -apple-system, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "SF Mono", "Cascadia Code", Consolas, "Courier New", monospace;
+
+  /* Spezial-Tokens */
+  --checker-a: #ccd0da;
+  --checker-b: #eff1f5;
+  --preview-overlay: rgba(136, 57, 239, 0.9);
+}

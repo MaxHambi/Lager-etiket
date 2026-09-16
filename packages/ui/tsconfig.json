@@ -1,0 +1,15 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@lager-etiket/core": ["../core/src/index.ts"],
+      "@lager-etiket/core/*": ["../core/src/*"],
+      "@lager-etiket/types": ["../types/src/index.ts"],
+      "@lager-etiket/types/*": ["../types/src/*"],
+      "@lager-etiket/ui": ["./src/index.ts"],
+      "@lager-etiket/ui/*": ["./src/*"]
+    }
+  },
+  "include": ["src"]
+}

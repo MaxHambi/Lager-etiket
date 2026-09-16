@@ -1,0 +1,19 @@
+{
+  "name": "@lager-etiket/tools",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "typecheck": "node --check barcode.mjs && node --check skalieren.mjs && node --check konvertieren.mjs && node --check pruefen.mjs && node --check logger.mjs",
+    "lint": "echo \"(tools: kein ESLint — eigenständige Skripte)\"",
+    "test": "echo \"(tools: keine Tests)\""
+  },
+  "dependencies": {
+    "sharp": "^0.35.4",
+    "winston": "^3.19.0",
+    "winston-transport": "^4.9.0",
+    "triple-beam": "^1.4.1",
+    "etiket": "^0.12.0",
+    "zxing-wasm": "^3.1.4"
+  }
+}

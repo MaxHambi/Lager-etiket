@@ -1,0 +1,34 @@
+{
+  "templates": [
+    {
+      "file": "MV.png",
+      "label": "MV — Kommissionierung",
+      "description": "Projektvorlage aus Templates/MV.png (2244×709)"
+    },
+    {
+      "file": "MV-A.png",
+      "label": "MV-A — Variante A",
+      "description": "Projektvorlage aus Templates/MV-A.png (2244×709)"
+    },
+    {
+      "file": "MV-B.png",
+      "label": "MV-B — Variante B",
+      "description": "Projektvorlage aus Templates/MV-B.png (2244×709)"
+    },
+    {
+      "file": "A.png",
+      "label": "A — Regal A",
+      "description": "Projektvorlage aus Templates/assets/A.png (728×327)"
+    },
+    {
+      "file": "B.png",
+      "label": "B — Regal B",
+      "description": "Projektvorlage aus Templates/assets/B.png (728×337)"
+    },
+    {
+      "file": "beispiel.png",
+      "label": "Beispiel-Vorlage",
+      "description": "Kleine Testvorlage — PNG hier ablegen (apps/web/public/templates/) und in dieser Liste registrieren."
+    }
+  ]
+}

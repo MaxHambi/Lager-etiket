@@ -1,0 +1,10 @@
+{
+  "configs": [
+    {
+      "file": "standard.json",
+      "label": "Projekt-Standard (config.json)",
+      "description": "Die Projekt-Konfiguration aus dem Repo-Root (config.json) — inkl. renderDpi 600.",
+      "default": true
+    }
+  ]
+}

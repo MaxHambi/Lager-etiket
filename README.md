@@ -9,7 +9,7 @@ Es gibt zwei gleichwertige Wege, das Tool zu benutzen:
 | Werkzeug | Wofür |
 |---|---|
 | `barcode.ps1` / `barcode.mjs` (PowerShell / Node.js) | Produktionsläufe, große Stückzahlen, automatisierbar |
-| `Lagerplatz-Barcode-Generator.html` | Schnelle Einzeltests oder kleine Stapel direkt im Browser, komplett offline, keine Installation |
+| `apps/web/index.html` (+ `packages/`, `dist/`) | Schnelle Einzeltests oder kleine Stapel direkt im Browser, komplett offline |
 
 Beide verwenden **exakt dieselbe Positionierungs- und Skalierungslogik**, damit
 Ergebnisse aus beiden Wegen identisch aussehen.
@@ -25,6 +25,7 @@ Ergebnisse aus beiden Wegen identisch aussehen.
   - [Schnellstart (PowerShell/Node)](#schnellstart-powershellnode)
   - [Schnellstart (HTML-Tool)](#schnellstart-html-tool)
   - [Eintragsdatei-Format](#eintragsdatei-format)
+  - [HTML-Tool: Vorlagen-Galerie, Config-Bibliothek & Unterkategorien](#html-tool-vorlagen-galerie-config-bibliothek--unterkategorien)
   - [config.json — alle Einstellungen](#configjson--alle-einstellungen)
     - [`barcode` — Aussehen von Barcode + Text](#barcode--aussehen-von-barcode--text)
     - [`placement` — Position auf der Vorlage](#placement--position-auf-der-vorlage)
@@ -34,6 +35,10 @@ Ergebnisse aus beiden Wegen identisch aussehen.
   - [Workflow: config.json ändern](#workflow-configjson-ändern)
   - [Workflow: Skript (barcode.mjs) ändern](#workflow-skript-barcodemjs-ändern)
   - [Workflow: HTML-Tool anpassen](#workflow-html-tool-anpassen)
+    - [Entwicklung: Build, Lint, Test](#entwicklung-build-lint-test)
+    - [CI-Workflows](#ci-workflows)
+  - [Dokumentation](#dokumentation)
+  - [Themes](#themes)
   - [Fertige Schilder nachträglich skalieren (skalieren.mjs)](#fertige-schilder-nachträglich-skalieren-skalierenmjs)
     - [Verwendung](#verwendung)
     - [Wie die Umrechnung funktioniert](#wie-die-umrechnung-funktioniert)
@@ -62,38 +67,41 @@ Ergebnisse aus beiden Wegen identisch aussehen.
 ## Projektstruktur
 
 ```text
-lager-barcode-generator/
-├── barcode.ps1                          PowerShell-Wrapper (interaktiv + Parameter); bietet am Ende ein
-│                                          Auswahlmenü für Skalieren/Prüfen/Konvertieren an
-├── barcode.mjs                           Eigentliche Generator-Logik (Node.js)
-├── skalieren.mjs                         Skalierungs-Logik (Node.js, Zielhöhe in mm), direkt per `node`
-│                                          ausgeführt — normalisiert Bilder vor dem Skalieren automatisch
-├── pruefen.mjs                           Prüflogik (Node.js, dekodiert Code 128 per zxing-wasm), direkt
-│                                          per `node` ausgeführt — normalisiert Bilder vor dem Scan automatisch
-├── konvertieren.mjs                      Bild-Normalisierung (Transparenz entfernen, sRGB, 8-Bit-PNG);
-│                                          eigenständig nutzbar UND automatisch von skalieren.mjs/pruefen.mjs verwendet
-├── logger.mjs                            Gemeinsames Logging-Modul (winston) für alle .mjs-Skripte —
-│                                          nicht direkt aufrufen, wird von den anderen Skripten importiert
+lager-etiket-monorepo/  (npm Workspaces + Turborepo)
+├── apps/
+│   └── web/                              HTML-Tool ("@lager-etiket/web")
+│       ├── index.html                    Interaktives Offline-Tool (nur Markup,
+│       │                                 lädt assets/css und dist/app.js)
+│       ├── src/                          App-Einstieg: main.ts, auth.ts (Login)
+│       ├── assets/css/                   base.css + components.css + themes/
+│       ├── build.mjs                     esbuild-Build (erzeugt dist/app.js)
+│       └── dist/                         Gebaut — nicht committet
+├── packages/
+│   ├── types/                            "@lager-etiket/types": Konfigurations-Typen
+│   ├── core/                             "@lager-etiket/core": DOM-freie Logik
+│   │                                     (entries, barcode, compose, png, zip, crc32,
+│   │                                     download) + Unit-Tests (test/)
+│   ├── ui/                               "@lager-etiket/ui": DOM-Module (Logger,
+│   │                                     TemplatePicker, ConfigUI, GeneratorUI, …)
+│   └── tools/                            "@lager-etiket/tools": barcode.mjs,
+│                                         skalieren.mjs, konvertieren.mjs,
+│                                         pruefen.mjs, logger.mjs (aus dem Root)
+├── barcode.ps1                           PowerShell-Wrapper (bleibt am Root); bietet
+│                                         am Ende ein Auswahlmenü für Skalieren/
+│                                         Prüfen/Konvertieren an
 ├── config.json                           Layout-Konfiguration (Barcode, Position, Ausgabe)
-├── eintraege.txt                         Liste der Lagerplätze, eine pro Zeile
-├── package.json / package-lock.json      Node-Abhängigkeiten (etiket, sharp, zxing-wasm, winston)
 ├── templates/                            Eigene PNG-Vorlagen hier ablegen
-│   ├── MV-AB.png
-│   └── MV-C.png
 ├── output/                               Fertige Schilder landen hier
-├── log/                                  Protokoll jedes einzelnen Skriptlaufs (barcode/skalieren/pruefen/
-│                                          konvertieren.mjs), siehe [Logging & --debug](#logging--debug)
-├── logs/                                 Vollständiges PowerShell-Transkript jedes barcode.ps1-Laufs
-│                                          (eigener, älterer Mechanismus — nicht zu verwechseln mit log/)
-├── Lagerplatz-Barcode-Generator.html     Interaktives Offline-Tool für den Browser
-└── README.md                             Diese Anleitung
+├── log/ · logs/                          Protokolle der Skriptläufe
+├── turbo.json                            Turborepo-Task-Pipeline (build/lint/test/…)
+├── tsconfig.base.json                    Gemeinsame Compiler-Basis aller Pakete
+├── eslint.config.js · typedoc.json       Lint- bzw. Doc-Konfiguration (zentral)
+└── package.json / package-lock.json      Workspace-Root (npm Workspaces + Turbo)
 ```
 
-`skalieren.mjs` und `pruefen.mjs` werden direkt per `node` aufgerufen.
-`barcode.ps1` selbst bleibt erhalten und bietet nach jedem erfolgreichen Lauf
-ein Menü an, über das sich Skalieren, Prüfen und Konvertieren ohne manuellen
-`node`-Aufruf anstoßen lassen (siehe
-[Kommandozeilen-Referenz](#kommandozeilen-referenz)).
+Die .mjs-Skripte wanderten als `@lager-etiket/tools` in den Workspace; der
+PowerShell-Wrapper `barcode.ps1` bleibt bewusst am Root liegen und ruft sie
+weiterhin so auf:
 
 ---
 
@@ -101,8 +109,11 @@ ein Menü an, über das sich Skalieren, Prüfen und Konvertieren ohne manuellen
 
 - **Nur für den PowerShell/Node-Weg:** Node.js **24 oder neuer**
   ([nodejs.org](https://nodejs.org)), Windows PowerShell.
-- **Für das HTML-Tool:** nichts weiter als ein aktueller Browser (Chrome,
-  Edge, Firefox). Keine Installation, keine Internetverbindung nötig.
+- **Für das HTML-Tool (GitHub Pages):** nichts weiter als ein aktueller
+  Browser (Chrome, Edge, Firefox). Keine Installation, keine
+  Internetverbindung zur Nutzung nötig.
+- **Für das HTML-Tool lokal bzw. zur Entwicklung:** zusätzlich Node.js (siehe
+  oben) für `npm install`, Build, Lint und Tests.
 
 Nach der Node-Installation einmalig prüfen:
 
@@ -134,14 +145,26 @@ Ergebnis: für jede Zeile in `eintraege.txt` entsteht eine Datei
 
 ## Schnellstart (HTML-Tool)
 
-1. `Lagerplatz-Barcode-Generator.html` per Doppelklick öffnen (startet im
-   Standardbrowser).
-2. Vorlage per Klick oder Drag & Drop in die Dropzone laden.
-3. Lagerplätze eintragen oder per „Datei laden (.txt)" importieren.
-4. Layout bei Bedarf anpassen (siehe [config.json](#configjson--alle-einstellungen) —
+Einmalig bauen und lokal starten:
+
+```powershell
+npm install          # einmalig, alle Workspaces, benötigt Internet
+npm run build        # turbo run build → apps/web/dist/app.js
+npx serve apps/web   # lokaler Server (ES-Module laden nicht per Doppelklick)
+```
+
+Danach im Browser (z. B. http://localhost:3000):
+
+1. Vorlage per Klick oder Drag & Drop in die Dropzone laden.
+2. Lagerplätze eintragen oder per „Datei laden (.txt)" importieren.
+3. Layout bei Bedarf anpassen (siehe [config.json](#configjson--alle-einstellungen) —
    dieselben Felder stehen im Formular).
-5. „Vorschau erzeugen" zum Testen eines einzelnen Eintrags.
-6. „Alle Schilder erzeugen" → danach „Alle als ZIP herunterladen".
+4. „Vorschau erzeugen" zum Testen eines einzelnen Eintrags.
+5. „Alle Schilder erzeugen" → danach „Alle als ZIP herunterladen".
+
+Auf [GitHub Pages](https://maxhambi.github.io/Lager-etiket/) ist das Tool
+ohne Build direkt nutzbar — der Sync-Workflow baut automatisch bei jedem
+Push auf `master`.
 
 Die aktuelle Konfiguration lässt sich im HTML-Tool über „config.json
 exportieren" sichern und über „config.json laden" wieder einspielen — so
@@ -171,6 +194,68 @@ Regeln:
 - **Doppelte Einträge führen absichtlich zum Abbruch** (`barcode.mjs`,
   Funktion `readEntries`) — so werden nie versehentlich zwei Schilder mit
   demselben Barcode erzeugt. Fehlermeldung nennt Zeilennummer und Datei.
+- **Ungültige Codes werden vor dem Rendern abgelehnt** (Eingabegate,
+  ADR-0003): nur druckbare ASCII-Zeichen (32–126), max. 48 Zeichen. Wichtig:
+  die installierte etiket-Version kodiert Zeichen > 127 **nicht** in den
+  Barcode (sie würden aus dem Balkenmuster fallen) — daher die ASCII-Beschränkung.
+
+---
+
+## HTML-Tool: Vorlagen-Galerie, Config-Bibliothek & Unterkategorien
+
+### Vorlagen-Galerie (`apps/web/public/templates/`)
+
+Eigene Vorlagen hinterlegen, die als klickbare Karten erscheinen:
+
+1. PNG nach `apps/web/public/templates/` kopieren.
+2. In `apps/web/public/templates/templates.json` eintragen:
+   ```json
+   {
+     "templates": [
+       { "file": "MV-AB.png", "label": "MV Abteilung A–B" }
+     ]
+   }
+   ```
+3. Karte in der App anklicken — die Vorlage ist sofort aktiv.
+
+Eigene Dateien per Dropzone laden bleibt weiterhin möglich; sie hebt die
+Galerie-Auswahl auf.
+
+### Config-Bibliothek (`apps/web/public/configs/`)
+
+Hinterlegte Konfigurationen erscheinen im Dropdown **„Gespeicherte
+Konfiguration“** (Karte 3) und in den Unterkategorie-Dropdowns:
+
+1. `config.json` nach `apps/web/public/configs/` kopieren (z. B. `gross.json`).
+2. In `apps/web/public/configs/configs.json` eintragen:
+   ```json
+   {
+     "configs": [
+       { "file": "gross.json", "label": "Große Schilder" }
+     ]
+   }
+   ```
+3. Im Dropdown wählen — das Formular übernimmt alle Werte.
+
+Die Konfigurationswahl im **Unterkategorie-Dropdown** gilt pro Bereich und
+wird erst beim Klick auf „Alle Schilder erzeugen“ angewendet (falls die Datei
+fehlt, greift die globale Konfiguration mit Warnung im Protokoll).
+
+### Lagerplätze: Einzelfeld & Unterkategorien
+
+- **Einzeln** (Standard): Ein Feld, ein Lagerplatz — ideal für Einzeltests.
+- **Mehrere Bereiche** (Umschalter): Unterkategorien mit **Start** und **Ende**.
+  Es wird aufsteigend inklusive expandiert; das Ziffern-Suffix muss gleich
+  lang sein (`01A01 → 01A12`, nicht `01A1 → 01A12`), führende Nullen bleiben
+  erhalten. Max. 10 000 Einträge pro Bereich, max. 10 Unterkategorien.
+- **„+ Unterkategorie“**: weitere Bereiche mit eigenem Config-Dropdown.
+- Duplikate über Unterkategorien hinweg brechen die Erzeugung ab.
+
+### Großansicht & Download
+
+- Klick auf die Vorschau oder ein Ergebnis-Thumbnail öffnet die **Lightbox**
+  (Schließen per Klick, × oder Esc).
+- Der Button **„Alle als ZIP herunterladen“** ist bewusst groß gestaltet.
 
 ---
 
@@ -198,6 +283,7 @@ Regeln:
   "output": {
     "prefix": "lagerplatz_",
     "dpi": 300,
+    "renderDpi": 600,
     "overwrite": false
   }
 }
@@ -239,6 +325,7 @@ eine Warnung im Log aus (kein Abbruch, aber ein deutlicher Hinweis zum Nachjusti
 |---|---|
 | `prefix` | Vorangestellter Text im Dateinamen, z. B. `lagerplatz_` → `lagerplatz_01A01.png` |
 | `dpi` | In die PNG-Metadaten geschriebene Auflösung (wichtig für exaktes Druckformat) |
+| `renderDpi` | Effektive Rasterungs-Auflösung des Barcode-SVG — CLI (sharp `density`) und Browser nutzen **denselben** Wert, damit beide Pipelines Schilder gleicher Größe erzeugen (Standard 600, siehe ADR-0002) |
 | `overwrite` | `true` = vorhandene Dateien im Ausgabeordner werden überschrieben. Kann pro Lauf auch über `-Overwrite` (PowerShell) übersteuert werden |
 
 ---
@@ -341,29 +428,117 @@ Vorgehen bei Änderungen:
 `barcode.ps1` selbst muss für reine Layout-/Logik-Änderungen **nicht**
 angepasst werden — es reicht immer, `barcode.mjs` bzw. `config.json` zu
 ändern. Der PowerShell-Wrapper ist nur für Bedienung (interaktiver Modus,
-Dateiauswahl-Dialoge, Protokollierung in `logs\`) zuständig.
+Dateiauswahl-Dialoge, Protokollierung in `logs\`) zuständig.## Workflow: HTML-Tool anpassen
 
-## Workflow: HTML-Tool anpassen
+Das HTML-Tool ist als Monorepo aufgebaut: npm Workspaces (`apps/web`,
+`packages/types|core|ui|tools`) mit Turborepo als Task-Orchestrator.
+Die zentrale Logik (`composeLabel()` in `packages/core/src/compose.ts`) ist
+bewusst identisch zu `barcode.mjs` aufgebaut, damit beide Werkzeuge dieselben
+Ergebnisse liefern.
 
-Das HTML-Tool ist eine einzelne, in sich geschlossene Datei
-(`Lagerplatz-Barcode-Generator.html`) mit eingebettetem CSS/JS und der
-inline eingebetteten Bibliothek [JsBarcode](https://github.com/lindell/JsBarcode)
-für die Code-128-Erzeugung im Browser. Die zentrale Logik
-(`composeLabel()` in der Datei) ist bewusst identisch zu `barcode.mjs`
-aufgebaut, damit beide Werkzeuge dieselben Ergebnisse liefern.
+Struktur:
+
+| Paket | Inhalt |
+|---|---|
+| `@lager-etiket/types` | Konfigurations-Typen (`AppConfig` u. a., kompatibel zu `config.json`) |
+| `@lager-etiket/core` | DOM-freie Logik: Einträge, Bereiche (`expandRange`), Barcode, Komposition, DPI, ZIP, CRC32, Download |
+| `@lager-etiket/ui` | DOM-Module: `Logger`, `TemplatePicker`, `TemplateGallery`, `BatchesUI`, `ConfigUI`, `ConfigLibrary`, `PreviewUI`, `GeneratorUI`, Splash, Auth-UI, Lightbox |
+| `@lager-etiket/web` | App-Einstieg (`main.ts`, `auth.ts`), `index.html`, Stylesheets, esbuild-Build, `public/` (Galerie + Config-Bibliothek) |
+| `@lager-etiket/tools` | Node-Skripte: `barcode.mjs`, `skalieren.mjs`, `konvertieren.mjs`, `pruefen.mjs`, `logger.mjs` |
 
 Wichtig bei Anpassungen:
 
-- Änderungen direkt in der `<script>`-Sektion der HTML-Datei vornehmen (kein
-  Build-Schritt nötig — einfach speichern und Browser neu laden/aktualisieren).
-- Die Positions-/Skalierungsformel in `composeLabel()` sollte bei Änderungen
-  an `barcode.mjs` synchron gehalten werden, sonst weichen Browser- und
-  PowerShell-Ergebnisse voneinander ab.
-- Da alles offline laufen soll, dürfen keine externen `<script src="https://...">`-
-  Verweise eingefügt werden — neue Bibliotheken müssten wie JsBarcode direkt
-  in die Datei eingebettet werden.
-- Nach jeder Änderung: Datei im Browser neu laden, Vorlage laden,
-  „Vorschau erzeugen" klicken und das Ergebnis visuell prüfen.
+- Nach Änderungen an `apps/web/src/`, `packages/` immer `npm run build`
+  ausführen — die HTML-Datei lädt ausschließlich `dist/app.js`.
+- Die Positions-/Skalierungsformel in `packages/core/src/compose.ts` sollte
+  bei Änderungen an `packages/tools/barcode.mjs` synchron gehalten werden,
+  sonst weichen Browser- und PowerShell-Ergebnisse voneinander ab.
+- etiket kommt als npm-Paket (`etiket`) und wird beim Build mit
+  gebündelt — keine externen `<script src="https://...">`-Verweise einfügen,
+  damit alles offline läuft.
+- Komponenten-CSS nutzt ausschließlich Theme-Variablen — keine harten
+  Farben in `components.css` einfügen, sondern neue Variablen im Theme
+  definieren (siehe [Themes](#themes)).
+
+### Entwicklung: Build, Lint, Test
+
+```powershell
+npm install         # alle Workspaces auf einmal
+npm run build       # turbo run build: typecheck + Bundle → apps/web/dist/app.js
+npm run build:web   # nur die Web-App
+npm run build:watch # Build bei jeder Änderung automatisch
+npm run lint        # turbo run lint (ESLint in allen TS-Workspaces)
+npm test            # turbo run test (node --test in packages/core)
+npm run typecheck   # turbo run typecheck
+```
+
+Vor jedem Push sollte lokal gelten: `npm run lint && npm test && npm run build`
+— dieselben Prüfungen laufen auch im CI. Turbo cacht alle Tasks inkrementell:
+Unveränderte Pakete werden übersprungen (`>>> FULL TURBO`).
+
+### CI-Workflows
+
+| Workflow | Datei | Was er tut |
+|---|---|---|
+| CI | `.github/workflows/ci.yml` | Bei jedem Push/PR auf `master`: **Lint**, **Unit-Tests**, **Build** und **Docs** als parallele Jobs via Turbo; `apps/web/dist/app.js` wird als Artefakt vorgehalten |
+| Update GitHub Pages | `.github/workflows/sync-pages.yml` | Bei Push auf `master` (wenn `apps/web/**`, `packages/**`, `config.json` … sich ändern): baut die Web-App und synchronisiert `index.html`, `config.json`, `assets/` und `dist/` auf den `gh-pages`-Branch |
+
+### Dokumentation
+
+| Dokument | Inhalt |
+|---|---|
+| [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | Architektur: Module, Build-Pipeline, Auth-Flow und Datenfluss (Mermaid-Diagramme) |
+| [`docs/decisions/`](docs/decisions/) | Architektur-Entscheidungen (ADRs 0001–0004: etiket-Migration, renderDpi, Eingabegate, Fehlertaxonomie) |
+| [`docs/ERROR-HANDLING.md`](docs/ERROR-HANDLING.md) | Zentrale Fehlerbehandlung: Taxonomie, Meldungs-Mapper, Anleitung für neue Fehlerstellen |
+| [`docs/ANALYSE-MIGRATION-UND-VERGLEICHE.md`](docs/ANALYSE-MIGRATION-UND-VERGLEICHE.md) | Migrations-Analyse, Eingabegate-Begründung, Pixelvergleich CLI ↔ Browser |
+| [`docs/api/`](docs/api/README.md) | Automatisch generierte Modul-Referenz (TypeDoc) — **nicht manuell bearbeiten** |
+| [`apps/web/assets/css/themes/README.md`](apps/web/assets/css/themes/README.md) | Theme-Vertrag: Pflicht-Variablen + Rollen |
+| [`AGENTS.md`](AGENTS.md) | Konventionen für AI-Agenten (Codierung, Struktur, Checks) |
+
+Die Modul-Referenz wird aus dem Quellcode generiert und im CI geprüft
+(`docs`-Job, Warnungen sind Fehler) — sie bleibt damit automatisch synchron
+zum Code. Lokal neu generieren:
+
+```powershell
+npm run docs        # erzeugt docs/api/
+npm run docs:check  # nur prüfen (für CI), ohne zu schreiben
+```
+
+## Themes
+
+Das Aussehen des HTML-Tools steuern **Theme-Dateien** — reine
+CSS-Variablen-Sets ohne Komponenten-Styles. Alle vier offiziellen
+**Catppuccin-Flavors** sind eingebaut (Farben direkt aus der kanonischen
+Palette [catppuccin/palette](https://github.com/catppuccin/palette)):
+
+| Theme | Datei | Hell/Dunkel |
+|---|---|---|
+| 🌸 Catppuccin Mocha | `catppuccin-mocha.css` | dunkel (Standard) |
+| ☕ Catppuccin Macchiato | `catppuccin-macchiato.css` | dunkel |
+| 🌿 Catppuccin Frappé | `catppuccin-frappe.css` | dunkel |
+| 🌻 Catppuccin Latte | `catppuccin-latte.css` | hell |
+
+Die Auswahl erfolgt über das Dropdown **„Theme (Catppuccin)"** im
+Protokoll-Panel und wird in `localStorage` persistiert. Ohne gespeicherte
+Wahl entscheidet die **Systemeinstellung** (`prefers-color-scheme`):
+helle Systeme starten mit Latte, dunkle mit Mocha. Nach der ersten manuellen
+Wahl übersteuert diese die Systemeinstellung dauerhaft.
+
+Technisch wird das aktive Theme über das Attribut `data-theme` am
+`<html>`-Element gesetzt — alle vier Stylesheets sind geladen, die
+Umschaltung ist rein attributbasiert (kein Reload).
+
+**Neues Theme in 3 Schritten:**
+
+1. `apps/web/assets/css/themes/catppuccin-mocha.css` kopieren (z. B. zu
+   `light.css`), `data-theme`-Wert und Variablenwerte anpassen.
+2. In `index.html` ergänzen:
+   `<link rel="stylesheet" href="assets/css/themes/light.css">` (in apps/web/index.html)
+3. Aktivieren: `data-theme="light"` am `<html>`-Element setzen.
+
+Die vollständige Liste der Pflicht-Variablen und die Rollen-Zuordnung
+(wo wird welche Variable genutzt?) steht in
+[`apps/web/assets/css/themes/README.md`](apps/web/assets/css/themes/README.md).
 
 ---
 
@@ -778,6 +953,6 @@ später exakt reproduzieren lassen.
 - [etiket](https://github.com/productdevbook/etiket) — Barcode-/SVG-Erzeugung
   (PowerShell/Node-Weg)
 - [sharp](https://github.com/lubien/sharp) / [sharp.pixelplumbing.com](https://sharp.pixelplumbing.com/) — Bildkomposition und PNG-Export
-- [JsBarcode](https://github.com/lindell/JsBarcode) (MIT-Lizenz) — Code-128-
-  Erzeugung im Browser, inline eingebettet im HTML-Tool
+- [etiket](https://github.com/productdevbook/etiket) (MIT-Lizenz) — Code-128-
+  Erzeugung im Browser (SVG-Rendering), als npm-Paket im Build gebündelt
 - [Node.js](https://nodejs.org) — Laufzeitumgebung für `barcode.mjs`

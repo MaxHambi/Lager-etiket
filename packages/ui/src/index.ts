@@ -1,0 +1,27 @@
+/**
+ * Öffentliche API der UI-Module (DOM).
+ * Diese Barrel-Datei ist der Einstiegspunkt für die Modul-Referenz.
+ */
+export { $ } from "./dom.ts";
+export { Logger } from "./logger.ts";
+export type { LogLevel } from "./logger.ts";
+export { initSplash } from "./splash.ts";
+export { TemplatePicker } from "./template-picker.ts";
+export { TemplateGallery } from "./template-gallery.ts";
+export type { TemplateManifest, TemplateManifestEntry } from "./template-gallery.ts";
+export { EntriesUI } from "./entries-ui.ts";
+export { BatchesUI } from "./batches-ui.ts";
+export { ConfigUI } from "./config-ui.ts";
+export { ConfigLibrary } from "./config-library.ts";
+export type { ConfigManifest, ConfigManifestEntry } from "./config-library.ts";
+export { PreviewUI } from "./preview.ts";
+export { GeneratorUI } from "./generator.ts";
+export type { BatchJob } from "./generator.ts";
+export { initLightbox, openLightbox } from "./lightbox.ts";
+export { initThemeSwitcher } from "./theme.ts";
+export { initViewSettings } from "./view-settings.ts";
+export { KEY_SHOW_AREA, KEY_LAST_TEMPLATE } from "./persistence.ts";
+export { readConfig, applyConfig, toggleAreaFields } from "./config.ts";
+export type { AppConfig } from "@lager-etiket/types";
+export type { LoginHandler } from "./auth-ui.ts";
+export { showLogin, hideLogin, reportLoginError } from "./auth-ui.ts";

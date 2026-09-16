@@ -1,0 +1,40 @@
+:root[data-theme="catppuccin-mocha"] {
+  /* Catppuccin Mocha 🌸 — offizielle Palette v1.8.0 */
+  /* https://github.com/catppuccin/palette */
+
+  /* Flächen */
+  --base: #1e1e2e;
+  --mantle: #181825;
+  --crust: #11111b;
+  --surface0: #313244;
+  --surface1: #45475a;
+  --surface2: #585b70;
+
+  /* Text */
+  --text: #cdd6f4;
+  --subtext1: #bac2de;
+  --subtext0: #a6adc8;
+  --overlay0: #6c7086;
+  --overlay1: #7f849c;
+  --overlay2: #9399b2;
+
+  /* Akzentfarben */
+  --mauve: #cba6f7;
+  --blue: #89b4fa;
+  --green: #a6e3a1;
+  --red: #f38ba8;
+  --yellow: #f9e2af;
+  --peach: #fab387;
+  --pink: #f5c2e7;
+  --teal: #94e2d5;
+
+  /* Form */
+  --radius: 10px;
+  --font-ui: -apple-system, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "SF Mono", "Cascadia Code", Consolas, "Courier New", monospace;
+
+  /* Spezial-Tokens */
+  --checker-a: #313244;
+  --checker-b: #1e1e2e;
+  --preview-overlay: rgba(203, 166, 247, 0.9);
+}

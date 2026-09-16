@@ -6,9 +6,18 @@ on:
     branches:
       - master # ACHTUNG: Falls dein Hauptbranch anders heißt, hier anpassen!
     paths:
-      - 'index.html'
+      - 'apps/web/index.html'
+      - 'apps/web/src/**'
+      - 'apps/web/assets/**'
+      - 'apps/web/build.mjs'
+      - 'packages/**'
+      - 'scripts/**'
       - 'config.json'
-      - .gitignore
+      - 'package.json'
+      - 'package-lock.json'
+      - 'turbo.json'
+      - 'tsconfig.base.json'
+      - '.github/workflows/sync-pages.yml'
 
 # Erlaubnis geben, damit der Bot in den Branch schreiben darf
 permissions:
@@ -17,28 +26,69 @@ permissions:
 jobs:
   sync:
     runs-on: ubuntu-latest
+    # Environment des Secrets: APP_PASSWORD ist als Environment-Secret im
+    # Environment "github-pages" hinterlegt (nicht als Repository-Secret).
+    environment: github-pages
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0 # Lädt alle Branches herunter, damit der Bot wechseln kann
+
+      - name: Node.js einrichten
+        uses: actions/setup-node@v5
+        with:
+          node-version: '24'
+          cache: 'npm'
+
+      - name: Abhängigkeiten installieren (alle Workspaces)
+        run: npm ci --no-audit --no-fund
+
+      - name: HTML-Tool bauen (Typecheck + Bundle via Turbo)
+        # Ist das Environment-Secret APP_PASSWORD gesetzt, wird der geschützte
+        # Build erzeugt (Login-Overlay + AES-verschlüsseltes Bundle).
+        # Ohne Secret: unverschlüsselter Entwicklungs-Build.
+        env:
+          APP_PASSWORD: ${{ secrets.APP_PASSWORD }}
+        run: |
+          if [ -n "$APP_PASSWORD" ]; then
+            cd apps/web && node build.mjs --password "$APP_PASSWORD"
+          else
+            npm run build:web
+          fi
+
+      - name: Build-Artefakte sichern (dist ist nicht Teil von master)
+        run: |
+          cp -r apps/web/dist /tmp/app-dist
+          cp -r apps/web/assets /tmp/app-assets
+          # public/ (Vorlagen-Galerie + Config-Bibliothek) für gh-pages sichern
+          cp -r apps/web/public /tmp/app-public
 
       - name: Dateien auf gh-pages synchronisieren
         run: |
           # Dem Bot eine Identität für Git geben
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          
+
           # Zum gh-pages branch wechseln
           git checkout gh-pages
-          
-          # Neueste Version der Dateien aus dem Hauptbranch holen
-          git checkout master -- index.html config.json
-          
+
+          # Aktuelle Quelldateien aus dem Hauptbranch holen
+          # (config.json liegt am Root, index.html in apps/web)
+          git checkout master -- config.json apps/web/index.html
+          mv apps/web/index.html index.html && rmdir apps/web 2>/dev/null || true
+
+          # Gebaute Dateien aus dem Job übernehmen (vor dem Branch-Wechsel gesichert)
+          rm -rf assets dist public
+          cp -r /tmp/app-assets assets
+          cp -r /tmp/app-dist dist
+          cp -r /tmp/app-public public
+
           # Prüfen, ob sich die Dateien überhaupt verändert haben
+          git add -A index.html config.json assets dist public
           if git diff --staged --quiet; then
             echo "Keine Änderungen zu synchronisieren."
           else
-            git commit -m "Automatisches Update von index.html und config.json und gitignore"
+            git commit -m "Automatisches Update von index.html, config.json, assets und dist"
             git push origin gh-pages
           fi

@@ -1,0 +1,32 @@
+/**
+ * base.css — Reset, Grundlayout, Typografie.
+ * Nutzt ausschließlich Theme-Variablen; keine harten Farben.
+ */
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--crust);
+  color: var(--text);
+  font-family: var(--font-ui);
+  min-height: 100vh;
+  line-height: 1.5;
+}
+
+a {
+  color: var(--blue);
+}
+
+.wrap {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 28px 24px 80px;
+}
