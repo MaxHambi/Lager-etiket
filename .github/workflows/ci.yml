@@ -80,3 +80,29 @@ jobs:
           name: app-bundle
           path: dist/app.js
           retention-days: 7
+
+  docs:
+    name: Docs (TypeDoc-Referenz)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v5
+
+      - name: Node.js einrichten
+        uses: actions/setup-node@v5
+        with:
+          node-version: '24'
+          cache: 'npm'
+
+      - name: Abhängigkeiten installieren
+        run: npm ci --no-audit --no-fund
+
+      - name: Modul-Referenz generieren (Warnungen als Fehler)
+        run: npm run docs:check
+
+      - name: Modul-Referenz hochladen (7 Tage aufbewahren)
+        uses: actions/upload-artifact@v6
+        with:
+          name: api-docs
+          path: docs/api
+          retention-days: 7

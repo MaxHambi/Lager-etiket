@@ -8,6 +8,8 @@
     "build:watch": "node build.mjs --watch",
     "typecheck": "tsc --noEmit",
     "lint": "eslint src/",
+    "docs": "typedoc",
+    "docs:check": "typedoc --treatWarningsAsErrors",
     "test": "node --test \"test/unit/*.test.mjs\""
   },
   "dependencies": {
@@ -25,6 +27,8 @@
     "esbuild": "^0.28.2",
     "eslint": "^10.10.0",
     "globals": "^17.12.0",
+    "typedoc": "^0.28.20",
+    "typedoc-plugin-markdown": "^4.13.0",
     "typescript": "~5.9.2",
     "typescript-eslint": "^8.70.0"
   }

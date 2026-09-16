@@ -36,6 +36,7 @@ Ergebnisse aus beiden Wegen identisch aussehen.
   - [Workflow: HTML-Tool anpassen](#workflow-html-tool-anpassen)
     - [Entwicklung: Build, Lint, Test](#entwicklung-build-lint-test)
     - [CI-Workflows](#ci-workflows)
+  - [Dokumentation](#dokumentation)
   - [Themes](#themes)
   - [Fertige Schilder nachträglich skalieren (skalieren.mjs)](#fertige-schilder-nachträglich-skalieren-skalierenmjs)
     - [Verwendung](#verwendung)
@@ -419,6 +420,23 @@ Vor jedem Push sollte lokal gelten: `npm run lint && npm test && npm run build`
 |---|---|---|
 | CI | `.github/workflows/ci.yml` | Bei jedem Push/PR auf `master`: **Lint**, **Unit-Tests** und **Build** (Typecheck + esbuild) als drei parallele Jobs; `dist/app.js` wird als Artefakt vorgehalten |
 | Update GitHub Pages | `.github/workflows/sync-pages.yml` | Bei Push auf `master` (wenn `index.html`, `config.json`, `src/`, `assets/` … sich ändern): baut das Tool und synchronisiert `index.html`, `config.json`, `assets/` und `dist/` auf den `gh-pages`-Branch |
+
+### Dokumentation
+
+| Dokument | Inhalt |
+|---|---|
+| [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | Architektur: Module, Build-Pipeline, Auth-Flow und Datenfluss (Mermaid-Diagramme) |
+| [`docs/api/`](docs/api/README.md) | Automatisch generierte Modul-Referenz (TypeDoc) — **nicht manuell bearbeiten** |
+| [`assets/css/themes/README.md`](assets/css/themes/README.md) | Theme-Vertrag: Pflicht-Variablen + Rollen |
+
+Die Modul-Referenz wird aus dem Quellcode generiert und im CI geprüft
+(`docs`-Job, Warnungen sind Fehler) — sie bleibt damit automatisch synchron
+zum Code. Lokal neu generieren:
+
+```powershell
+npm run docs        # erzeugt docs/api/
+npm run docs:check  # nur prüfen (für CI), ohne zu schreiben
+```
 
 ## Themes
 
