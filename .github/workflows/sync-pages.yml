@@ -72,7 +72,9 @@ jobs:
           git checkout gh-pages
 
           # Aktuelle Quelldateien aus dem Hauptbranch holen
-          git checkout master -- index.html config.json
+          # (config.json liegt am Root, index.html in apps/web)
+          git checkout master -- config.json apps/web/index.html
+          mv apps/web/index.html index.html && rmdir apps/web 2>/dev/null || true
 
           # Gebaute Dateien aus dem Job übernehmen (vor dem Branch-Wechsel gesichert)
           rm -rf assets dist
