@@ -10,10 +10,6 @@ Dieses Dokument beschreibt die Architektur des Projekts als **Monorepo**
 (npm Workspaces + Turborepo): Module, Build-Pipeline, Authentifizierung
 und Datenfluss.
 
-> Kommandozeilen-Werkzeuge (`barcode.ps1` am Root sowie `barcode.mjs`,
-> `skalieren.mjs`, `pruefen.mjs`, `konvertieren.mjs` in `packages/tools/`)
-> sind separat dokumentiert in der [Haupt-README](../README.md).
-
 ---
 
 ## 1. Systemübersicht
