@@ -77,6 +77,9 @@ export class BatchesUI {
     this.multiMode = multi;
     ($("btnModeMulti") as HTMLButtonElement).classList.toggle("active", multi);
     ($("btnModeSingle") as HTMLButtonElement).classList.toggle("active", !multi);
+    // Einzelfeld im Mehrfach-Modus komplett ausblenden (nicht nur deaktivieren):
+    // Die zwei Eingabequellen schließen sich gegenseitig aus (Issue #1, Punkt 1).
+    ($("singleEntryWrap") as HTMLElement).style.display = multi ? "none" : "";
     ($("entrySingle") as HTMLInputElement).disabled = multi;
     $("batchesWrap").style.display = multi ? "block" : "none";
     ($("btnAddBatch") as HTMLButtonElement).disabled = !multi;
