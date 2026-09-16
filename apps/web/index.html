@@ -1,12 +1,16 @@
 <!DOCTYPE html>
-<html lang="de" data-theme="catppuccin">
+<html lang="de" data-theme="catppuccin-mocha">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Lagerplatz-Barcode-Generator</title>
 <link rel="stylesheet" href="assets/css/base.css">
 <link rel="stylesheet" href="assets/css/components.css">
-<link rel="stylesheet" href="assets/css/themes/catppuccin.css">
+<!-- Catppuccin-Flavors (offizielle Palette v1.8.0): Aktiv per data-theme am <html> -->
+<link rel="stylesheet" href="assets/css/themes/catppuccin-latte.css">
+<link rel="stylesheet" href="assets/css/themes/catppuccin-frappe.css">
+<link rel="stylesheet" href="assets/css/themes/catppuccin-macchiato.css">
+<link rel="stylesheet" href="assets/css/themes/catppuccin-mocha.css">
 </head>
 <body>
   <div id="splash-screen">
@@ -134,6 +138,10 @@
             <div class="field"><label>Dateiname-Präfix</label><input type="text" id="cfgPrefix"></div>
             <div class="field"><label>DPI (Metadaten)</label><input type="number" id="cfgDpi"></div>
           </div>
+          <div class="field">
+            <label>Raster-DPI Barcode (CLI + Browser identisch)</label>
+            <input type="number" id="cfgRenderDpi">
+          </div>
 
           <div class="btn-row">
             <button class="btn-ghost" onclick="document.getElementById('configFile').click()">config.json laden</button>
@@ -169,7 +177,18 @@
     </div>
 
     <div class="card">
-      <h2><span class="num">7</span>Protokoll</h2>
+      <h2><span class="num">7</span>Protokoll &amp; Einstellungen</h2>
+      <div class="row two" style="margin-bottom:10px;">
+        <div class="field">
+          <label>Theme (Catppuccin)</label>
+          <select id="themeSelect" aria-label="Theme wählen">
+            <option value="catppuccin-mocha">🌸 Catppuccin Mocha (dunkel)</option>
+            <option value="catppuccin-macchiato">☕ Catppuccin Macchiato (dunkel)</option>
+            <option value="catppuccin-frappe">🌿 Catppuccin Frappé (dunkel)</option>
+            <option value="catppuccin-latte">🌻 Catppuccin Latte (hell)</option>
+          </select>
+        </div>
+      </div>
       <div id="log"></div>
       <div class="btn-row">
         <button class="btn-ghost" id="btnSaveLog">Protokoll speichern</button>
@@ -177,7 +196,7 @@
     </div>
 
     <footer>
-      Code&nbsp;128 via <a href="https://github.com/lindell/JsBarcode" target="_blank" rel="noopener">JsBarcode</a> (MIT-Lizenz, gebündelt — keine Internetverbindung zur Laufzeit nötig).<br>
+      Code&nbsp;128 via <a href="https://github.com/productdevbook/etiket" target="_blank" rel="noopener">etiket</a> (MIT-Lizenz, gebündelt — keine Internetverbindung zur Laufzeit nötig).<br>
       Ergänzt das <code>barcode.ps1</code> / <code>barcode.mjs</code>-Kommandozeilenwerkzeug für die Kommissionierung im Lager.<br>
       <br>
       © 2026 Max Hambi | <a href="mailto:max.hambi@pm.me">max.hambi@pm.me</a> | <a href="https://github.com/MaxHambi">Github</a><br>

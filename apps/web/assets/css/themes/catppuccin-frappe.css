@@ -1,0 +1,40 @@
+:root[data-theme="catppuccin-frappe"] {
+  /* Catppuccin Frappé 🌿 — offizielle Palette v1.8.0 */
+  /* https://github.com/catppuccin/palette */
+
+  /* Flächen */
+  --base: #303446;
+  --mantle: #292c3c;
+  --crust: #232634;
+  --surface0: #414559;
+  --surface1: #51576d;
+  --surface2: #626880;
+
+  /* Text */
+  --text: #c6d0f5;
+  --subtext1: #b5bfe2;
+  --subtext0: #a5adce;
+  --overlay0: #737994;
+  --overlay1: #838ba7;
+  --overlay2: #949cbb;
+
+  /* Akzentfarben */
+  --mauve: #ca9ee6;
+  --blue: #8caaee;
+  --green: #a6d189;
+  --red: #e78284;
+  --yellow: #e5c890;
+  --peach: #ef9f76;
+  --pink: #f4b8e4;
+  --teal: #81c8be;
+
+  /* Form */
+  --radius: 10px;
+  --font-ui: -apple-system, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "SF Mono", "Cascadia Code", Consolas, "Courier New", monospace;
+
+  /* Spezial-Tokens */
+  --checker-a: #414559;
+  --checker-b: #303446;
+  --preview-overlay: rgba(202, 158, 230, 0.9);
+}

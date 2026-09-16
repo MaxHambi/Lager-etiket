@@ -194,6 +194,10 @@ Regeln:
 - **Doppelte Einträge führen absichtlich zum Abbruch** (`barcode.mjs`,
   Funktion `readEntries`) — so werden nie versehentlich zwei Schilder mit
   demselben Barcode erzeugt. Fehlermeldung nennt Zeilennummer und Datei.
+- **Ungültige Codes werden vor dem Rendern abgelehnt** (Eingabegate,
+  ADR-0003): nur druckbare ASCII-Zeichen (32–126), max. 48 Zeichen. Wichtig:
+  die installierte etiket-Version kodiert Zeichen > 127 **nicht** in den
+  Barcode (sie würden aus dem Balkenmuster fallen) — daher die ASCII-Beschränkung.
 
 ---
 
@@ -279,6 +283,7 @@ fehlt, greift die globale Konfiguration mit Warnung im Protokoll).
   "output": {
     "prefix": "lagerplatz_",
     "dpi": 300,
+    "renderDpi": 600,
     "overwrite": false
   }
 }
@@ -320,6 +325,7 @@ eine Warnung im Log aus (kein Abbruch, aber ein deutlicher Hinweis zum Nachjusti
 |---|---|
 | `prefix` | Vorangestellter Text im Dateinamen, z. B. `lagerplatz_` → `lagerplatz_01A01.png` |
 | `dpi` | In die PNG-Metadaten geschriebene Auflösung (wichtig für exaktes Druckformat) |
+| `renderDpi` | Effektive Rasterungs-Auflösung des Barcode-SVG — CLI (sharp `density`) und Browser nutzen **denselben** Wert, damit beide Pipelines Schilder gleicher Größe erzeugen (Standard 600, siehe ADR-0002) |
 | `overwrite` | `true` = vorhandene Dateien im Ausgabeordner werden überschrieben. Kann pro Lauf auch über `-Overwrite` (PowerShell) übersteuert werden |
 
 ---
@@ -447,7 +453,7 @@ Wichtig bei Anpassungen:
 - Die Positions-/Skalierungsformel in `packages/core/src/compose.ts` sollte
   bei Änderungen an `packages/tools/barcode.mjs` synchron gehalten werden,
   sonst weichen Browser- und PowerShell-Ergebnisse voneinander ab.
-- JsBarcode kommt als npm-Paket (`jsbarcode`) und wird beim Build mit
+- etiket kommt als npm-Paket (`etiket`) und wird beim Build mit
   gebündelt — keine externen `<script src="https://...">`-Verweise einfügen,
   damit alles offline läuft.
 - Komponenten-CSS nutzt ausschließlich Theme-Variablen — keine harten
@@ -482,8 +488,12 @@ Unveränderte Pakete werden übersprungen (`>>> FULL TURBO`).
 | Dokument | Inhalt |
 |---|---|
 | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | Architektur: Module, Build-Pipeline, Auth-Flow und Datenfluss (Mermaid-Diagramme) |
+| [`docs/decisions/`](docs/decisions/) | Architektur-Entscheidungen (ADRs 0001–0004: etiket-Migration, renderDpi, Eingabegate, Fehlertaxonomie) |
+| [`docs/ERROR-HANDLING.md`](docs/ERROR-HANDLING.md) | Zentrale Fehlerbehandlung: Taxonomie, Meldungs-Mapper, Anleitung für neue Fehlerstellen |
+| [`docs/ANALYSE-MIGRATION-UND-VERGLEICHE.md`](docs/ANALYSE-MIGRATION-UND-VERGLEICHE.md) | Migrations-Analyse, Eingabegate-Begründung, Pixelvergleich CLI ↔ Browser |
 | [`docs/api/`](docs/api/README.md) | Automatisch generierte Modul-Referenz (TypeDoc) — **nicht manuell bearbeiten** |
 | [`apps/web/assets/css/themes/README.md`](apps/web/assets/css/themes/README.md) | Theme-Vertrag: Pflicht-Variablen + Rollen |
+| [`AGENTS.md`](AGENTS.md) | Konventionen für AI-Agenten (Codierung, Struktur, Checks) |
 
 Die Modul-Referenz wird aus dem Quellcode generiert und im CI geprüft
 (`docs`-Job, Warnungen sind Fehler) — sie bleibt damit automatisch synchron
@@ -497,14 +507,31 @@ npm run docs:check  # nur prüfen (für CI), ohne zu schreiben
 ## Themes
 
 Das Aussehen des HTML-Tools steuern **Theme-Dateien** — reine
-CSS-Variablen-Sets ohne Komponenten-Styles. Das bisherige Design ist als
-`apps/web/assets/css/themes/catppuccin.css` gesichert; aktiviert wird es über das
-Attribut `data-theme="catppuccin"` am `<html>`-Element.
+CSS-Variablen-Sets ohne Komponenten-Styles. Alle vier offiziellen
+**Catppuccin-Flavors** sind eingebaut (Farben direkt aus der kanonischen
+Palette [catppuccin/palette](https://github.com/catppuccin/palette)):
+
+| Theme | Datei | Hell/Dunkel |
+|---|---|---|
+| 🌸 Catppuccin Mocha | `catppuccin-mocha.css` | dunkel (Standard) |
+| ☕ Catppuccin Macchiato | `catppuccin-macchiato.css` | dunkel |
+| 🌿 Catppuccin Frappé | `catppuccin-frappe.css` | dunkel |
+| 🌻 Catppuccin Latte | `catppuccin-latte.css` | hell |
+
+Die Auswahl erfolgt über das Dropdown **„Theme (Catppuccin)"** im
+Protokoll-Panel und wird in `localStorage` persistiert. Ohne gespeicherte
+Wahl entscheidet die **Systemeinstellung** (`prefers-color-scheme`):
+helle Systeme starten mit Latte, dunkle mit Mocha. Nach der ersten manuellen
+Wahl übersteuert diese die Systemeinstellung dauerhaft.
+
+Technisch wird das aktive Theme über das Attribut `data-theme` am
+`<html>`-Element gesetzt — alle vier Stylesheets sind geladen, die
+Umschaltung ist rein attributbasiert (kein Reload).
 
 **Neues Theme in 3 Schritten:**
 
-1. `apps/web/assets/css/themes/catppuccin.css` kopieren (z. B. zu `light.css`),
-   `data-theme`-Wert und Variablenwerte anpassen.
+1. `apps/web/assets/css/themes/catppuccin-mocha.css` kopieren (z. B. zu
+   `light.css`), `data-theme`-Wert und Variablenwerte anpassen.
 2. In `index.html` ergänzen:
    `<link rel="stylesheet" href="assets/css/themes/light.css">` (in apps/web/index.html)
 3. Aktivieren: `data-theme="light"` am `<html>`-Element setzen.
@@ -926,6 +953,6 @@ später exakt reproduzieren lassen.
 - [etiket](https://github.com/productdevbook/etiket) — Barcode-/SVG-Erzeugung
   (PowerShell/Node-Weg)
 - [sharp](https://github.com/lubien/sharp) / [sharp.pixelplumbing.com](https://sharp.pixelplumbing.com/) — Bildkomposition und PNG-Export
-- [JsBarcode](https://github.com/lindell/JsBarcode) (MIT-Lizenz) — Code-128-
-  Erzeugung im Browser, als npm-Paket im Build gebündelt
+- [etiket](https://github.com/productdevbook/etiket) (MIT-Lizenz) — Code-128-
+  Erzeugung im Browser (SVG-Rendering), als npm-Paket im Build gebündelt
 - [Node.js](https://nodejs.org) — Laufzeitumgebung für `barcode.mjs`

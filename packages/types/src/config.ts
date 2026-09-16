@@ -50,6 +50,14 @@ export interface OutputConfig {
   prefix: string | null;
   /** In die PNG-Metadaten geschriebene Auflösung. */
   dpi: number;
+  /**
+   * Effektive Rasterungs-Auflösung des Barcode-SVG (Pixel pro Zoll).
+   * CLI und Browser müssen denselben Wert verwenden, damit identische
+   * Schilder entstehen: CLI rastert mit sharp density, der Browser zeichnet
+   * das SVG auf ein Canvas der Größe svgPx × renderDpi/96.
+   * Standard 600 (bisheriges CLI-Verhalten).
+   */
+  renderDpi: number;
   overwrite: boolean;
 }
 
@@ -79,5 +87,5 @@ export const DEFAULT_CONFIG: AppConfig = {
     offsetX: 0,
     offsetY: 0,
   },
-  output: { prefix: "lagerplatz_", dpi: 300, overwrite: false },
+  output: { prefix: "lagerplatz_", dpi: 300, renderDpi: 600, overwrite: false },
 };

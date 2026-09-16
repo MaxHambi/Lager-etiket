@@ -19,7 +19,6 @@
   },
   "dependencies": {
     "etiket": "^0.12.0",
-    "jsbarcode": "^3.12.3",
     "sharp": "^0.35.4",
     "triple-beam": "^1.4.1",
     "winston": "^3.19.0",
@@ -28,7 +27,6 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
-    "@types/jsbarcode": "^3.11.4",
     "esbuild": "^0.28.2",
     "eslint": "^10.10.0",
     "globals": "^17.12.0",

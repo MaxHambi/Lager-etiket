@@ -10,13 +10,14 @@ import type { BatchesUI } from "./batches-ui.ts";
 import type { ConfigLibrary } from "./config-library.ts";
 import { readConfig } from "./config.ts";
 import { composeLabel } from "@lager-etiket/core";
+import { describeError } from "@lager-etiket/core";
 import { canvasToPngBlob } from "@lager-etiket/core";
 import { injectPhysDpi } from "@lager-etiket/core";
 import { sanitizeFileName } from "@lager-etiket/core";
 import { makeZip } from "@lager-etiket/core";
 import { downloadBlob } from "@lager-etiket/core";
-import { openLightbox } from "./lightbox.ts";
-import type { AppConfig } from "@lager-etiket/types";
+import { validateEntry } from "@lager-etiket/core";
+import { openLightbox } from "./lightbox.ts";import type { AppConfig } from "@lager-etiket/types";
 
 /** Ein fertiges Schild (Name, Blob, Objekt-URL). */
 interface GeneratedResult {
@@ -107,8 +108,8 @@ export class GeneratorUI {
         out.set(job.index, cfg);
       } catch (err) {
         this.log.warn(
-          'Config "' + job.configFile + '" (Unterkategorie ' + job.index + ") nicht ladbar (" +
-          (err as Error).message + ") — globale Konfiguration wird verwendet.",
+          'Config "' + job.configFile + '" (Unterkategorie ' + job.index + ") nicht ladbar — " +
+          describeError(err) + " Globale Konfiguration wird verwendet.",
         );
         out.set(job.index, globalCfg);
       }
@@ -204,8 +205,16 @@ export class GeneratorUI {
     // 3) Erzeugen
     for (const job of planned) {
       for (const entry of job.entries) {
+        // Eingabegate: ungültige Codes niemals an den Renderer reichen
+        const gate = validateEntry(entry);
+        if (!gate.valid) {
+          this.log.err('Übersprungen (ungültiger Code) "' + entry + '": ' + (gate.error ?? ""));
+          done++;
+          bar.style.width = Math.round((done / totalCount) * 100) + "%";
+          continue;
+        }
         try {
-          const result = composeLabel(entry, job.image, job.cfg, (msg) => this.log.warn(msg));
+          const result = await composeLabel(entry, job.image, job.cfg, (msg) => this.log.warn(msg));
           const blob = await canvasToPngBlob(result.canvas);
           const finalBlob = await injectPhysDpi(blob, job.cfg.output.dpi);
           const fileName = (job.cfg.output.prefix || "") + sanitizeFileName(entry) + ".png";
@@ -215,7 +224,7 @@ export class GeneratorUI {
           created++;
           this.log.ok("Erstellt: " + fileName);
         } catch (err) {
-          this.log.err('Fehler bei "' + entry + '": ' + (err as Error).message);
+          this.log.err(describeError(err, 'Fehler bei "' + entry + '"'));
         }
         done++;
         bar.style.width = Math.round((done / totalCount) * 100) + "%";

@@ -48,6 +48,7 @@ export function readConfig(): AppConfig {
     output: {
       prefix: ($("cfgPrefix") as HTMLInputElement).value || "lagerplatz_",
       dpi: num(($("cfgDpi") as HTMLInputElement).value, 300),
+      renderDpi: num(($("cfgRenderDpi") as HTMLInputElement).value, 600),
       overwrite: false,
     },
   };
@@ -84,6 +85,7 @@ export function applyConfig(cfg: AppConfig): void {
   ($("cfgOffY") as HTMLInputElement).value = String(p.offsetY ?? 0);
   ($("cfgPrefix") as HTMLInputElement).value = o.prefix ?? "lagerplatz_";
   ($("cfgDpi") as HTMLInputElement).value = String(o.dpi ?? 300);
+  ($("cfgRenderDpi") as HTMLInputElement).value = String(o.renderDpi ?? 600);
 
   toggleAreaFields();
 }

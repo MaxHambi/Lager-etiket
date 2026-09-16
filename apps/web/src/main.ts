@@ -12,6 +12,8 @@ import { ConfigLibrary } from "@lager-etiket/ui/config-library.ts";
 import { PreviewUI } from "@lager-etiket/ui/preview.ts";
 import { GeneratorUI } from "@lager-etiket/ui/generator.ts";
 import { initLightbox } from "@lager-etiket/ui/lightbox.ts";
+import { initThemeSwitcher } from "@lager-etiket/ui/theme.ts";
+import { initViewSettings } from "@lager-etiket/ui/view-settings.ts";
 import { applyConfig, toggleAreaFields } from "@lager-etiket/ui";
 import { DEFAULT_CONFIG } from "@lager-etiket/types";
 import { $ } from "@lager-etiket/ui/dom.ts";
@@ -21,6 +23,7 @@ function bootstrap(): void {
   initLightbox();
 
   const log = new Logger();
+  initThemeSwitcher(log);
 
   const templates = new TemplatePicker(log);
   const gallery = new TemplateGallery(log);
@@ -77,10 +80,18 @@ function bootstrap(): void {
   updateAll();
 
   // Galerie + Config-Bibliothek asynchron laden (optional, offline-tolerant)
-  void gallery.load().then(() => updateAll());
+  void gallery.load().then(() => {
+    // Ansichtseinstellungen (Overlay-Modus, letzte Vorlage) nach dem
+    // Galerie-Load anwenden — die Wiederherstellung klickt sonst eine
+    // Karte an, die noch nicht gerendert ist.
+    initViewSettings(log, gallery);
+    updateAll();
+  });
   void configLibrary.load().then(() => {
     const configSelect = $("configSelect") as HTMLSelectElement;
     configSelect.addEventListener("change", () => void configLibrary.applySelected());
+    // Projekt-Standard (config.json aus dem Repo-Root) beim Start laden
+    void configLibrary.applyDefault();
     // Batch-Dropdowns mit den Config-Optionen befüllen
     const options: Array<{ file: string; label: string }> = [];
     configSelect.querySelectorAll("option").forEach((opt) => {
@@ -91,7 +102,7 @@ function bootstrap(): void {
   });
 
   log.info("Werkzeug bereit. Vorlage wählen (Galerie oder Datei) und Lagerplätze eingeben.");
-  log.info("JsBarcode v3.12.3 (CODE128) via npm — läuft vollständig offline.");
+  log.info("etiket v0.12 (CODE128, SVG-Rendering) via npm — läuft vollständig offline.");
 }
 
 if (document.readyState === "loading") {

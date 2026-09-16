@@ -5,7 +5,7 @@
  */
 import { $ } from "./dom.ts";
 import type { Logger } from "./logger.ts";
-import { expandRange, findDuplicates } from "@lager-etiket/core";
+import { expandRange, findDuplicates, validateEntry, findInvalidEntries } from "@lager-etiket/core";
 
 /** Eine Unterkategorie im DOM. */
 interface BatchSection {
@@ -43,7 +43,10 @@ export class BatchesUI {
 
   constructor(private readonly log: Logger) {
     const single = $("entrySingle") as HTMLInputElement;
-    single.addEventListener("input", () => this.notify());
+    single.addEventListener("input", () => {
+      this.validateSingleInput();
+      this.notify();
+    });
 
     $("btnModeMulti").addEventListener("click", () => this.setMode(true));
     $("btnModeSingle").addEventListener("click", () => this.setMode(false));
@@ -168,6 +171,20 @@ export class BatchesUI {
       collected.push({ index: i + 1, start: s, end: e, entries, configFile: b.config.value || null });
     }
 
+    // Eingabegate: alle expandierten Codes gegen den etiket-Validator prüfen,
+    // bevor sie an Generator/Vorschau durchgereicht werden.
+    const invalid = findInvalidEntries(groups.flatMap((g) => g.entries));
+    if (invalid.length) {
+      if (!silent) {
+        const sample = invalid.map((v) => '"' + v.entry + '" (' + v.error + ")").join(", ");
+        const msg = "Ungültige Lagerplatz-Codes gefunden: " + sample;
+        errorBox.textContent = msg;
+        errorBox.style.display = "block";
+        this.log.err(msg);
+      }
+      return null;
+    }
+
     // Duplikate über alle Unterkategorien prüfen
     const dupes = findDuplicates(groups);
     if (dupes.length) {
@@ -202,6 +219,32 @@ export class BatchesUI {
   /** Ist der Mehrfach-Modus aktiv? */
   get isMulti(): boolean {
     return this.multiMode;
+  }
+
+  /**
+   * Live-Validierung des Einzelfelds: ungültige Codes werden rot markiert
+   * und im Fehlerfeld angezeigt, bevor überhaupt erzeugt werden kann.
+   */
+  private validateSingleInput(): void {
+    const single = $("entrySingle") as HTMLInputElement;
+    const errorBox = $("entryError");
+    const value = single.value.trim();
+
+    if (!value) {
+      single.style.borderColor = "";
+      errorBox.style.display = "none";
+      return;
+    }
+
+    const res = validateEntry(value);
+    if (!res.valid) {
+      single.style.borderColor = "var(--red, #f38ba8)";
+      errorBox.textContent = res.error ?? "Ungültiger Code.";
+      errorBox.style.display = "block";
+    } else {
+      single.style.borderColor = "";
+      errorBox.style.display = "none";
+    }
   }
 
   /** Anzahl sichtbarer Unterkategorien. */

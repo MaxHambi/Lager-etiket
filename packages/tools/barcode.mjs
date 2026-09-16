@@ -12,9 +12,70 @@
 
 import fs from "node:fs";
 import path from "node:path";
-import { barcode } from "etiket/barcode";
+import { barcode, encodeBars } from "etiket/barcode";
 import sharp from "sharp";
 import { erstelleLogger } from "./logger.mjs";
+
+// Meldungs-Mapper: nutzerfreundliche deutsche Fehlermeldungen für alle
+// Fehlerklassen (etiket-Encoder-Fehler, Dateisystem, Netzwerk, unbekannt).
+// Spiegelbildlich zu @lager-etiket/core/src/errors.ts (describeError) —
+// die CLI kann kein TS importieren, daher lokale Kopie. Bei Änderungen
+// immer beide Dateien synchron halten.
+function describeError(err, context) {
+  const prefix = context ? context + ": " : "";
+  const name = err?.name ?? "";
+
+  if (name === "CapacityError") {
+    return prefix + "Der Code passt nicht in die gewählte Symbologie (zu lang). Original: " + err.message;
+  }
+  if (name === "CheckDigitError") {
+    return prefix + "Die Prüfziffer stimmt nicht — letzte Ziffer weglassen, dann wird sie automatisch berechnet. Original: " + err.message;
+  }
+  if (name === "InvalidInputError" || name === "EtiketError") {
+    return prefix + "Der Code enthält Zeichen, die Code 128 nicht darstellen kann. Original: " + err.message;
+  }
+
+  const msg = err?.message ?? String(err);
+  if (msg.includes("ENOENT") || msg.includes("no such file")) {
+    return prefix + "Datei nicht gefunden — Pfad prüfen.";
+  }
+  if (msg.includes("Unexpected token") || msg.includes("JSON")) {
+    return prefix + "Konfigurationsdatei ist kein gültiges JSON — Syntax prüfen.";
+  }
+  return prefix + "Unerwarteter Fehler: " + msg;
+}
+
+// Eingabegate: gleiche Regeln wie @lager-etiket/core/src/validate.ts —
+// nur druckbare Zeichen und Obergrenze 48 (kein ISO-Limit, Schild-Lesbarkeit).
+const MAX_CODE_LENGTH = 48;
+
+function istDruckbar(text) {
+  for (let i = 0; i < text.length; i++) {
+    const c = text.charCodeAt(i);
+    // WICHTIG (ADR-0004 / Nebengefund in Fehlerbehandlungs-Arbeit): etiket
+    // 0.12 DROPPED Zeichen > 127 stillschweigend aus dem Balkenmuster —
+    // deshalb wie im Browser-Gate nur ASCII 32–126 zulassen.
+    if (c < 32 || (c >= 127 && c < 160) || c > 255 || c >= 128) return false;
+  }
+  return true;
+}
+
+function validateEntry(text) {
+  if (!text) return { valid: false, error: "Leerer Lagerplatz-Code." };
+  if (text.length > MAX_CODE_LENGTH) {
+    return { valid: false, error: `Code zu lang (${text.length} Zeichen, maximal ${MAX_CODE_LENGTH}).` };
+  }
+  if (!istDruckbar(text)) {
+    return { valid: false, error: "Enthält nicht druckbare Zeichen (Steuerzeichen/DEL)." };
+  }
+  try {
+    // Finale Instanz: etiket-Encoder — Validierung kann nie vom Rendering abweichen.
+    encodeBars(text, { type: "code128" });
+    return { valid: true };
+  } catch (err) {
+    return { valid: false, error: `"${text}" ist nicht als Code 128 kodierbar: ${err.message}` };
+  }
+}
 
 function printUsage() {
   console.error(
@@ -66,7 +127,7 @@ function sanitizeFileName(text) {
   return text.replace(/[\\/:*?"<>|]/g, "_");
 }
 
-async function buildLabelPng(text, cfg, dpi, log) {
+async function buildLabelPng(text, cfg, renderDpi, log) {
   const b = cfg.barcode;
   const svg = barcode(text, {
     type: "code128",
@@ -83,15 +144,18 @@ async function buildLabelPng(text, cfg, dpi, log) {
     textPosition: "bottom",
   });
 
-  const rendered = sharp(Buffer.from(svg), { density: dpi });
+  // renderDpi: gleiche effektive Rasterungs-Auflösung wie der Browser-Pfad
+  // (packages/core/src/barcode.ts, renderBarcodeImage) — siehe
+  // docs/ANALYSE-MIGRATION-UND-VERGLEICHE.md §3.6.
+  const rendered = sharp(Buffer.from(svg), { density: renderDpi });
   const meta = await rendered.metadata();
   const buffer = await rendered.png().toBuffer();
-  log.debug("Barcode-PNG erzeugt", { text, breite: meta.width, hoehe: meta.height, dpi });
+  log.debug("Barcode-PNG erzeugt", { text, breite: meta.width, hoehe: meta.height, renderDpi });
   return { buffer, width: meta.width, height: meta.height };
 }
 
-async function composeLabel(text, templatePath, cfg, dpi, log) {
-  const label = await buildLabelPng(text, cfg, dpi, log);
+async function composeLabel(text, templatePath, cfg, renderDpi, metaDpi, log) {
+  const label = await buildLabelPng(text, cfg, renderDpi, log);
   const templateMeta = await sharp(templatePath).metadata();
 
   const area = cfg.placement.area ?? {};
@@ -139,7 +203,7 @@ async function composeLabel(text, templatePath, cfg, dpi, log) {
 
   return sharp(templatePath)
     .composite([{ input: finalBuffer, left: posLeft, top: posTop }])
-    .withMetadata({ density: dpi })
+    .withMetadata({ density: metaDpi })
     .png()
     .toBuffer();
 }
@@ -177,7 +241,22 @@ async function main() {
   const cfg = JSON.parse(fs.readFileSync(args.config, "utf8"));
   log.debug("Geladene Konfiguration", cfg);
   const dpi = cfg.output?.dpi ?? 300;
+  // Effektive Rasterungs-Auflösung des Barcode-SVG (Browser nutzt denselben Wert)
+  const renderDpi = cfg.output?.renderDpi ?? 600;
   const entries = readEntries(args.entriesFile);
+
+  // Eingabegate: ungültige Codes werden vor dem Rendern abgelehnt.
+  const invalid = [];
+  for (const entry of entries) {
+    const gate = validateEntry(entry);
+    if (!gate.valid) invalid.push(`"${entry}": ${gate.error}`);
+  }
+  if (invalid.length) {
+    log.error(`Ungültige Lagerplatz-Codes in "${args.entriesFile}" — Abbruch:`);
+    for (const msg of invalid) log.error("  " + msg);
+    process.exit(1);
+  }
+
   fs.mkdirSync(args.outputDir, { recursive: true });
 
   log.info(`${entries.length} Eintraege gefunden.`);
@@ -201,12 +280,12 @@ async function main() {
 
     const start = Date.now();
     try {
-      const png = await composeLabel(entry, args.templateFile, cfg, dpi, log);
+      const png = await composeLabel(entry, args.templateFile, cfg, renderDpi, dpi, log);
       fs.writeFileSync(outPath, png);
       log.info(`Erstellt: ${fileName}`, { dauerMs: Date.now() - start });
       created++;
     } catch (err) {
-      log.error(`Fehler bei Eintrag "${entry}": ${err.message}`);
+      log.error(describeError(err, `Fehler bei Eintrag "${entry}"`));
       log.debug("Stacktrace", { stack: err.stack });
     }
   }
@@ -217,7 +296,7 @@ async function main() {
 }
 
 main().catch((err) => {
-  console.error("Fehler:", err.message);
+  console.error(describeError(err, "Fehler"));
   if (aktiverLog) aktiverLog.error(`Unerwarteter Fehler: ${err.message}`, { stack: err.stack });
   process.exit(1);
 });

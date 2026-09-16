@@ -9,6 +9,8 @@ import type { TemplateGallery } from "./template-gallery.ts";
 import type { BatchesUI } from "./batches-ui.ts";
 import { readConfig } from "./config.ts";
 import { composeLabel } from "@lager-etiket/core";
+import { validateEntry } from "@lager-etiket/core";
+import { describeError } from "@lager-etiket/core";
 import { openLightbox } from "./lightbox.ts";
 
 /**
@@ -21,7 +23,7 @@ export class PreviewUI {
     private readonly gallery: TemplateGallery,
     private readonly batches: BatchesUI,
   ) {
-    $("btnPreview").addEventListener("click", () => this.show());
+    $("btnPreview").addEventListener("click", () => void this.show());
   }
 
   /**
@@ -37,7 +39,7 @@ export class PreviewUI {
   }
 
   /** Erzeugt und zeigt die Vorschau für den gewählten Eintrag. */
-  private show(): void {
+  private async show(): Promise<void> {
     const tpl = this.templates.current ?? this.gallery.current;
     if (!tpl) {
       this.log.err("Bitte zuerst eine Vorlage laden (Galerie oder Datei).");
@@ -58,9 +60,16 @@ export class PreviewUI {
       return;
     }
 
+    // Eingabegate: ungültige Codes gar nicht erst rendern
+    const gate = validateEntry(entry);
+    if (!gate.valid) {
+      this.log.err("Vorschau abgelehnt: " + (gate.error ?? "ungültiger Code"));
+      return;
+    }
+
     try {
       const cfg = readConfig();
-      const result = composeLabel(entry, tpl, cfg, (msg) => this.log.warn(msg));
+      const result = await composeLabel(entry, tpl, cfg, (msg) => this.log.warn(msg));
       const stage = $("previewStage");
       stage.innerHTML = "";
 
@@ -89,7 +98,7 @@ export class PreviewUI {
         result.finalHeight + " px @ (" + result.posLeft + "," + result.posTop + ")",
       );
     } catch (err) {
-      this.log.err("Vorschau fehlgeschlagen: " + (err as Error).message);
+      this.log.err(describeError(err, "Vorschau fehlgeschlagen"));
     }
   }
 }

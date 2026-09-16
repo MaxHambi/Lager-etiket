@@ -18,10 +18,19 @@ export interface ConfigManifestEntry {
   description?: string;
 }
 
+/** Manifest-Eintrag mit optionalem Default-Flag. */
+interface ConfigManifestEntryWithDefault extends ConfigManifestEntry {
+  /** true = beim Start automatisch laden (Projekt-Standard). */
+  default?: boolean;
+}
+
 /** Aufbau von `configs/configs.json`. */
 export interface ConfigManifest {
   configs: ConfigManifestEntry[];
 }
+
+/** Dateiname der Projekt-Standard-Konfiguration (Repo-Root: config.json). */
+const DEFAULT_CONFIG_FILE = "standard.json";
 
 /**
  * Befüllt das Config-Dropdown und lädt die gewählte Konfiguration.
@@ -60,6 +69,28 @@ export class ConfigLibrary {
     this.fillSelect();
     wrap.style.display = "block";
     this.log.info(this.entries.length + " Konfiguration(en) verfügbar.");
+  }
+
+  /**
+   * Lädt die als `default: true` markierte Konfiguration ins Formular
+   * (beim Start aufgerufen, damit das Tool mit der Projekt-Config startet).
+   * Schlägt fehl, bleibt es bei DEFAULT_CONFIG.
+   */
+  async applyDefault(): Promise<void> {
+    const entry = this.entries.find((c) => (c as ConfigManifestEntryWithDefault).default === true)
+      ?? this.entries.find((c) => c.file === DEFAULT_CONFIG_FILE);
+    if (!entry) return;
+    try {
+      const res = await fetch("public/configs/" + encodeURIComponent(entry.file), { cache: "no-cache" });
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      const cfg = (await res.json()) as AppConfig;
+      applyConfig(cfg);
+      const sel = $("configSelect") as HTMLSelectElement;
+      sel.value = entry.file;
+      this.log.ok('Projekt-Standard geladen: "' + entry.label + '" (' + entry.file + ").");
+    } catch (err) {
+      this.log.warn('Projekt-Standard ("' + entry.file + '") nicht ladbar: ' + (err as Error).message + " — DEFAULT_CONFIG bleibt aktiv.");
+    }
   }
 
   /**

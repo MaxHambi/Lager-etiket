@@ -14,3 +14,11 @@ apps/web/src/generated/
 docs/api/
 wiki/
 .turbo/
+# CLI-Logdateien (packages/tools/logger.mjs schreibt bei jedem Lauf)
+packages/tools/log/
+# Pixelvergleich: gebaute Artefakte + Testbilder nicht committen
+# (Neuaufbau: CLI-Schild erzeugen + node scripts/build-compare.mjs, siehe apps/web/public/compare/README.md)
+apps/web/public/compare/compare.html
+apps/web/public/compare/compare.js
+apps/web/public/compare/cli-*.png
+apps/web/public/compare/template.png

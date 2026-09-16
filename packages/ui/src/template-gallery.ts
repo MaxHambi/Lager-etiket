@@ -101,6 +101,24 @@ export class TemplateGallery {
     if (had) for (const fn of this.listeners) fn(null, null);
   }
 
+  /**
+   * Wählt die zuletzt genutzte Vorlage wieder aus (Persistenz beim Start).
+   * Sucht die Karte per Manifest-Dateinamen und löst denselben
+   * Auswahl-Pfad aus wie ein Klick. Schlägt das fehl (Karte nicht mehr im
+   * Manifest, Datei gelöscht), bleibt die Auswahl leer — ohne Fehler.
+   *
+   * @param file Manifest-Dateiname der gemerkten Vorlage
+   */
+  restoreLast(file: string, log: Logger): void {
+    const card = document.querySelector<HTMLButtonElement>(
+      '#templateGallery .tpl-card[data-file="' + CSS.escape(file) + '"]',
+    );
+    if (!card) return;
+    // Klick simulieren — derselbe Pfad wie manuelle Auswahl (Laden, Listener)
+    (card as HTMLButtonElement).click();
+    log.info("Zuletzt genutzte Vorlage wiederhergestellt.");
+  }
+
   /** Baut die Karten in die Galerie ein. */
   private render(entries: TemplateManifestEntry[]): void {
     const wrap = $("templateGallery");

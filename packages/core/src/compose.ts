@@ -4,9 +4,12 @@
  * WICHTIG: Diese Formel ist bewusst identisch zu composeLabel() in
  * barcode.mjs — Änderungen immer in beiden Dateien synchron halten,
  * damit Browser- und PowerShell-Ergebnisse identisch sind.
+ *
+ * Der Barcode wird über etiket als SVG gerendert und asynchron in ein
+ * Canvas gerastert — daher ist composeLabel() async.
  */
 import type { AppConfig } from "@lager-etiket/types";
-import { renderBarcodeCanvas } from "./barcode.ts";
+import { renderBarcodeImage } from "./barcode.ts";
 
 /** Ergebnis einer Komposition: fertiges Canvas + Platzierungs-Info. */
 export interface ComposeResult {
@@ -41,15 +44,15 @@ export type ComposeWarnFn = (message: string) => void;
  * @param templateImg Geladene Vorlage (Image)
  * @param cfg Gesamtkonfiguration
  * @param warn Optionale Funktion für Warnungen (z. B. Zielbereich zu groß)
- * @returns Canvas + Platzierungsdetails
+ * @returns Promise mit Canvas + Platzierungsdetails
  */
-export function composeLabel(
+export async function composeLabel(
   text: string,
   templateImg: HTMLImageElement,
   cfg: AppConfig,
   warn?: ComposeWarnFn,
-): ComposeResult {
-  const label = renderBarcodeCanvas(text, cfg.barcode);
+): Promise<ComposeResult> {
+  const label = await renderBarcodeImage(text, cfg.barcode, cfg.output.renderDpi);
   const tplW = templateImg.naturalWidth;
   const tplH = templateImg.naturalHeight;
 
