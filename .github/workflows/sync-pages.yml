@@ -61,6 +61,8 @@ jobs:
         run: |
           cp -r apps/web/dist /tmp/app-dist
           cp -r apps/web/assets /tmp/app-assets
+          # public/ (Vorlagen-Galerie + Config-Bibliothek) für gh-pages sichern
+          cp -r apps/web/public /tmp/app-public
 
       - name: Dateien auf gh-pages synchronisieren
         run: |
@@ -77,12 +79,13 @@ jobs:
           mv apps/web/index.html index.html && rmdir apps/web 2>/dev/null || true
 
           # Gebaute Dateien aus dem Job übernehmen (vor dem Branch-Wechsel gesichert)
-          rm -rf assets dist
+          rm -rf assets dist public
           cp -r /tmp/app-assets assets
           cp -r /tmp/app-dist dist
+          cp -r /tmp/app-public public
 
           # Prüfen, ob sich die Dateien überhaupt verändert haben
-          git add -A index.html config.json assets dist
+          git add -A index.html config.json assets dist public
           if git diff --staged --quiet; then
             echo "Keine Änderungen zu synchronisieren."
           else

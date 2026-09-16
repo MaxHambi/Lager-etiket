@@ -1,0 +1,9 @@
+{
+  "configs": [
+    {
+      "file": "standard.json",
+      "label": "Standard (DEFAULT_CONFIG)",
+      "description": "JSON hier ablegen (apps/web/public/configs/) und in dieser Liste registrieren."
+    }
+  ]
+}

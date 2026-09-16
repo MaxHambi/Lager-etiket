@@ -5,33 +5,68 @@
 import { initSplash } from "@lager-etiket/ui/splash.ts";
 import { Logger } from "@lager-etiket/ui/logger.ts";
 import { TemplatePicker } from "@lager-etiket/ui/template-picker.ts";
-import { EntriesUI } from "@lager-etiket/ui/entries-ui.ts";
+import { TemplateGallery } from "@lager-etiket/ui/template-gallery.ts";
+import { BatchesUI } from "@lager-etiket/ui/batches-ui.ts";
 import { ConfigUI } from "@lager-etiket/ui/config-ui.ts";
+import { ConfigLibrary } from "@lager-etiket/ui/config-library.ts";
 import { PreviewUI } from "@lager-etiket/ui/preview.ts";
 import { GeneratorUI } from "@lager-etiket/ui/generator.ts";
+import { initLightbox } from "@lager-etiket/ui/lightbox.ts";
 import { applyConfig, toggleAreaFields } from "@lager-etiket/ui";
 import { DEFAULT_CONFIG } from "@lager-etiket/types";
 import { $ } from "@lager-etiket/ui/dom.ts";
 
 function bootstrap(): void {
   initSplash();
+  initLightbox();
 
   const log = new Logger();
 
   const templates = new TemplatePicker(log);
-  const entries = new EntriesUI(log);
-  const preview = new PreviewUI(log, templates);
-  const generator = new GeneratorUI(log, templates, entries);
+  const gallery = new TemplateGallery(log);
+  const batches = new BatchesUI(log);
+  const preview = new PreviewUI(log, templates, gallery, batches);
+  const configLibrary = new ConfigLibrary(log);
+  const generator = new GeneratorUI(log, templates, gallery, batches, configLibrary);
   new ConfigUI(log);
+
+  const updateAll = (): void => {
+    preview.updateEnabled();
+    generator.updateEnabled();
+  };
 
   // Abhängigkeiten zwischen den Modulen verdrahten:
   templates.onChange(() => {
-    preview.updateEnabled();
-    generator.updateEnabled();
+    // Eigene Datei gewählt → Galerie-Auswahl aufheben
+    gallery.clearSelection();
+    updateAll();
   });
-  entries.onChange(() => {
-    preview.updateEnabled();
-    generator.updateEnabled();
+  gallery.onChange(() => updateAll());
+  batches.onChange(() => updateAll());
+
+  // .txt-Import (Einzelliste) füllt das Einzelfeld, wenn genau ein Eintrag
+  // übrig bleibt — ansonsten Hinweis, den Mehrfach-Modus zu nutzen.
+  const entriesFile = $("entriesFile") as HTMLInputElement;
+  entriesFile.addEventListener("change", () => {
+    const file = entriesFile.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (): void => {
+      const lines = String(reader.result)
+        .split(/\r?\n/)
+        .map((l) => l.trim())
+        .filter((l) => l && !l.startsWith("#"));
+      if (lines.length === 1) {
+        ($("entrySingle") as HTMLInputElement).value = lines[0];
+        log.ok("Einzelliste geladen: " + lines[0]);
+      } else {
+        log.warn(
+          lines.length + " Einträge in der Datei — bitte den Mehrfach-Modus (Unterkategorien) nutzen.",
+        );
+      }
+      updateAll();
+    };
+    reader.readAsText(file, "utf-8");
   });
 
   $("btnSaveLog").addEventListener("click", () => log.save());
@@ -39,11 +74,23 @@ function bootstrap(): void {
   // Initialzustand setzen
   applyConfig(DEFAULT_CONFIG);
   toggleAreaFields();
-  entries.refreshSelect();
-  preview.updateEnabled();
-  generator.updateEnabled();
+  updateAll();
 
-  log.info("Werkzeug bereit. Vorlage laden und Lagerplätze eintragen, um zu starten.");
+  // Galerie + Config-Bibliothek asynchron laden (optional, offline-tolerant)
+  void gallery.load().then(() => updateAll());
+  void configLibrary.load().then(() => {
+    const configSelect = $("configSelect") as HTMLSelectElement;
+    configSelect.addEventListener("change", () => void configLibrary.applySelected());
+    // Batch-Dropdowns mit den Config-Optionen befüllen
+    const options: Array<{ file: string; label: string }> = [];
+    configSelect.querySelectorAll("option").forEach((opt) => {
+      if (opt.value) options.push({ file: opt.value, label: opt.textContent ?? opt.value });
+    });
+    batches.setConfigOptions(options);
+    updateAll();
+  });
+
+  log.info("Werkzeug bereit. Vorlage wählen (Galerie oder Datei) und Lagerplätze eingeben.");
   log.info("JsBarcode v3.12.3 (CODE128) via npm — läuft vollständig offline.");
 }
 

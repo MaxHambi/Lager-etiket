@@ -1,11 +1,15 @@
 /**
  * Vorschau: komponiert einen einzelnen Eintrag und zeigt ihn an.
+ * Klick auf das Vorschaubild öffnet die Großansicht (Lightbox).
  */
 import { $ } from "./dom.ts";
 import type { Logger } from "./logger.ts";
 import type { TemplatePicker } from "./template-picker.ts";
+import type { TemplateGallery } from "./template-gallery.ts";
+import type { BatchesUI } from "./batches-ui.ts";
 import { readConfig } from "./config.ts";
 import { composeLabel } from "@lager-etiket/core";
+import { openLightbox } from "./lightbox.ts";
 
 /**
  * Verdrahtet den "Vorschau erzeugen"-Button.
@@ -14,27 +18,45 @@ export class PreviewUI {
   constructor(
     private readonly log: Logger,
     private readonly templates: TemplatePicker,
+    private readonly gallery: TemplateGallery,
+    private readonly batches: BatchesUI,
   ) {
     $("btnPreview").addEventListener("click", () => this.show());
-    ($("previewEntry") as HTMLSelectElement).addEventListener("change", () => this.updateEnabled());
   }
 
-  /** Aktiviert/deaktiviert den Vorschau-Button je nach Vorlage + Einträgen. */
+  /**
+   * Aktiviert/deaktiviert den Vorschau-Button je nach Vorlage + Eintrag.
+   */
   updateEnabled(): void {
-    const sel = $("previewEntry") as HTMLSelectElement;
-    ($("btnPreview") as HTMLButtonElement).disabled =
-      !this.templates.current || sel.options.length === 0;
+    const hasTemplate = !!this.templates.current || !!this.gallery.current;
+    const batches = this.batches.isMulti ? this.batches.collectBatches(true) : null;
+    const hasEntry = this.batches.isMulti
+      ? !!batches && batches.length > 0
+      : this.batches.singleEntry().length > 0;
+    ($("btnPreview") as HTMLButtonElement).disabled = !hasTemplate || !hasEntry;
   }
 
   /** Erzeugt und zeigt die Vorschau für den gewählten Eintrag. */
   private show(): void {
-    const tpl = this.templates.current;
+    const tpl = this.templates.current ?? this.gallery.current;
     if (!tpl) {
-      this.log.err("Bitte zuerst eine Vorlage laden.");
+      this.log.err("Bitte zuerst eine Vorlage laden (Galerie oder Datei).");
       return;
     }
-    const entry = ($("previewEntry") as HTMLSelectElement).value;
-    if (!entry) return;
+    // Einzelfeld hat Vorrang; im Mehrfach-Modus der erste Eintrag der ersten Kategorie
+    let entry = this.batches.singleEntry();
+    if (this.batches.isMulti) {
+      const batches = this.batches.collectBatches(false);
+      if (!batches || !batches.length) {
+        this.log.err("Keine Unterkategorie mit gültigem Bereich gefunden.");
+        return;
+      }
+      entry = batches[0].entries[0];
+    }
+    if (!entry) {
+      this.log.err("Bitte einen Lagerplatz eingeben.");
+      return;
+    }
 
     try {
       const cfg = readConfig();
@@ -42,7 +64,7 @@ export class PreviewUI {
       const stage = $("previewStage");
       stage.innerHTML = "";
 
-      if (($("showArea") as HTMLInputElement).checked) {
+      if (($( "showArea") as HTMLInputElement).checked) {
         const ctx = result.canvas.getContext("2d")!;
         ctx.save();
         // Farbe aus dem aktiven Theme (CSS-Variable) übernehmen
@@ -56,7 +78,12 @@ export class PreviewUI {
         ctx.restore();
       }
 
+      result.canvas.style.cursor = "zoom-in";
+      result.canvas.addEventListener("click", () => {
+        openLightbox(result.canvas.toDataURL("image/png"), "Vorschau: " + entry);
+      });
       stage.appendChild(result.canvas);
+      stage.querySelector(".empty")?.remove();
       this.log.ok(
         'Vorschau erzeugt für "' + entry + '" — Barcode ' + result.finalWidth + "×" +
         result.finalHeight + " px @ (" + result.posLeft + "," + result.posTop + ")",

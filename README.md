@@ -25,6 +25,7 @@ Ergebnisse aus beiden Wegen identisch aussehen.
   - [Schnellstart (PowerShell/Node)](#schnellstart-powershellnode)
   - [Schnellstart (HTML-Tool)](#schnellstart-html-tool)
   - [Eintragsdatei-Format](#eintragsdatei-format)
+  - [HTML-Tool: Vorlagen-Galerie, Config-Bibliothek & Unterkategorien](#html-tool-vorlagen-galerie-config-bibliothek--unterkategorien)
   - [config.json — alle Einstellungen](#configjson--alle-einstellungen)
     - [`barcode` — Aussehen von Barcode + Text](#barcode--aussehen-von-barcode--text)
     - [`placement` — Position auf der Vorlage](#placement--position-auf-der-vorlage)
@@ -193,6 +194,64 @@ Regeln:
 - **Doppelte Einträge führen absichtlich zum Abbruch** (`barcode.mjs`,
   Funktion `readEntries`) — so werden nie versehentlich zwei Schilder mit
   demselben Barcode erzeugt. Fehlermeldung nennt Zeilennummer und Datei.
+
+---
+
+## HTML-Tool: Vorlagen-Galerie, Config-Bibliothek & Unterkategorien
+
+### Vorlagen-Galerie (`apps/web/public/templates/`)
+
+Eigene Vorlagen hinterlegen, die als klickbare Karten erscheinen:
+
+1. PNG nach `apps/web/public/templates/` kopieren.
+2. In `apps/web/public/templates/templates.json` eintragen:
+   ```json
+   {
+     "templates": [
+       { "file": "MV-AB.png", "label": "MV Abteilung A–B" }
+     ]
+   }
+   ```
+3. Karte in der App anklicken — die Vorlage ist sofort aktiv.
+
+Eigene Dateien per Dropzone laden bleibt weiterhin möglich; sie hebt die
+Galerie-Auswahl auf.
+
+### Config-Bibliothek (`apps/web/public/configs/`)
+
+Hinterlegte Konfigurationen erscheinen im Dropdown **„Gespeicherte
+Konfiguration“** (Karte 3) und in den Unterkategorie-Dropdowns:
+
+1. `config.json` nach `apps/web/public/configs/` kopieren (z. B. `gross.json`).
+2. In `apps/web/public/configs/configs.json` eintragen:
+   ```json
+   {
+     "configs": [
+       { "file": "gross.json", "label": "Große Schilder" }
+     ]
+   }
+   ```
+3. Im Dropdown wählen — das Formular übernimmt alle Werte.
+
+Die Konfigurationswahl im **Unterkategorie-Dropdown** gilt pro Bereich und
+wird erst beim Klick auf „Alle Schilder erzeugen“ angewendet (falls die Datei
+fehlt, greift die globale Konfiguration mit Warnung im Protokoll).
+
+### Lagerplätze: Einzelfeld & Unterkategorien
+
+- **Einzeln** (Standard): Ein Feld, ein Lagerplatz — ideal für Einzeltests.
+- **Mehrere Bereiche** (Umschalter): Unterkategorien mit **Start** und **Ende**.
+  Es wird aufsteigend inklusive expandiert; das Ziffern-Suffix muss gleich
+  lang sein (`01A01 → 01A12`, nicht `01A1 → 01A12`), führende Nullen bleiben
+  erhalten. Max. 10 000 Einträge pro Bereich, max. 10 Unterkategorien.
+- **„+ Unterkategorie“**: weitere Bereiche mit eigenem Config-Dropdown.
+- Duplikate über Unterkategorien hinweg brechen die Erzeugung ab.
+
+### Großansicht & Download
+
+- Klick auf die Vorschau oder ein Ergebnis-Thumbnail öffnet die **Lightbox**
+  (Schließen per Klick, × oder Esc).
+- Der Button **„Alle als ZIP herunterladen“** ist bewusst groß gestaltet.
 
 ---
 
@@ -376,9 +435,9 @@ Struktur:
 | Paket | Inhalt |
 |---|---|
 | `@lager-etiket/types` | Konfigurations-Typen (`AppConfig` u. a., kompatibel zu `config.json`) |
-| `@lager-etiket/core` | DOM-freie Logik: Einträge, Barcode, Komposition, DPI, ZIP, CRC32, Download |
-| `@lager-etiket/ui` | DOM-Module: `Logger`, `TemplatePicker`, `EntriesUI`, `ConfigUI`, `PreviewUI`, `GeneratorUI`, Splash, Auth-UI |
-| `@lager-etiket/web` | App-Einstieg (`main.ts`, `auth.ts`), `index.html`, Stylesheets, esbuild-Build |
+| `@lager-etiket/core` | DOM-freie Logik: Einträge, Bereiche (`expandRange`), Barcode, Komposition, DPI, ZIP, CRC32, Download |
+| `@lager-etiket/ui` | DOM-Module: `Logger`, `TemplatePicker`, `TemplateGallery`, `BatchesUI`, `ConfigUI`, `ConfigLibrary`, `PreviewUI`, `GeneratorUI`, Splash, Auth-UI, Lightbox |
+| `@lager-etiket/web` | App-Einstieg (`main.ts`, `auth.ts`), `index.html`, Stylesheets, esbuild-Build, `public/` (Galerie + Config-Bibliothek) |
 | `@lager-etiket/tools` | Node-Skripte: `barcode.mjs`, `skalieren.mjs`, `konvertieren.mjs`, `pruefen.mjs`, `logger.mjs` |
 
 Wichtig bei Anpassungen:

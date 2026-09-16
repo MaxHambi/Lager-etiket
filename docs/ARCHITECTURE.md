@@ -68,6 +68,7 @@ deshalb einzeln unit-testbar (`packages/core/test/`).
 | Modul | Exporte | Zweck |
 |---|---|---|
 | `entries.ts` | `parseEntries`, `sanitizeFileName` | Eintragsparsing (Kommentare, Trim, Duplikat-Abbruch), Dateinamen-Bereinigung |
+| `ranges.ts` | `expandRange`, `findDuplicates`, `MAX_RANGE_SIZE` | Start/Ende-Bereiche expandieren (Präfix + Ziffern-Suffix), Duplikate über Bereiche finden |
 | `compose.ts` | `composeLabel`, `ComposeResult` | **Herzstück**: Skalierung + Zentrierung des Barcodes im Zielbereich; Formel bewusst identisch zu `barcode.mjs` (`composeLabel`, Zeile 105) |
 | `barcode.ts` | `renderBarcodeCanvas`, `canvasToPngBlob` | JsBarcode-Wrapper (CODE128) |
 | `png.ts` | `injectPhysDpi` | pHYs-Chunk (DPI) in PNG injizieren |
@@ -87,7 +88,11 @@ deshalb einzeln unit-testbar (`packages/core/test/`).
 | `entries-ui.ts` | `EntriesUI` | Textarea/.txt-Import, Duplikat-Anzeige, Vorschau-Select |
 | `config-ui.ts` | `ConfigUI` | config.json Import/Export/Reset |
 | `preview.ts` | `PreviewUI` | Einzelvorschau + Zielbereich-Overlay (Theme-Farbe `--preview-overlay`) |
-| `generator.ts` | `GeneratorUI` | Stapel-Lauf, Progressbar, Thumbnails, ZIP-Download |
+| `generator.ts` | `GeneratorUI` | Stapel-Lauf (Batches mit je eigener Config), Progressbar, Thumbnails, ZIP-Download |
+| `template-gallery.ts` | `TemplateGallery` | Vorlagen-Galerie aus `public/templates/templates.json`, klickbare Karten |
+| `config-library.ts` | `ConfigLibrary` | Dropdown aus `public/configs/configs.json`, lädt gewählte Config ins Formular |
+| `batches-ui.ts` | `BatchesUI` | Einzelfeld ↔ Unterkategorien-Umschalter, Start/Ende-Bereiche, Batch-Config-Dropdowns |
+| `lightbox.ts` | `initLightbox`, `openLightbox` | Großansicht für Vorschau/Thumbnails (Klick, ×, Esc) |
 | `auth-ui.ts` | `showLogin`, `hideLogin`, `reportLoginError` | Login-Overlay (nur geschützter Build) |
 
 ### Einstiegspunkte
@@ -202,8 +207,8 @@ sequenceDiagram
 
 ```mermaid
 flowchart TD
-    TA["entriesText-Textarea<br/>(oder .txt-Import)"]
-    E["parseEntries()<br/>Trim · Kommentare · Duplikat-Abbruch"]
+    TA["Lagerplätze<br/>Einzelfeld oder Unterkategorien<br/>(Start/Ende → expandRange())"]
+    E["Duplikat-Prüfung<br/>über alle Unterkategorien"]
     IMG["TemplatePicker<br/>PNG-Vorlage (Image)"]
     FORM["Formular → readConfig() → AppConfig"]
     CFG["config.json<br/>(Import/Export, kompatibel zu barcode.ps1)"]

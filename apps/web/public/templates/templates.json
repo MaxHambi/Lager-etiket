@@ -1,0 +1,9 @@
+{
+  "templates": [
+    {
+      "file": "beispiel.png",
+      "label": "Beispiel-Vorlage",
+      "description": "PNG hier ablegen (apps/web/public/templates/) und in dieser Liste registrieren."
+    }
+  ]
+}

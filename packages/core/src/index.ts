@@ -3,6 +3,7 @@
  * Öffentliche API des Pakets.
  */
 export { parseEntries, sanitizeFileName } from "./entries.ts";
+export { expandRange, findDuplicates, MAX_RANGE_SIZE } from "./ranges.ts";
 export { crc32 } from "./crc32.ts";
 export { injectPhysDpi } from "./png.ts";
 export { makeZip } from "./zip.ts";

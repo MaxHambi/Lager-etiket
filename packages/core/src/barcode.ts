@@ -24,7 +24,10 @@ export function renderBarcodeCanvas(text: string, cfg: BarcodeConfig): HTMLCanva
     margin: cfg.margin,
     fontSize: cfg.fontSize,
     font: cfg.fontFamily,
-    textMargin: cfg.textMargin,
+    // Felder, die in config.json fehlen können (barcode.ps1 nutzt Defaults),
+    // dürfen NICHT als undefined an JsBarcode durchgereicht werden — sonst
+    // erzeugt die Bibliothek ein Canvas mit Höhe 0 (drawImage schlägt fehl).
+    textMargin: cfg.textMargin ?? 6,
     textAlign: "center",
     textPosition: "bottom",
     lineColor: cfg.color,
