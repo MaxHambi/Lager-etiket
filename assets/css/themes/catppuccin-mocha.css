@@ -1,17 +1,7 @@
-/**
- * Theme "Catppuccin" — das ursprüngliche Design der All-in-one-index.html.
- *
- * Ein Theme definiert AUSSCHLIESSLICH CSS-Variablen unter
- * :root[data-theme="..."]. Keine Komponenten-Styles hier!
- *
- * Neues Theme anlegen:
- *   1. Diese Datei kopieren (z. B. themes/light.css).
- *   2. data-theme-Wert und Variablenwerte anpassen.
- *   3. <link> in index.html ergänzen.
- * Der Farbton der Overlay-Stifts für die Vorschau wird über
- * --preview-overlay an das Theme angepasst.
- */
-:root[data-theme="catppuccin"] {
+:root[data-theme="catppuccin-mocha"] {
+  /* Catppuccin Mocha 🌸 — offizielle Palette v1.8.0 */
+  /* https://github.com/catppuccin/palette */
+
   /* Flächen */
   --base: #1e1e2e;
   --mantle: #181825;
@@ -44,7 +34,7 @@
   --font-mono: "SF Mono", "Cascadia Code", Consolas, "Courier New", monospace;
 
   /* Spezial-Tokens */
-  --checker-a: #2a2a3a;
-  --checker-b: #232333;
+  --checker-a: #313244;
+  --checker-b: #1e1e2e;
   --preview-overlay: rgba(203, 166, 247, 0.9);
 }
