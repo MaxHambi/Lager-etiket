@@ -4,12 +4,12 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "tsc --noEmit && node build.mjs",
+    "build": "node scripts/gen-vault-stub.mjs && tsc --noEmit && node build.mjs",
     "build:watch": "node build.mjs --watch",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "node scripts/gen-vault-stub.mjs && tsc --noEmit",
     "lint": "eslint src/",
-    "docs": "typedoc",
-    "docs:check": "typedoc --treatWarningsAsErrors",
+    "docs": "node scripts/gen-vault-stub.mjs && typedoc",
+    "docs:check": "node scripts/gen-vault-stub.mjs && typedoc --treatWarningsAsErrors",
     "test": "node --test \"test/unit/*.test.mjs\""
   },
   "dependencies": {
