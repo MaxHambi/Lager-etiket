@@ -51,9 +51,13 @@ test.describe("Web-App Smoke (packages/web Dev-Build)", () => {
       await expect(page.locator(".tpl-card.selected")).toHaveCount(1)
       await page.fill("#entrySingle", "01A01")
       await page.click("#btnPreview")
-      const log = await logText(page)
-      expect(log, "Vorschau muss Erfolgsmeldung zeigen").toContain("Vorschau")
-      expect(log).not.toContain("abgelehnt")
+      // composeLabel ist async — auf die Erfolgsmeldung warten statt sofort zu lesen
+      const log = page.locator(LOG_SEL)
+      await expect(log, "Vorschau muss Erfolgsmeldung zeigen").toContainText("Vorschau erzeugt", {
+        timeout: 10_000,
+      })
+      const logStr = await logText(page)
+      expect(logStr).not.toContain("abgelehnt")
       await expect(page.locator("#previewStage img, #previewStage canvas").first()).toBeVisible({
         timeout: 10_000,
       })
@@ -63,8 +67,11 @@ test.describe("Web-App Smoke (packages/web Dev-Build)", () => {
     await test.step("Gate: '01A01!UNGÜLTIG' wird abgelehnt, nicht gerendert", async () => {
       await page.fill("#entrySingle", "01A01!UNGÜLTIG")
       await page.click("#btnPreview")
-      const log = await logText(page)
-      expect(log, "Gate muss 'Vorschau abgelehnt' melden").toContain("Vorschau abgelehnt")
+      const log = page.locator(LOG_SEL)
+      await expect(log, "Gate muss 'Vorschau abgelehnt' melden").toContainText(
+        "Vorschau abgelehnt",
+        { timeout: 10_000 },
+      )
     })
 
     // ---------- 4. Mehrere-Bereiche-Modus ----------
