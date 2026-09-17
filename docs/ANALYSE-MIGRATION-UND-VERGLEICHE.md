@@ -11,6 +11,7 @@ Arbeitsreihe. Es dient als Entscheidungsgrundlage und Nachschlagewerk.
 
 > **Entscheidungen:** Die architektonischen Entscheidungen dieser Arbeitsreihe
 > sind als ADRs festgehalten:
+>
 > - [ADR-0001](decisions/ADR-0001-etiket-ersetzt-jsbarcode.md) — etiket ersetzt JsBarcode
 > - [ADR-0002](decisions/ADR-0002-renderdpi-und-rasterungsabweichung.md) — renderDpi + akzeptierte Rasterungsabweichung
 > - [ADR-0003](decisions/ADR-0003-eingabegate-validateEntry.md) — Eingabegate mit byEncoding-Muster
@@ -21,11 +22,11 @@ Arbeitsreihe. Es dient als Entscheidungsgrundlage und Nachschlagewerk.
 
 ### 1.1 Ausgangslage
 
-| | Vorher | Nachher |
-|---|---|---|
-| Browser-Renderer | JsBarcode 3.12.3 (Canvas-DOM) | **etiket 0.12.0** (SVG → Canvas) |
-| CLI-Renderer | etiket 0.11.0 + sharp | **etiket 0.12.0** + sharp |
-| Renderer-Bibliotheken | **2 verschiedene** (Browser ≠ CLI) | **1 gemeinsame** (etiket) |
+|                       | Vorher                             | Nachher                          |
+| --------------------- | ---------------------------------- | -------------------------------- |
+| Browser-Renderer      | JsBarcode 3.12.3 (Canvas-DOM)      | **etiket 0.12.0** (SVG → Canvas) |
+| CLI-Renderer          | etiket 0.11.0 + sharp              | **etiket 0.12.0** + sharp        |
+| Renderer-Bibliotheken | **2 verschiedene** (Browser ≠ CLI) | **1 gemeinsame** (etiket)        |
 
 Kernproblem der Vorlage: Browser und CLI nutzten unterschiedliche
 Barcode-Bibliotheken — das machtebytegleiche Schilder zwischen beiden Pipelines
@@ -33,18 +34,18 @@ theoretisch unmöglich.
 
 ### 1.2 Umgestellte Dateien
 
-| Datei | Änderung |
-|---|---|
-| `packages/core/src/barcode.ts` | Neu geschrieben: `renderBarcodeSvg()`, `renderBarcodeImage()`, gemeinsames Options-Mapping `toBarcodeOptions()` |
-| `packages/core/src/compose.ts` | `composeLabel()` → `async` (SVG-Dekodierung), Platzierungsformel unverändert |
-| `packages/core/src/index.ts` | Exporte aktualisiert (`renderBarcodeCanvas` → `renderBarcodeSvg`/`renderBarcodeImage`) |
-| `packages/ui/src/preview.ts` | `await composeLabel()` |
-| `packages/ui/src/generator.ts` | `await composeLabel()` (war schon async) |
-| `packages/core/package.json` | `etiket ^0.12.0` als echte Dependency |
-| `apps/web/package.json` | `jsbarcode`/`@types/jsbarcode` entfernt |
-| `package.json` (Root) | `jsbarcode`/`@types/jsbarcode` entfernt |
-| `docs/ARCHITECTURE.md`, `README.md` | Referenzen aktualisiert |
-| `apps/web/index.html`, `apps/web/src/main.ts` | Footer/Startup-Log auf etiket umgestellt |
+| Datei                                         | Änderung                                                                                                        |
+| --------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| `packages/core/src/barcode.ts`                | Neu geschrieben: `renderBarcodeSvg()`, `renderBarcodeImage()`, gemeinsames Options-Mapping `toBarcodeOptions()` |
+| `packages/core/src/compose.ts`                | `composeLabel()` → `async` (SVG-Dekodierung), Platzierungsformel unverändert                                    |
+| `packages/core/src/index.ts`                  | Exporte aktualisiert (`renderBarcodeCanvas` → `renderBarcodeSvg`/`renderBarcodeImage`)                          |
+| `packages/ui/src/preview.ts`                  | `await composeLabel()`                                                                                          |
+| `packages/ui/src/generator.ts`                | `await composeLabel()` (war schon async)                                                                        |
+| `packages/core/package.json`                  | `etiket ^0.12.0` als echte Dependency                                                                           |
+| `apps/web/package.json`                       | `jsbarcode`/`@types/jsbarcode` entfernt                                                                         |
+| `package.json` (Root)                         | `jsbarcode`/`@types/jsbarcode` entfernt                                                                         |
+| `docs/ARCHITECTURE.md`, `README.md`           | Referenzen aktualisiert                                                                                         |
+| `apps/web/index.html`, `apps/web/src/main.ts` | Footer/Startup-Log auf etiket umgestellt                                                                        |
 
 ### 1.3 Wichtige etiket-API-Entscheidungen (laut AGENTS.md + docs/)
 
@@ -66,13 +67,13 @@ theoretisch unmöglich.
 
 ### 1.4 Validierung der Migration
 
-| Check | Ergebnis |
-|---|---|
-| `npm install` | ✅ etiket 0.12.0 deduped, jsbarcode entfernt |
-| `npm run typecheck` | ✅ 5/5 Tasks |
-| `npm run lint` | ✅ 5/5 |
-| `npm test` | ✅ 32/32 (vor dem Gate) |
-| `npm run build` | ✅ `dist/app.js` erzeugt |
+| Check               | Ergebnis                                     |
+| ------------------- | -------------------------------------------- |
+| `npm install`       | ✅ etiket 0.12.0 deduped, jsbarcode entfernt |
+| `npm run typecheck` | ✅ 5/5 Tasks                                 |
+| `npm run lint`      | ✅ 5/5                                       |
+| `npm test`          | ✅ 32/32 (vor dem Gate)                      |
+| `npm run build`     | ✅ `dist/app.js` erzeugt                     |
 
 ---
 
@@ -89,7 +90,7 @@ case "code128":
 ```
 
 **Auffällig:** `validateBarcode(text, "code128")` nimmt keinen Options-Parameter
-und prüft bei Code 128 *nur auf Leere*. Die echte Zeichensatz-Prüfung macht der
+und prüft bei Code 128 _nur auf Leere_. Die echte Zeichensatz-Prüfung macht der
 Encoder (`encodeCode128` → `encodeCharsetA/B/C` bzw. `autoEncode`).
 
 etikets eigene Validatoren lösen das intern über das Muster `byEncoding`
@@ -99,11 +100,11 @@ Rendering abweichen.
 
 ### 2.2 Eigene Prüfungen (Node, etiket 0.12.0)
 
-| Eingabe | `encodeBars(text, { type: "code128" })` | Beobachtung |
-|---|---|---|
-| `"01A01"` | ✅ kodiert | normal |
-| `"01\u0001A"` (Steuerzeichen 0x01) | ✅ kodiert (49 Balken) | Code 128 kann Steuerzeichen *technisch* via Code-Set-A/SHIFT kodieren |
-| `"01\x7FA"` (DEL 0x7F) | ✅ kodiert (37 Balken) | dito |
+| Eingabe                            | `encodeBars(text, { type: "code128" })` | Beobachtung                                                           |
+| ---------------------------------- | --------------------------------------- | --------------------------------------------------------------------- |
+| `"01A01"`                          | ✅ kodiert                              | normal                                                                |
+| `"01\u0001A"` (Steuerzeichen 0x01) | ✅ kodiert (49 Balken)                  | Code 128 kann Steuerzeichen _technisch_ via Code-Set-A/SHIFT kodieren |
+| `"01\x7FA"` (DEL 0x7F)             | ✅ kodiert (37 Balken)                  | dito                                                                  |
 
 **Schlussfolgerung:** Ein reines `encodeBars()`-Gate würde Steuerzeichen
 durchlassen. Auf einem gedruckten Schild sind Steuerzeichen aber nie
@@ -121,13 +122,13 @@ Gate **zwei Schichten**.
 
 **Gate-Stellen:**
 
-| Ort | Verhalten |
-|---|---|
-| `packages/ui/src/batches-ui.ts` (Einzelfeld) | Live-Validierung bei Eingabe: roter Rand + Fehlermeldung |
-| `packages/ui/src/batches-ui.ts` (`collectBatches`) | Alle expandierten Codes prüfen, Abbruch bei Fund |
-| `packages/ui/src/generator.ts` | Pro Eintrag: ungültige überspringen, im Log vermerken |
-| `packages/ui/src/preview.ts` | Vorschau mit Validator-Meldung ablehnen |
-| `packages/tools/barcode.mjs` (CLI) | Alle Einträge vorab prüfen; Abbruch mit Liste, Exit 1 |
+| Ort                                                | Verhalten                                                |
+| -------------------------------------------------- | -------------------------------------------------------- |
+| `packages/ui/src/batches-ui.ts` (Einzelfeld)       | Live-Validierung bei Eingabe: roter Rand + Fehlermeldung |
+| `packages/ui/src/batches-ui.ts` (`collectBatches`) | Alle expandierten Codes prüfen, Abbruch bei Fund         |
+| `packages/ui/src/generator.ts`                     | Pro Eintrag: ungültige überspringen, im Log vermerken    |
+| `packages/ui/src/preview.ts`                       | Vorschau mit Validator-Meldung ablehnen                  |
+| `packages/tools/barcode.mjs` (CLI)                 | Alle Einträge vorab prüfen; Abbruch mit Liste, Exit 1    |
 
 ### 2.4 Tests (8 neue, alle grün)
 
@@ -153,24 +154,24 @@ Steuerzeichen, DEL, Sammelfunktion, Limit, Leerfall.
 
 ### 3.2 Messergebnisse
 
-| Prüfung | Ergebnis |
-|---|---|
-| Abmessungen | ✅ identisch 2244×709 |
-| Vorlagen-Bereich (x < 748) | ✅ **0 % Differenz** (0/530 332 px) |
-| Rechte Zone (x ≥ 1496) | ✅ **0 % Differenz** (0/530 332 px) |
-| Barcode-Zone (748 ≤ x < 1496) | ✗ **27,05 % Differenz** (143 458/530 332 px), max. Kanal-Delta 255 |
-| Erste dunkle Pixelzeile (vertikale Position) | ✅ identisch: Zeile 41 |
-| Gesamt | ✗ 162 799 / 1 590 996 px = **10,23 %** |
+| Prüfung                                      | Ergebnis                                                           |
+| -------------------------------------------- | ------------------------------------------------------------------ |
+| Abmessungen                                  | ✅ identisch 2244×709                                              |
+| Vorlagen-Bereich (x < 748)                   | ✅ **0 % Differenz** (0/530 332 px)                                |
+| Rechte Zone (x ≥ 1496)                       | ✅ **0 % Differenz** (0/530 332 px)                                |
+| Barcode-Zone (748 ≤ x < 1496)                | ✗ **27,05 % Differenz** (143 458/530 332 px), max. Kanal-Delta 255 |
+| Erste dunkle Pixelzeile (vertikale Position) | ✅ identisch: Zeile 41                                             |
+| Gesamt                                       | ✗ 162 799 / 1 590 996 px = **10,23 %**                             |
 
 ### 3.3 Eingrenzung der Differenzen
 
 Balken- und Text-Bounding-Boxen (nur Pixel mit Alpha > 128):
 
-| | CLI | Browser | Ratio |
-|---|---|---|---|
+|                  | CLI          | Browser      | Ratio     |
+| ---------------- | ------------ | ------------ | --------- |
 | Balken (y < 300) | 573 px breit | 360 px breit | **1,592** |
-| Text (y ≥ 300) | 632 px breit | 396 px breit | 1,596 |
-| Balkenhöhe | 214 px | 117 px | 1,829 |
+| Text (y ≥ 300)   | 632 px breit | 396 px breit | 1,596     |
+| Balkenhöhe       | 214 px       | 117 px       | 1,829     |
 
 Wichtig: Die **Balken** sind font-unabhängig — ihre Breitendifferenz kann also
 nicht am Klartext-Font liegen.
@@ -185,13 +186,13 @@ SVG: 400 × 384 px  (moduleSize=4, height=180, margin=20, fontSize=150)
 
 **Pipeline-Verhalten:**
 
-| Schritt | CLI | Browser |
-|---|---|---|
-| SVG erzeugt | 400×384 | 400×384 |
-| Rasterung | `sharp(Buffer, { density: 600 })` → **2500×2400** (600/96 = 6,25×) | Browser dekodiert SVG **nativ** → **400×384** |
+| Schritt                   | CLI                                                                    | Browser                                                              |
+| ------------------------- | ---------------------------------------------------------------------- | -------------------------------------------------------------------- |
+| SVG erzeugt               | 400×384                                                                | 400×384                                                              |
+| Rasterung                 | `sharp(Buffer, { density: 600 })` → **2500×2400** (600/96 = 6,25×)     | Browser dekodiert SVG **nativ** → **400×384**                        |
 | `composeLabel`-Skalierung | `min(673,2/2500; 602,1/2400; 1)` = **0,2509** (Höhe bindend) → 627×602 | `min(1,683; 1,568; 1)` = **1,0** (bereits kleiner als Max) → 400×384 |
-| Balken im Endbild | 573 px | 360 px |
-| Ratio Balken | — | 573/360 = **1,592** ✓ konsistent |
+| Balken im Endbild         | 573 px                                                                 | 360 px                                                               |
+| Ratio Balken              | —                                                                      | 573/360 = **1,592** ✓ konsistent                                     |
 
 **Ursache (bestätigt):** Der CLI rastert das SVG mit 600 dpi (Faktor 6,25) und
 verkleinert anschließend auf 90 % des Zielbereichs. Der Browser lädt dasselbe
@@ -222,23 +223,23 @@ Ratio 1,016), Vorlagen-/Randzonen weiterhin 0 %.
 
 ### 3.6 Lösungsoptionen (bewertet im ADR-0002)
 
-| Option | Beschreibung | Bewertung |
-|---|---|---|
-| **Umgesetzt: renderDpi** | `output.renderDpi` in config.json; CLI nutzt sharp density, Browser skaliert SVG-Dimensionen vor der Dekodierung | Explizit konfigurierbar, Browser bleibt standardkonform |
-| Browser auf 72-dpi-Basis | `renderDpi/72` im Browser | **Rejected** (User-Entscheidung): würde ein librsvg-Quirk nachbilden |
-| CLI auf 96-dpi-Basis | density-Korrektur × 96/72 in der CLI | Sauberste Endlösung für Pixelidentität, ändert aber alle bisherigen CLI-Ausgaben — zurückgestellt |
-| Nachskalierung im composeLabel | Differenz versteckt ausgleichen | Rejected: Intransparenz |
+| Option                         | Beschreibung                                                                                                     | Bewertung                                                                                         |
+| ------------------------------ | ---------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| **Umgesetzt: renderDpi**       | `output.renderDpi` in config.json; CLI nutzt sharp density, Browser skaliert SVG-Dimensionen vor der Dekodierung | Explizit konfigurierbar, Browser bleibt standardkonform                                           |
+| Browser auf 72-dpi-Basis       | `renderDpi/72` im Browser                                                                                        | **Rejected** (User-Entscheidung): würde ein librsvg-Quirk nachbilden                              |
+| CLI auf 96-dpi-Basis           | density-Korrektur × 96/72 in der CLI                                                                             | Sauberste Endlösung für Pixelidentität, ändert aber alle bisherigen CLI-Ausgaben — zurückgestellt |
+| Nachskalierung im composeLabel | Differenz versteckt ausgleichen                                                                                  | Rejected: Intransparenz                                                                           |
 
 Bei Option 2 bleibt das bisherige CLI-Verhalten (600 dpi) unverändert, und der
 Browser zieht gleich.
 
 ### 3.7 Vergleichs-Tooling (wiederverwendbar)
 
-| Datei | Zweck |
-|---|---|
-| `packages/tools/compare.ts` | Browser-Pipeline: lädt CLI-PNG, rendert Browser-Schild, vergleicht pixelweise, erzeugt Differenz-PNG |
+| Datei                       | Zweck                                                                                                                                                              |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `packages/tools/compare.ts` | Browser-Pipeline: lädt CLI-PNG, rendert Browser-Schild, vergleicht pixelweise, erzeugt Differenz-PNG                                                               |
 | `scripts/build-compare.mjs` | Baut `compare.html` als **self-contained Inline-Seite** (Bundle + beide PNGs als Data-URIs), da der Freebuff-Preview-Server nur die einzelne HTML-Datei ausliefert |
-| `apps/web/public/compare/` | Gebaute/ignorierte Artefakte: `compare.html`, `cli-01A01.png`, `template.png` (Nutzung: siehe `apps/web/public/compare/README.md`) |
+| `apps/web/public/compare/`  | Gebaute/ignorierte Artefakte: `compare.html`, `cli-01A01.png`, `template.png` (Nutzung: siehe `apps/web/public/compare/README.md`)                                 |
 
 Wiederverwendung: CLI-Schild ersetzen (PNG austauschen + `build-compare.mjs`
 neu ausführen), Preview-Seite laden → aktueller Vergleich.
@@ -262,17 +263,17 @@ neu ausführen), Preview-Seite laden → aktueller Vergleich.
 
 ## Anhang A: Relevante etiket-Quellstellen
 
-| Stelle | Befund |
-|---|---|
-| `C:\Lager\etiket\src\validators\barcode.ts` Z. 59–61 | Code-128-Validator prüft nur Leere |
-| `C:\Lager\etiket\src\validators\barcode.ts` Z. 30–40 | `byEncoding`-Muster (Encoder ausführen, Exception werten) |
-| `C:\Lager\etiket\src\encoders\code128.ts` Z. 390–408 | `encodeCharsetB` —ASCII 32–127, wirft `InvalidInputError` |
-| `C:\Lager\etiket\src\encoders\code128.ts` Z. 261 | `autoEncode`: `charCode > 255` → `InvalidInputError` |
-| `C:\Lager\etiket\src\encoders\code128.ts` Z. 307 | SHIFT nur für `!upper && !extended` |
-| `C:\Lager\etiket\docs\getting-started\migration.md` | `moduleSize` statt `barWidth`/`scale` |
-| `C:\Lager\etiket\docs\rendering\png.md` | `barcodePNG()` rendert keinen Text |
-| `C:\Lager\etiket\docs\getting-started\error-handling.md` | `EtiketError`-Hierarchie |
-| `C:\Lager\etiket\AGENTS.md` | Sub-Path-Imports, pure ESM, TypeScript strict |
+| Stelle                                                   | Befund                                                    |
+| -------------------------------------------------------- | --------------------------------------------------------- |
+| `C:\Lager\etiket\src\validators\barcode.ts` Z. 59–61     | Code-128-Validator prüft nur Leere                        |
+| `C:\Lager\etiket\src\validators\barcode.ts` Z. 30–40     | `byEncoding`-Muster (Encoder ausführen, Exception werten) |
+| `C:\Lager\etiket\src\encoders\code128.ts` Z. 390–408     | `encodeCharsetB` —ASCII 32–127, wirft `InvalidInputError` |
+| `C:\Lager\etiket\src\encoders\code128.ts` Z. 261         | `autoEncode`: `charCode > 255` → `InvalidInputError`      |
+| `C:\Lager\etiket\src\encoders\code128.ts` Z. 307         | SHIFT nur für `!upper && !extended`                       |
+| `C:\Lager\etiket\docs\getting-started\migration.md`      | `moduleSize` statt `barWidth`/`scale`                     |
+| `C:\Lager\etiket\docs\rendering\png.md`                  | `barcodePNG()` rendert keinen Text                        |
+| `C:\Lager\etiket\docs\getting-started\error-handling.md` | `EtiketError`-Hierarchie                                  |
+| `C:\Lager\etiket\AGENTS.md`                              | Sub-Path-Imports, pure ESM, TypeScript strict             |
 
 ## Anhang B: Offene Punkte
 

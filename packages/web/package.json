@@ -1,0 +1,21 @@
+{
+  "name": "@lager-etiket/web",
+  "version": "2.0.0-alpha.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node ../../scripts/gen-vault-stub.mjs && node build.mjs",
+    "build:watch": "node build.mjs --watch",
+    "typecheck": "node ../../scripts/gen-vault-stub.mjs && tsc --noEmit",
+    "lint": "oxlint . && oxfmt --check .",
+    "test": "node --test test/*.test.mjs",
+    "dev": "node build.mjs --watch"
+  },
+  "dependencies": {
+    "@lager-etiket/lib": "workspace:*"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.2",
+    "typescript": "~5.9.2"
+  }
+}

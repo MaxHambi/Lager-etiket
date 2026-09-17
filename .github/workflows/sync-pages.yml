@@ -6,19 +6,19 @@ on:
     branches:
       - master # ACHTUNG: Falls dein Hauptbranch anders heißt, hier anpassen!
     paths:
-      - 'apps/web/index.html'
-      - 'apps/web/src/**'
-      - 'apps/web/assets/**'
-      - 'apps/web/build.mjs'
-      - 'packages/**'
-      - 'scripts/**'
-      - 'config.json'
-      - 'packages/tools/config.json'
-      - 'package.json'
-      - 'package-lock.json'
-      - 'turbo.json'
-      - 'tsconfig.base.json'
-      - '.github/workflows/sync-pages.yml'
+      - "apps/web/index.html"
+      - "apps/web/src/**"
+      - "apps/web/assets/**"
+      - "apps/web/build.mjs"
+      - "packages/**"
+      - "scripts/**"
+      - "config.json"
+      - "packages/tools/config.json"
+      - "package.json"
+      - "package-lock.json"
+      - "turbo.json"
+      - "tsconfig.base.json"
+      - ".github/workflows/sync-pages.yml"
 
 # Erlaubnis geben, damit der Bot in den Branch schreiben darf
 permissions:
@@ -39,8 +39,8 @@ jobs:
       - name: Node.js einrichten
         uses: actions/setup-node@v5
         with:
-          node-version: '24'
-          cache: 'npm'
+          node-version: "24"
+          cache: "npm"
 
       - name: Abhängigkeiten installieren (alle Workspaces)
         run: npm ci --no-audit --no-fund

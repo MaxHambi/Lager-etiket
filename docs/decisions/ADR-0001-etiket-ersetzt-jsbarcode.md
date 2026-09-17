@@ -50,6 +50,7 @@ JsBarcode wird vollständig entfernt. Beide Pipelines (Browser und CLI) nutzen
 ## Alternatives Considered
 
 ### JsBarcode beibehalten (Browser) + etiket (CLI)
+
 - Pros: Keine Migration nötig.
 - Cons: Zwei Encoder bleiben in Produktion; Identitätsversprechen unmöglich;
   JsBarcode ist Canvas-gebunden (schwer testbar), eingefroren (letzte Release
@@ -57,6 +58,7 @@ JsBarcode wird vollständig entfernt. Beide Pipelines (Browser und CLI) nutzen
 - Rejected: Verfehlt das Kernziel.
 
 ### etiket-PNG-Output (`barcodePNG`) im Browser
+
 - Pros: Kein SVG-Dekodierungsschritt.
 - Cons: `barcodePNG()` rendert **keinen Klartext** (laut etiket-Doku
   `docs/rendering/png.md`) — der Klartext unter dem Barcode ist aber

@@ -49,7 +49,7 @@ Ausgabestelle die Texte parsen müsste (fragil, nicht lokalisierbar).
 
 4. **Typisierte Durchreichung statt Wrapping**: `renderBarcodeSvg()` lässt
    `EtiketError` unverändert durch (kein Wrapping in AppError), damit
-   `instanceof`-Prüfungen in Aufrufern funktionieren. Nur *fremde* Fehler
+   `instanceof`-Prüfungen in Aufrufern funktionieren. Nur _fremde_ Fehler
    werden in `AppError(RENDER_FAILED)` gekapselt.
 
 5. **CLI hält eine JS-Kopie des Mappers** (`barcode.mjs` kann kein TS aus
@@ -59,6 +59,7 @@ Ausgabestelle die Texte parsen müsste (fragil, nicht lokalisierbar).
 ## Alternatives Considered
 
 ### Errors ausschließlich über Strings (keine Klassen)
+
 - Pros: keine API-Fläche für Fehlerklassen nötig
 - Cons: kein `instanceof`, kein maschinen-lesbarer Code, keine
   automatisierten Lösungshinweise
@@ -66,14 +67,16 @@ Ausgabestelle die Texte parsen müsste (fragil, nicht lokalisierbar).
   mit etiket-Versionen ändern kann — Code-Identifikation ist stabil.
 
 ### etiket-Fehler in AppError wrappen
+
 - Pros: nur eine Fehlertaxonomie nach außen
 - Cons: verliert die Typisierung der Bibliothek; ein `instanceof
-  InvalidInputError` im UI wäre nicht mehr möglich; doppelte
+InvalidInputError` im UI wäre nicht mehr möglich; doppelte
   Code-Führung (etiket-Code + AppError-Code)
 - **Rejected:** Die Bibliotheksklassen sind bereits gut designed und
   dokumentiert — wir führen nichts doppelt.
 
 ### try/catch pro UI-Stelle mit eigener Message
+
 - Pros: maximal lokal anpassbar
 - Cons: genau der Zustand, den wir beseitigen wollen (driftende Formulierungen)
 - **Rejected:** Der Mapper ist die Schnittstelle; lokale Anpassung geschieht

@@ -1,0 +1,47 @@
+{
+  "name": "@lager-etiket/lib",
+  "version": "2.0.0-alpha.0",
+  "private": true,
+  "type": "module",
+  "description": "Lagerplatz-Barcode-Kernbibliothek: Encoder, Renderer, Validatoren, Fehler (nach etiket-Vorbild)",
+  "license": "MIT",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.mts",
+      "default": "./dist/index.mjs"
+    },
+    "./barcode": {
+      "types": "./dist/barcode.d.mts",
+      "default": "./dist/barcode.mjs"
+    },
+    "./render": {
+      "types": "./dist/render.d.mts",
+      "default": "./dist/render.mjs"
+    },
+    "./validators": {
+      "types": "./dist/validators/index.d.mts",
+      "default": "./dist/validators/index.mjs"
+    },
+    "./errors": {
+      "types": "./dist/errors.d.mts",
+      "default": "./dist/errors.mjs"
+    }
+  },
+  "main": "./dist/index.mjs",
+  "types": "./dist/index.d.mts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "obuild",
+    "typecheck": "tsc --noEmit",
+    "lint": "oxlint . && oxfmt --check ."
+  },
+  "dependencies": {
+    "etiket": "^0.12.0"
+  },
+  "devDependencies": {
+    "obuild": "^0.4.40",
+    "typescript": "~5.9.2"
+  }
+}

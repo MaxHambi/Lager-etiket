@@ -46,6 +46,7 @@ als der Browser-Barcode (162 799 differierende Pixel = 10,2 % des Gesamtschilds)
 ## Alternatives Considered
 
 ### Browser auf 72-dpi-Basis umstellen (`renderDpi/72`)
+
 - Pros: Wäre pixelgleich mit dem CLI (Messung: Ratio 1,017 passt exakt zum
   72/96-Verhältnis).
 - Cons: Der Browser renderte dann das etiket-SVG **nicht mehr
@@ -56,6 +57,7 @@ als der Browser-Barcode (162 799 differierende Pixel = 10,2 % des Gesamtschilds)
   die Browser-Version ist die korrekte Interpretation der Quelle der Wahrheit.
 
 ### CLI auf 96-dpi-Basis umstellen (density weglassen / `density: renderDpi × 96/72`)
+
 - Pros: Auch pixelgleich, und die CLI würde die etiket-SVG-Einheiten ebenso
   standardkonform interpretieren wie der Browser.
 - Cons: Ändert die Größe **aller bisherigen CLI-Ausgaben** — bestehende
@@ -65,6 +67,7 @@ als der Browser-Barcode (162 799 differierende Pixel = 10,2 % des Gesamtschilds)
   Endlösung; bis dahin gilt diese ADR.)
 
 ### Pixelgleiche Zwangsangleichung über Nachskalierung im composeLabel
+
 - Pros: Theoretisch exakt.
 - Cons: Versteckt den librsvg-Quirk in yet another Schicht; die Schildgröße
   wäre von nicht dokumentierten internen Konstanten abhängig.
@@ -87,12 +90,12 @@ als der Browser-Barcode (162 799 differierende Pixel = 10,2 % des Gesamtschilds)
 
 ## Messbelege
 
-| Messung | Wert |
-|---|---|
-| etiket-SVG nativ | 400 × 384 px |
-| sharp `density: 600` (librsvg, 72-dpi-Basis) | 3333 × 3200 px |
-| Browser-SVG-Kontext (96-dpi-Basis, Faktor 600/96) | 2500 × 2400 px |
-| Differenzpixel nach renderDpi (96-Basis Browser) | 94 881 / 1 590 996 = **5,96 %** |
-| Barcode-Breite im Schild | Browser 622 px, CLI 632 px (Ratio 1,016) |
-| Vorlagen-/Randzonen | 0 % Differenz (pixelidentisch) |
-| Erste dunkle Zeile (vertikale Position) | identisch (Zeile 41) |
+| Messung                                           | Wert                                     |
+| ------------------------------------------------- | ---------------------------------------- |
+| etiket-SVG nativ                                  | 400 × 384 px                             |
+| sharp `density: 600` (librsvg, 72-dpi-Basis)      | 3333 × 3200 px                           |
+| Browser-SVG-Kontext (96-dpi-Basis, Faktor 600/96) | 2500 × 2400 px                           |
+| Differenzpixel nach renderDpi (96-Basis Browser)  | 94 881 / 1 590 996 = **5,96 %**          |
+| Barcode-Breite im Schild                          | Browser 622 px, CLI 632 px (Ratio 1,016) |
+| Vorlagen-/Randzonen                               | 0 % Differenz (pixelidentisch)           |
+| Erste dunkle Zeile (vertikale Position)           | identisch (Zeile 41)                     |
