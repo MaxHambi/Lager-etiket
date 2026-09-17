@@ -1,8 +1,7 @@
 name: CI
 
-# Lint, Unit-Tests, Build und Docs bei jedem Push und jedem Pull Request.
-# Turbo orchestriert die Tasks über alle Workspaces (apps/*, packages/*)
-# und cacht sie inkrementell.
+# Lint (oxlint/oxfmt), vitest, Build (obuild) und TypeDoc — pnpm-basiert,
+# analog zum etiket-Repo (pnpm/action-setup + setup-node mit pnpm-Cache).
 on:
   push:
     branches:
@@ -20,72 +19,85 @@ permissions:
 
 jobs:
   lint:
-    name: Lint (ESLint, alle Workspaces)
-    runs-on: ubuntu-latest
+    name: Lint (oxlint + oxfmt)
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
     steps:
       - name: Checkout Code
         uses: actions/checkout@v5
+
+      - name: pnpm installieren
+        uses: pnpm/action-setup@v4
 
       - name: Node.js einrichten
         uses: actions/setup-node@v5
         with:
           node-version: "24"
-          cache: "npm"
+          cache: "pnpm"
 
       - name: Abhängigkeiten installieren
-        run: npm ci --no-audit --no-fund
+        run: pnpm install --frozen-lockfile
 
-      - name: ESLint ausführen (turbo run lint)
-        run: npm run lint
+      - name: oxlint + oxfmt ausführen
+        run: pnpm lint
 
   test:
-    name: Unit-Tests (node:test)
-    runs-on: ubuntu-latest
+    name: Unit-Tests (vitest)
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
     steps:
       - name: Checkout Code
         uses: actions/checkout@v5
+
+      - name: pnpm installieren
+        uses: pnpm/action-setup@v4
 
       - name: Node.js einrichten
         uses: actions/setup-node@v5
         with:
           node-version: "24"
-          cache: "npm"
+          cache: "pnpm"
 
       - name: Abhängigkeiten installieren
-        run: npm ci --no-audit --no-fund
+        run: pnpm install --frozen-lockfile
 
-      - name: Unit-Tests ausführen (turbo run test)
-        run: npm test
+      - name: Tests ausführen (vitest, alle Pakete)
+        run: pnpm test
 
   build:
-    name: Build (Typecheck + Bundle)
+    name: Build (Typecheck + obuild + Web-Bundle)
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
         uses: actions/checkout@v5
 
+      - name: pnpm installieren
+        uses: pnpm/action-setup@v4
+
       - name: Node.js einrichten
         uses: actions/setup-node@v5
         with:
           node-version: "24"
-          cache: "npm"
+          cache: "pnpm"
 
       - name: Abhängigkeiten installieren
-        run: npm ci --no-audit --no-fund
+        run: pnpm install --frozen-lockfile
 
-      # Turbos Remote-Cache beschleunigt CI-Läufe; ohne Token läuft alles lokal.
-      - name: Turbo Remote Cache aktivieren (falls Token vorhanden)
-        run: echo "TURBO_TOKEN=${{ secrets.TURBO_TOKEN }}" >> $GITHUB_ENV
-        continue-on-error: true
+      - name: Typecheck aller Pakete
+        run: pnpm typecheck
 
-      - name: Build aller Workspaces (turbo run build)
-        run: npm run build
+      - name: Build aller Pakete (obuild + esbuild)
+        run: pnpm build
 
       - name: Build-Artefakt hochladen (7 Tage aufbewahren)
         uses: actions/upload-artifact@v6
         with:
           name: app-bundle
-          path: apps/web/dist/app.js
+          path: packages/web/dist/app.js
           retention-days: 7
 
   docs:
@@ -95,18 +107,21 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v5
 
+      - name: pnpm installieren
+        uses: pnpm/action-setup@v4
+
       - name: Node.js einrichten
         uses: actions/setup-node@v5
         with:
           node-version: "24"
-          cache: "npm"
+          cache: "pnpm"
 
       - name: Abhängigkeiten installieren
-        run: npm ci --no-audit --no-fund
+        run: pnpm install --frozen-lockfile
 
       - name: Modul-Referenz generieren
         run: |
-          node scripts/gen-vault-stub.mjs
+          pnpm --filter @lager-etiket/web run gen-vault 2>/dev/null || node scripts/gen-vault-stub.mjs
           npx typedoc
 
       - name: Modul-Referenz hochladen (7 Tage aufbewahren)

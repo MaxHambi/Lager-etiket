@@ -1,22 +1,21 @@
 name: Update GitHub Pages
 
-# Wann soll die Action ausgeführt werden?
+# Baut die Web-App und synchronisiert Bundle/Assets/public auf gh-pages.
+# pnpm-Monorepo: Quellen liegen in packages/web (seit etiket-Umbau).
 on:
   push:
     branches:
-      - master # ACHTUNG: Falls dein Hauptbranch anders heißt, hier anpassen!
+      - master
     paths:
-      - "apps/web/index.html"
-      - "apps/web/src/**"
-      - "apps/web/assets/**"
-      - "apps/web/build.mjs"
+      - "packages/web/index.html"
+      - "packages/web/src/**"
+      - "packages/web/assets/**"
+      - "packages/web/build.mjs"
+      - "packages/web/public/**"
       - "packages/**"
       - "scripts/**"
-      - "config.json"
-      - "packages/tools/config.json"
+      - "pnpm-lock.yaml"
       - "package.json"
-      - "package-lock.json"
-      - "turbo.json"
       - "tsconfig.base.json"
       - ".github/workflows/sync-pages.yml"
 
@@ -36,16 +35,19 @@ jobs:
         with:
           fetch-depth: 0 # Lädt alle Branches herunter, damit der Bot wechseln kann
 
+      - name: pnpm installieren
+        uses: pnpm/action-setup@v4
+
       - name: Node.js einrichten
         uses: actions/setup-node@v5
         with:
           node-version: "24"
-          cache: "npm"
+          cache: "pnpm"
 
-      - name: Abhängigkeiten installieren (alle Workspaces)
-        run: npm ci --no-audit --no-fund
+      - name: Abhängigkeiten installieren (Workspace)
+        run: pnpm install --frozen-lockfile
 
-      - name: HTML-Tool bauen (Typecheck + Bundle via Turbo)
+      - name: HTML-Tool bauen (obuild + esbuild-Bundle)
         # Ist das Environment-Secret APP_PASSWORD gesetzt, wird der geschützte
         # Build erzeugt (Login-Overlay + AES-verschlüsseltes Bundle).
         # Ohne Secret: unverschlüsselter Entwicklungs-Build.
@@ -53,17 +55,17 @@ jobs:
           APP_PASSWORD: ${{ secrets.APP_PASSWORD }}
         run: |
           if [ -n "$APP_PASSWORD" ]; then
-            cd apps/web && node build.mjs --password "$APP_PASSWORD"
+            pnpm --filter @lager-etiket/web exec node build.mjs --password "$APP_PASSWORD"
           else
-            npm run build:web
+            pnpm --filter @lager-etiket/web build
           fi
 
       - name: Build-Artefakte sichern (dist ist nicht Teil von master)
         run: |
-          cp -r apps/web/dist /tmp/app-dist
-          cp -r apps/web/assets /tmp/app-assets
+          cp -r packages/web/dist /tmp/app-dist
+          cp -r packages/web/assets /tmp/app-assets
           # public/ (Vorlagen-Galerie + Config-Bibliothek) für gh-pages sichern
-          cp -r apps/web/public /tmp/app-public
+          cp -r packages/web/public /tmp/app-public
 
       - name: Dateien auf gh-pages synchronisieren
         run: |
@@ -75,14 +77,8 @@ jobs:
           git checkout gh-pages
 
           # Aktuelle Quelldateien aus dem Hauptbranch holen
-          # (index.html liegt in apps/web; die Root-config.json ist nach
-          # packages/tools/config.json umgezogen — die Web-App nutzt
-          # public/configs/standard.json als Standard)
-          git checkout master -- apps/web/index.html
-          if git cat-file -e master:config.json 2>/dev/null; then
-            git checkout master -- config.json
-          fi
-          mv apps/web/index.html index.html && rm -rf apps/web 2>/dev/null || true
+          git checkout master -- packages/web/index.html
+          mv packages/web/index.html index.html && rm -rf packages/web 2>/dev/null || true
 
           # Gebaute Dateien aus dem Job übernehmen (vor dem Branch-Wechsel gesichert)
           rm -rf assets dist public
@@ -91,10 +87,11 @@ jobs:
           cp -r /tmp/app-public public
 
           # Prüfen, ob sich die Dateien überhaupt verändert haben
-          git add -A index.html config.json assets dist public
+          # (-A: auch Löschungen werden gestaged)
+          git add -A index.html assets dist public
           if git diff --staged --quiet; then
             echo "Keine Änderungen zu synchronisieren."
           else
-            git commit -m "Automatisches Update von index.html, config.json, assets und dist"
+            git commit -m "Automatisches Update von index.html, assets und dist"
             git push origin gh-pages
           fi
