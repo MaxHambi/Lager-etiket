@@ -69,7 +69,7 @@
             <button type="button" id="btnModeMulti" class="btn-secondary">Mehrere Bereiche</button>
           </div>
 
-          <div class="field">
+          <div class="field" id="singleEntryWrap">
             <label>Einzelner Lagerplatz</label>
             <input type="text" id="entrySingle" placeholder="z. B. 01A01">
           </div>
@@ -77,7 +77,7 @@
           <div id="batchesWrap" style="display:none;"></div>
           <div class="btn-row">
             <button type="button" class="btn-ghost" id="btnAddBatch" disabled>+ Unterkategorie</button>
-            <button class="btn-ghost" onclick="document.getElementById('entriesFile').click()">.txt laden (Einzelliste)</button>
+            <button type="button" class="btn-ghost" id="btnLoadEntries" disabled title="Nur im Mehrfach-Modus: erstellt eine Unterkategorie aus einer .txt-Eintragsliste">.txt-Eintragsliste laden</button>
             <input type="file" id="entriesFile" accept=".txt,text/plain" style="display:none">
           </div>
           <div id="entryError" class="hint" style="display:none;color:var(--red);"></div>
