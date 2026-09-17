@@ -56,7 +56,7 @@ jobs:
             git checkout master -- "$1"
             mv "$1"/* /tmp/sync-stage/"$(basename "$2")"/
             rm -rf "$(echo "$1" | cut -d/ -f1)"
-            mkdir -p "$(dirname "$2")"
+            mkdir -p "$2"
             mv /tmp/sync-stage/"$(basename "$2")"/* "$2"/
           }
 
