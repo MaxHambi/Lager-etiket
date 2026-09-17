@@ -11,6 +11,7 @@ agentictuning.md
 dist/
 src/generated/
 apps/web/src/generated/
+packages/web/src/generated/
 docs/api/
 wiki/
 .turbo/
