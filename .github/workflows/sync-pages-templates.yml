@@ -51,11 +51,16 @@ jobs:
 
           sync_dir () {
             # $1 = Quellpfad auf master, $2 = Zielpfad auf gh-pages
+            #
+            # WICHTIG: "git checkout master -- <pfad>" kann Überbleibsel in
+            # apps/web/ hinterlassen, wenn der Zielordner schon existierte.
+            # Deshalb: Quellordner VOR dem Aufräumen sicherstellen, dass die
+            # Staging-Kopie wirklich alles enthält, und am Ende garantiert
+            # apps/web entfernen (macht der abschließende rm -rf).
             rm -rf "$2"
             mkdir -p /tmp/sync-stage/"$(basename "$2")"
             git checkout master -- "$1"
             mv "$1"/* /tmp/sync-stage/"$(basename "$2")"/
-            rm -rf "$(echo "$1" | cut -d/ -f1)"
             mkdir -p "$2"
             mv /tmp/sync-stage/"$(basename "$2")"/* "$2"/
           }
@@ -76,6 +81,9 @@ jobs:
           fi
 
           # Aufräumen: checkout-Überbleibsel entfernen
+          # (git checkout master -- apps/web/... legt apps/web an; die
+          #  verschobenen Kopien landen sonst als Duplikat unter
+          #  apps/web/public/ statt nur unter public/)
           rm -rf apps/web packages tools Templates
 
       - name: Änderungen committen und pushen
