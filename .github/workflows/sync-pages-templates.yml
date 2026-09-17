@@ -1,0 +1,87 @@
+name: Vorlagen & Config auf GitHub Pages synchronisieren
+
+# Issue #3: Änderungen an Vorlagen (Templates) und Konfigurationen sollen
+# automatisch auf der GitHub-Pages-Seite landen — ohne manuellen Eingriff.
+#
+# Ausgelöst wird bei jedem Push auf master, der eine der überwachten
+# Dateigruppen berührt, plus manuell über die Weboberfläche.
+# Der eigentliche Pages-Update (Bundle, Assets, public/) passiert in
+# sync-pages.yml — dieser Workflow ergänzt gezielt die Inhalte, die dort
+# (noch) nicht überwacht wurden: Vorlagen-Galerie, Projekt-Templates,
+# gespeicherte Configs und die Root-config.json für die CLI.
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      # Vorlagen-Galerie der Web-App (Manifest + PNGs)
+      - 'apps/web/public/templates/**'
+      # Gespeicherte Konfigurationen (Config-Bibliothek)
+      - 'apps/web/public/configs/**'
+      # Projekt-Templates (Quelle der Galerie-PNGs)
+      - 'packages/tools/Templates/**'
+      - 'Templates/**'
+      # Root-config.json (CLI + Standard-Config)
+      - 'config.json'
+      # Dieses Workflow-File selbst
+      - '.github/workflows/sync-pages-templates.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sync-templates:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v5
+
+      - name: Identität für den Sync-Bot
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Vorlagen & Configs auf gh-pages übernehmen
+        run: |
+          git checkout gh-pages
+
+          sync_dir () {
+            # $1 = Quellpfad auf master, $2 = Zielpfad auf gh-pages
+            rm -rf "$2"
+            mkdir -p /tmp/sync-stage/"$(basename "$2")"
+            git checkout master -- "$1"
+            mv "$1"/* /tmp/sync-stage/"$(basename "$2")"/
+            rm -rf "$(echo "$1" | cut -d/ -f1)"
+            mkdir -p "$(dirname "$2")"
+            mv /tmp/sync-stage/"$(basename "$2")"/* "$2"/
+          }
+
+          # Vorlagen-Galerie: Manifest + PNGs (aus der Web-App)
+          if git cat-file -e master:apps/web/public/templates/templates.json 2>/dev/null; then
+            sync_dir apps/web/public/templates public/templates
+          fi
+
+          # Gespeicherte Configs (Config-Bibliothek)
+          if git ls-tree -d master:apps/web/public/configs >/dev/null 2>&1; then
+            sync_dir apps/web/public/configs public/configs
+          fi
+
+          # Root-config.json (wird von index.html und CLI gleichermaßen genutzt)
+          if git cat-file -e master:config.json 2>/dev/null; then
+            git checkout master -- config.json
+          fi
+
+          # Aufräumen: checkout-Überbleibsel entfernen
+          rm -rf apps/web packages tools Templates
+
+      - name: Änderungen committen und pushen
+        run: |
+          git add -A public/templates public/configs config.json 2>/dev/null || git add -A
+          if git diff --staged --quiet; then
+            echo "Keine Vorlagen-/Config-Änderungen zu synchronisieren."
+          else
+            git commit -m "Vorlagen & Configs von master synchronisiert (auto)"
+            git push origin gh-pages
+          fi
