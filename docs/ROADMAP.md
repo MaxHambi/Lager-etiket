@@ -31,6 +31,15 @@ Zusätzlich pro Feature: Roundtrip (Text → SVG → PNG → zxing-wasm-Dekodier
 und Bytegleichheit CLI ↔ lib-Pfad (verifiziert 2026-09-17: 88311 Bytes,
 byte-identisch für `01A01`).
 
+## Live-Verifikation
+
+**[Test-Report: Web-App Live-Test](TEST-REPORT-WEBAPP.md)** (2026-09-17):
+Voll umfänglicher manueller Browser-Test nach Abschluss aller Phasen —
+10/10 Tests bestanden (App-Start, Einzelfeld, Validierungs-Gate,
+Mehrere-Bereiche mit 2 Unterkategorien, Batch 5/5, ZIP-Download,
+Persistenz, Theme-Fallback, 0 Konsolen-/Netzwerkfehler). Damit ist der
+Zielzustand des Plans auch praktisch im Browser bestätigt.
+
 ## Bewusste Abweichungen vom ursprünglichen Plan
 
 | Plan (analyse.md)      | Realität / Entscheidung                                                        | Begründung                                                                                       |
@@ -50,3 +59,8 @@ byte-identisch für `01A01`).
 - [ ] `scripts/build-compare.mjs` (Pixelvergleich-Tool) auf neue Paketpfade
       portieren oder entfernen
 - [ ] Mesh-Memory-Spiegelung der Meilensteine, falls Instanz eingerichtet wird
+- [x] Live-Test der Web-App nach der Migration (siehe
+      [TEST-REPORT-WEBAPP.md](TEST-REPORT-WEBAPP.md))
+- [ ] Playwright-Smoke-Test für den Live-Test-Durchlauf in CI automatisieren
+- [ ] Härtungs-Issues #13–#15 (CLI-Doku-Pfad, verwaiste Verzeichnisse,
+      composeStructure-API) abarbeiten
