@@ -7,13 +7,13 @@ Werkzeug zur pixelweisen Gegenüberstellung eines CLI-erzeugten Schilds
 
 ## Dateien
 
-| Datei | Zweck | Committet? |
-|---|---|---|
-| `packages/tools/compare.ts` | Browser-Logik: lädt CLI-PNG, rendert Browser-Schild, vergleicht pixelweise, erzeugt Differenz-PNG | ✅ ja |
-| `scripts/build-compare.mjs` | Baut `compare.html` als **self-contained Inline-Seite** (esbuild-Bundle + beide PNGs als Base64-Data-URIs eingebettet) | ✅ ja |
-| `apps/web/public/compare/compare.html` | Gebaute Vergleichsseite | ❌ ignoriert (bau-bar) |
-| `apps/web/public/compare/cli-*.png` | CLI-Schild (Testbild) | ❌ ignoriert (Testdaten) |
-| `apps/web/public/compare/template.png` | Kopie der Vorlage | ❌ ignoriert (Testdaten) |
+| Datei                                  | Zweck                                                                                                                  | Committet?               |
+| -------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- | ------------------------ |
+| `packages/tools/compare.ts`            | Browser-Logik: lädt CLI-PNG, rendert Browser-Schild, vergleicht pixelweise, erzeugt Differenz-PNG                      | ✅ ja                    |
+| `scripts/build-compare.mjs`            | Baut `compare.html` als **self-contained Inline-Seite** (esbuild-Bundle + beide PNGs als Base64-Data-URIs eingebettet) | ✅ ja                    |
+| `apps/web/public/compare/compare.html` | Gebaute Vergleichsseite                                                                                                | ❌ ignoriert (bau-bar)   |
+| `apps/web/public/compare/cli-*.png`    | CLI-Schild (Testbild)                                                                                                  | ❌ ignoriert (Testdaten) |
+| `apps/web/public/compare/template.png` | Kopie der Vorlage                                                                                                      | ❌ ignoriert (Testdaten) |
 
 Warum inline? Der sichere HTML-Preview-Server (Freebuff) liefert nur die
 einzelne `.html`-Datei aus — referenzierte JS-/PNG-Dateien würden 404 laufen.

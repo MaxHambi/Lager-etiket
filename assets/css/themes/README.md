@@ -10,12 +10,12 @@ Alle vier Catppuccin-Flavors sind als eigene Themes eingebaut — Farben
 stammen unverändert aus der offiziellen Palette
 ([catppuccin/palette](https://github.com/catppuccin/palette), v1.8.0):
 
-| Theme-ID | Datei | Flavor |
-|---|---|---|
-| `catppuccin-mocha` | `catppuccin-mocha.css` | 🌸 Mocha (dunkel, Default) |
-| `catppuccin-macchiato` | `catppuccin-macchiato.css` | ☕ Macchiato (dunkel) |
-| `catppuccin-frappe` | `catppuccin-frappe.css` | 🌿 Frappé (dunkel) |
-| `catppuccin-latte` | `catppuccin-latte.css` | 🌻 Latte (hell) |
+| Theme-ID               | Datei                      | Flavor                     |
+| ---------------------- | -------------------------- | -------------------------- |
+| `catppuccin-mocha`     | `catppuccin-mocha.css`     | 🌸 Mocha (dunkel, Default) |
+| `catppuccin-macchiato` | `catppuccin-macchiato.css` | ☕ Macchiato (dunkel)      |
+| `catppuccin-frappe`    | `catppuccin-frappe.css`    | 🌿 Frappé (dunkel)         |
+| `catppuccin-latte`     | `catppuccin-latte.css`     | 🌻 Latte (hell)            |
 
 Umschaltung: Dropdown „Theme (Catppuccin)" im Protokoll-Panel
 (`packages/ui/src/theme.ts`), persistiert in `localStorage`
@@ -48,12 +48,12 @@ Aktivieren per Attribut am `<html>`-Element:
 
 ## Pflicht-Variablen
 
-| Gruppe | Variablen |
-|---|---|
-| Flächen | `--base` `--mantle` `--crust` `--surface0` `--surface1` `--surface2` |
-| Text | `--text` `--subtext1` `--subtext0` `--overlay0` `--overlay1` `--overlay2` |
-| Akzente | `--mauve` `--blue` `--green` `--red` `--yellow` `--peach` `--pink` `--teal` |
-| Form | `--radius` `--font-ui` `--font-mono` |
+| Gruppe  | Variablen                                                                                                                                      |
+| ------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| Flächen | `--base` `--mantle` `--crust` `--surface0` `--surface1` `--surface2`                                                                           |
+| Text    | `--text` `--subtext1` `--subtext0` `--overlay0` `--overlay1` `--overlay2`                                                                      |
+| Akzente | `--mauve` `--blue` `--green` `--red` `--yellow` `--peach` `--pink` `--teal`                                                                    |
+| Form    | `--radius` `--font-ui` `--font-mono`                                                                                                           |
 | Spezial | `--checker-a` `--checker-b` (Schachbrett hinter transparenten PNGs), `--preview-overlay` (gestrichelte Zielbereich-Markierung in der Vorschau) |
 
 Fehlt eine Variable, fällt der Browser auf den Initialwert zurück (meist

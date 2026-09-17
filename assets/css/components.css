@@ -16,7 +16,9 @@
   background: var(--crust);
   cursor: pointer;
   padding: 24px;
-  transition: opacity 0.6s ease, visibility 0.6s ease;
+  transition:
+    opacity 0.6s ease,
+    visibility 0.6s ease;
 }
 #splash-screen.hidden {
   opacity: 0;
@@ -50,8 +52,13 @@
   animation: splashPulse 1.8s ease-in-out infinite;
 }
 @keyframes splashPulse {
-  0%, 100% { opacity: 0.5; }
-  50% { opacity: 1; }
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
 }
 body.splash-active {
   overflow: hidden;
@@ -163,7 +170,9 @@ header.top p {
   gap: 20px;
 }
 @media (max-width: 920px) {
-  .grid { grid-template-columns: 1fr; }
+  .grid {
+    grid-template-columns: 1fr;
+  }
 }
 .card {
   background: var(--base);
@@ -212,10 +221,18 @@ label {
   grid-template-columns: repeat(4, 1fr);
   gap: 10px;
 }
-.row.two { grid-template-columns: repeat(2, 1fr); }
-.row.three { grid-template-columns: repeat(3, 1fr); }
+.row.two {
+  grid-template-columns: repeat(2, 1fr);
+}
+.row.three {
+  grid-template-columns: repeat(3, 1fr);
+}
 @media (max-width: 560px) {
-  .row, .row.two, .row.three { grid-template-columns: repeat(2, 1fr); }
+  .row,
+  .row.two,
+  .row.three {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 input[type="text"],
@@ -277,7 +294,9 @@ button {
   border-radius: 8px;
   padding: 9px 16px;
   cursor: pointer;
-  transition: filter 0.15s, transform 0.05s;
+  transition:
+    filter 0.15s,
+    transform 0.05s;
 }
 button:active {
   transform: translateY(1px);
@@ -332,7 +351,9 @@ button:disabled {
   text-align: center;
   color: var(--subtext0);
   cursor: pointer;
-  transition: border-color 0.15s, background 0.15s;
+  transition:
+    border-color 0.15s,
+    background 0.15s;
   font-size: 0.85rem;
 }
 .dropzone.drag {
@@ -348,7 +369,8 @@ button:disabled {
   border-radius: 8px;
   overflow: hidden;
   border: 1px solid var(--surface0);
-  background: repeating-conic-gradient(var(--checker-a) 0% 25%, var(--checker-b) 0% 50%) 0 0/16px 16px;
+  background: repeating-conic-gradient(var(--checker-a) 0% 25%, var(--checker-b) 0% 50%) 0 0/16px
+    16px;
 }
 .tpl-preview img {
   display: block;
@@ -385,7 +407,8 @@ details.adv > summary:hover {
 
 /* ---------- Vorschau ---------- */
 #previewStage {
-  background: repeating-conic-gradient(var(--checker-a) 0% 25%, var(--checker-b) 0% 50%) 0 0/16px 16px;
+  background: repeating-conic-gradient(var(--checker-a) 0% 25%, var(--checker-b) 0% 50%) 0 0/16px
+    16px;
   border: 1px solid var(--surface0);
   border-radius: var(--radius);
   display: flex;
@@ -489,11 +512,21 @@ details.adv > summary:hover {
   white-space: pre-wrap;
   word-break: break-word;
 }
-#log .l-info { color: var(--subtext1); }
-#log .l-ok { color: var(--green); }
-#log .l-warn { color: var(--yellow); }
-#log .l-err { color: var(--red); }
-#log .l-ts { color: var(--overlay0); }
+#log .l-info {
+  color: var(--subtext1);
+}
+#log .l-ok {
+  color: var(--green);
+}
+#log .l-warn {
+  color: var(--yellow);
+}
+#log .l-err {
+  color: var(--red);
+}
+#log .l-ts {
+  color: var(--overlay0);
+}
 
 /* ---------- Footer / Pills ---------- */
 footer {
@@ -535,7 +568,9 @@ footer a {
   cursor: pointer;
   text-align: center;
   color: var(--subtext1);
-  transition: border-color 0.15s ease, transform 0.1s ease;
+  transition:
+    border-color 0.15s ease,
+    transform 0.1s ease;
 }
 .tpl-card:hover {
   border-color: var(--overlay0);
