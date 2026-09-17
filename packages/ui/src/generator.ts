@@ -19,11 +19,13 @@ import { downloadBlob } from "@lager-etiket/core";
 import { validateEntry } from "@lager-etiket/core";
 import { openLightbox } from "./lightbox.ts";import type { AppConfig } from "@lager-etiket/types";
 
-/** Ein fertiges Schild (Name, Blob, Objekt-URL). */
+/** Ein fertiges Schild (Name, Blob, Objekt-URL, optionaler ZIP-Unterordner). */
 interface GeneratedResult {
   name: string;
   blob: Blob;
   url: string;
+  /** ZIP-Unterordner (aus der Unterkategorie), oder null = ZIP-Root. */
+  folder: string | null;
 }
 
 /** Ein Eintrag im Config-Manifest (für Batch-Configs). */
@@ -44,6 +46,10 @@ export interface BatchJob {
   entries: string[];
   /** Gewählte Config-Datei (oder null = globale Konfiguration). */
   configFile: string | null;
+  /** Gewählte Vorlage aus dem Galerie-Manifest (oder null = globale Vorlage). */
+  templateFile: string | null;
+  /** Gewählter ZIP-Unterordner (oder null = ZIP-Root). */
+  outputFolder: string | null;
 }
 
 /**
@@ -85,7 +91,7 @@ export class GeneratorUI {
 
   /** Auflösung Config-Datei → AppConfig (mit Cache pro Lauf). */
   private async loadBatchConfigs(
-    jobs: BatchJob[],
+    jobs: Array<Pick<BatchJob, "index" | "configFile">>,
   ): Promise<Map<number, AppConfig>> {
     const cache = new Map<string, AppConfig>();
     const out = new Map<number, AppConfig>();
@@ -129,27 +135,46 @@ export class GeneratorUI {
     if (this.batches.isMulti) {
       const batches = this.batches.collectBatches(false);
       if (!batches) return;
+
+      // Vorlagen pro Unterkategorie laden (eigene Auswahl oder globale)
+      const images = new Map<number, HTMLImageElement>();
+      let missingTemplate = false;
+      for (const b of batches) {
+        if (b.templateFile) {
+          const img = await this.gallery.getImage(b.templateFile);
+          if (!img) {
+            this.log.err(
+              'Vorlage "' + b.templateFile + '" (Unterkategorie ' + b.index + ") nicht ladbar — Lauf abgebrochen.",
+            );
+            missingTemplate = true;
+            break;
+          }
+          images.set(b.index, img);
+        }
+      }
+      if (missingTemplate) return;
+
       const configs = await this.loadBatchConfigs(
         batches.map((b) => ({
           index: b.index,
-          start: b.start,
-          end: b.end,
-          entries: b.entries,
           configFile: b.configFile ?? null,
         })),
       );
-      const image = galleryImage ?? pickerImage;
-      if (!image) {
-        this.log.err("Bitte zuerst eine Vorlage laden (Galerie oder Datei).");
-        return;
-      }
+      const globalImage = galleryImage ?? pickerImage;
       for (const b of batches) {
+        const image = b.templateFile ? images.get(b.index)! : globalImage;
+        if (!image) {
+          this.log.err("Bitte zuerst eine Vorlage laden (Galerie, Datei oder je Unterkategorie).");
+          return;
+        }
         planned.push({
           index: b.index,
           start: b.start,
           end: b.end,
           entries: b.entries,
           configFile: b.configFile,
+          templateFile: b.templateFile,
+          outputFolder: b.outputFolder,
           image,
           cfg: configs.get(b.index) ?? readConfig(),
           label: "Unterkategorie " + b.index,
@@ -172,6 +197,8 @@ export class GeneratorUI {
         end: entry,
         entries: [entry],
         configFile: null,
+        templateFile: null,
+        outputFolder: null,
         image,
         cfg: readConfig(),
         label: "Einzel",
@@ -219,10 +246,10 @@ export class GeneratorUI {
           const finalBlob = await injectPhysDpi(blob, job.cfg.output.dpi);
           const fileName = (job.cfg.output.prefix || "") + sanitizeFileName(entry) + ".png";
           const url = URL.createObjectURL(finalBlob);
-          this.results.push({ name: fileName, blob: finalBlob, url });
-          this.addThumb(thumbgrid, fileName, url, entry);
+          this.results.push({ name: fileName, blob: finalBlob, url, folder: job.outputFolder });
+          this.addThumb(thumbgrid, fileName, url, entry, job.label);
           created++;
-          this.log.ok("Erstellt: " + fileName);
+          this.log.ok("Erstellt: " + fileName + (job.outputFolder ? " → " + job.outputFolder + "/" : ""));
         } catch (err) {
           this.log.err(describeError(err, 'Fehler bei "' + entry + '"'));
         }
@@ -241,7 +268,7 @@ export class GeneratorUI {
    * Hängt ein Thumbnail für ein fertiges Schild ans Raster an.
    * Klick auf das Bild öffnet die Lightbox.
    */
-  private addThumb(grid: HTMLElement, fileName: string, url: string, entry: string): void {
+  private addThumb(grid: HTMLElement, fileName: string, url: string, entry: string, jobLabel: string): void {
     const div = document.createElement("div");
     div.className = "thumb";
     const safeEntry = this.escapeHtml(entry);
@@ -250,6 +277,7 @@ export class GeneratorUI {
       '<img src="' + url + '" alt="' + safeEntry + '">' +
       '<div class="cap"><span title="' + safeName + '">' + safeName + "</span>" +
       '<a href="' + url + '" download="' + safeName + '">↓</a></div>';
+    div.title = jobLabel;
     div.querySelector("img")?.addEventListener("click", () => openLightbox(url, fileName));
     grid.appendChild(div);
   }
@@ -259,18 +287,34 @@ export class GeneratorUI {
     if (!this.results.length) return;
     this.log.info("Erstelle ZIP-Archiv mit " + this.results.length + " Dateien …");
     const files = [];
+    let foldersUsed = false;
     for (const r of this.results) {
-      files.push({ name: r.name, data: new Uint8Array(await r.blob.arrayBuffer()) });
+      // ZIP-Ordnerstruktur: je Unterkategorie ein Unterordner (sofern gesetzt)
+      const entryName = r.folder ? sanitizeFolderName(r.folder) + "/" + r.name : r.name;
+      if (r.folder) foldersUsed = true;
+      files.push({ name: entryName, data: new Uint8Array(await r.blob.arrayBuffer()) });
     }
     const zipBlob = makeZip(files);
     downloadBlob(zipBlob, "lagerplatz-schilder.zip");
-    this.log.ok("ZIP-Archiv heruntergeladen (lagerplatz-schilder.zip).");
+    this.log.ok(
+      "ZIP-Archiv heruntergeladen" +
+      (foldersUsed ? " — Unterordner je Unterkategorie beachtet." : " (lagerplatz-schilder.zip)."),
+    );
   }
 
   /** HTML-sichere Darstellung von Text. */
   private escapeHtml(s: string): string {
     return String(s).replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" })[c] ?? c);
   }
+}
+
+/** Macht einen Nutzereingabe-Ordner ZIP-sicher (kein Pfad-Traversal, keine Sonderzeichen). */
+function sanitizeFolderName(s: string): string {
+  return s
+    .replace(/[\\/:*?"<>|]/g, "_")
+    .replace(/\.+/g, ".")
+    .replace(/^[. ]+|[. ]+$/g, "")
+    .trim() || "unterkategorie";
 }
 
 /** Typ-Export für Config-Lookups (intern genutzt). */

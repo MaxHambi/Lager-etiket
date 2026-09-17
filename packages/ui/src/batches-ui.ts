@@ -7,12 +7,24 @@ import { $ } from "./dom.ts";
 import type { Logger } from "./logger.ts";
 import { expandRange, findDuplicates, validateEntry, findInvalidEntries } from "@lager-etiket/core";
 
+/** HTML-Attributwert sicher escapen (für dynamische <option>-Values). */
+function escapeAttr(s: string): string {
+  return s.replace(/[&"<>]/g, (ch) => ({ "&": "&amp;", '"': "&quot;", "<": "&lt;", ">": "&gt;" })[ch]!);
+}
+
+/** HTML-Textinhalt sicher escapen. */
+function escapeHtml(s: string): string {
+  return s.replace(/[&<>]/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" })[ch]!);
+}
+
 /** Eine Unterkategorie im DOM. */
 interface BatchSection {
   root: HTMLElement;
   start: HTMLInputElement;
   end: HTMLInputElement;
   config: HTMLSelectElement;
+  template: HTMLSelectElement;
+  output: HTMLInputElement;
 }
 
 /** Aufbau von `configs/configs.json` (für Batch-Config-Dropdowns). */
@@ -41,6 +53,9 @@ export class BatchesUI {
   /** Verfügbare Config-Einträge für die Batch-Dropdowns. */
   private configOptions: BatchConfigEntry[] = [];
 
+  /** Verfügbare Vorlagen (Manifest) für die Batch-Dropdowns. */
+  private templateOptions: Array<{ file: string; label: string }> = [];
+
   constructor(private readonly log: Logger) {
     const single = $("entrySingle") as HTMLInputElement;
     single.addEventListener("input", () => {
@@ -65,6 +80,15 @@ export class BatchesUI {
     this.configOptions = entries;
     // Bestehende Dropdowns aktualisieren
     for (const b of this.batches) this.fillConfigSelect(b);
+  }
+
+  /**
+   * Setzt die Vorlagen-Optionen (aus dem Vorlagen-Manifest) für die
+   * Unterkategorie-Dropdowns.
+   */
+  setTemplateOptions(entries: Array<{ file: string; label: string }>): void {
+    this.templateOptions = entries;
+    for (const b of this.batches) this.fillTemplateSelect(b);
   }
 
   /** Registriert einen Listener für Eingabe-Änderungen. */
@@ -115,6 +139,10 @@ export class BatchesUI {
       '<div class="field"><label>Ende</label><input type="text" class="batch-end" placeholder="01A12"></div>' +
       '<div class="field"><label>Konfiguration</label><select class="batch-config"></select></div>' +
       "</div>" +
+      '<div class="row two">' +
+      '<div class="field"><label>Vorlage</label><select class="batch-template"></select></div>' +
+      '<div class="field"><label>ZIP-Ordner</label><input type="text" class="batch-output" placeholder="z. B. Regal A" maxlength="80"></div>' +
+      "</div>" +
       '<div class="batch-info hint" style="display:none;"></div>';
 
     wrap.appendChild(root);
@@ -124,19 +152,46 @@ export class BatchesUI {
       start: root.querySelector(".batch-start") as HTMLInputElement,
       end: root.querySelector(".batch-end") as HTMLInputElement,
       config: root.querySelector(".batch-config") as HTMLSelectElement,
+      template: root.querySelector(".batch-template") as HTMLSelectElement,
+      output: root.querySelector(".batch-output") as HTMLInputElement,
     };
 
     section.start.addEventListener("input", () => this.notify());
     section.end.addEventListener("input", () => this.notify());
     section.config.addEventListener("change", () => this.notify());
+    section.template.addEventListener("change", () => this.notify());
+    section.output.addEventListener("input", () => this.notify());
     (root.querySelector(".batch-remove") as HTMLButtonElement).addEventListener("click", () => {
       this.removeBatch(section);
     });
 
     this.fillConfigSelect(section);
+    this.fillTemplateSelect(section);
     this.batches.push(section);
     this.notify();
     return true;
+  }
+
+  /** Befüllt das Konfigurations-Dropdown einer Unterkategorie. */
+  private fillConfigSelect(b: BatchSection): void {
+    const current = b.config.value;
+    b.config.innerHTML =
+      '<option value="">Globale Konfiguration</option>' +
+      this.configOptions
+        .map((c) => '<option value="' + escapeAttr(c.file) + '">' + escapeHtml(c.label) + "</option>")
+        .join("");
+    b.config.value = current;
+  }
+
+  /** Befüllt das Vorlagen-Dropdown einer Unterkategorie. */
+  private fillTemplateSelect(b: BatchSection): void {
+    const current = b.template.value;
+    b.template.innerHTML =
+      '<option value="">Globale Vorlage (Galerie)</option>' +
+      this.templateOptions
+        .map((t) => '<option value="' + escapeAttr(t.file) + '">' + escapeHtml(t.label) + "</option>")
+        .join("");
+    b.template.value = current;
   }
 
   /**
@@ -145,11 +200,27 @@ export class BatchesUI {
    * @param silent true = ohne Fehlermeldungen im UI/Protokoll
    * @returns Array von Bereichen inkl. gewählter Config-Datei; null bei Validierungsfehler
    */
-  collectBatches(silent: boolean): Array<{ index: number; start: string; end: string; entries: string[]; configFile: string | null }> | null {
+  collectBatches(silent: boolean): Array<{
+    index: number;
+    start: string;
+    end: string;
+    entries: string[];
+    configFile: string | null;
+    templateFile: string | null;
+    outputFolder: string | null;
+  }> | null {
     if (!this.multiMode) return null;
     const errorBox = $("entryError");
     const groups: Array<{ label: string; entries: string[] }> = [];
-    const collected: Array<{ index: number; start: string; end: string; entries: string[]; configFile: string | null }> = [];
+    const collected: Array<{
+      index: number;
+      start: string;
+      end: string;
+      entries: string[];
+      configFile: string | null;
+      templateFile: string | null;
+      outputFolder: string | null;
+    }> = [];
 
     for (let i = 0; i < this.batches.length; i++) {
       const b = this.batches[i];
@@ -171,7 +242,15 @@ export class BatchesUI {
         return null;
       }
       groups.push({ label: "Unterkategorie " + (i + 1), entries });
-      collected.push({ index: i + 1, start: s, end: e, entries, configFile: b.config.value || null });
+      collected.push({
+        index: i + 1,
+        start: s,
+        end: e,
+        entries,
+        configFile: b.config.value || null,
+        templateFile: b.template.value || null,
+        outputFolder: b.output.value.trim() || null,
+      });
     }
 
     // Eingabegate: alle expandierten Codes gegen den etiket-Validator prüfen,
@@ -262,25 +341,6 @@ export class BatchesUI {
     section.root.remove();
     this.batches.splice(idx, 1);
     this.notify();
-  }
-
-  /** Befüllt das Config-Dropdown einer Unterkategorie. */
-  private fillConfigSelect(section: BatchSection): void {
-    const sel = section.config;
-    sel.innerHTML = "";
-    if (!this.configOptions.length) {
-      const opt = document.createElement("option");
-      opt.value = "";
-      opt.textContent = "(global: Standard-Konfiguration)";
-      sel.appendChild(opt);
-      return;
-    }
-    for (const entry of this.configOptions) {
-      const opt = document.createElement("option");
-      opt.value = entry.file;
-      opt.textContent = entry.label;
-      sel.appendChild(opt);
-    }
   }
 
   /** Informiert alle Abonnenten über eine Änderung. */

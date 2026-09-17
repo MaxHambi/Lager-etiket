@@ -40,20 +40,29 @@ export class PreviewUI {
 
   /** Erzeugt und zeigt die Vorschau für den gewählten Eintrag. */
   private async show(): Promise<void> {
-    const tpl = this.templates.current ?? this.gallery.current;
-    if (!tpl) {
-      this.log.err("Bitte zuerst eine Vorlage laden (Galerie oder Datei).");
-      return;
-    }
-    // Einzelfeld hat Vorrang; im Mehrfach-Modus der erste Eintrag der ersten Kategorie
+    // Einzelfeld hat Vorrang; im Mehrfach-Modus der erste Eintrag der ersten
+    // Kategorie — inklusive deren eigener Vorlage, falls gesetzt (Issue #1.4).
     let entry = this.batches.singleEntry();
+    let tpl = this.templates.current ?? this.gallery.current;
     if (this.batches.isMulti) {
       const batches = this.batches.collectBatches(false);
       if (!batches || !batches.length) {
         this.log.err("Keine Unterkategorie mit gültigem Bereich gefunden.");
         return;
       }
-      entry = batches[0].entries[0];
+      const first = batches[0];
+      entry = first.entries[0];
+      if (first.templateFile) {
+        tpl = await this.gallery.getImage(first.templateFile);
+        if (!tpl) {
+          this.log.err('Vorlage "' + first.templateFile + '" (Unterkategorie ' + first.index + ") nicht ladbar.");
+          return;
+        }
+      }
+    }
+    if (!tpl) {
+      this.log.err("Bitte zuerst eine Vorlage laden (Galerie, Datei oder je Unterkategorie).");
+      return;
     }
     if (!entry) {
       this.log.err("Bitte einen Lagerplatz eingeben.");
