@@ -61,6 +61,8 @@ Zielzustand des Plans auch praktisch im Browser bestätigt.
 - [ ] Mesh-Memory-Spiegelung der Meilensteine, falls Instanz eingerichtet wird
 - [x] Live-Test der Web-App nach der Migration (siehe
       [TEST-REPORT-WEBAPP.md](TEST-REPORT-WEBAPP.md))
-- [ ] Playwright-Smoke-Test für den Live-Test-Durchlauf in CI automatisieren
+- [x] Playwright-Smoke-Test für den Live-Test-Durchlauf automatisiert
+      (`packages/web/tests/e2e/`, Workflow `e2e-smoke.yml` mit Pfad-Trigger,
+      Issue #16)
 - [ ] Härtungs-Issues #13–#15 (CLI-Doku-Pfad, verwaiste Verzeichnisse,
       composeStructure-API) abarbeiten

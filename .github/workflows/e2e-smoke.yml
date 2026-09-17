@@ -1,0 +1,95 @@
+name: E2E Smoke (Playwright)
+
+# Issue #16: Der Web-App-Smoke-Test läuft NICHT bei jedem Push/PR, sondern
+# nur, wenn Pages-relevante Dateien geändert wurden (index.html, App-Quellen,
+# Build-Scripts, öffentliche Assets). Der Workflow meldet das Ergebnis als
+# Commit-Status und als Job-Zusammenfassung.
+#
+# Bewusst ohne Cache: Playwright-Browser werden frisch installiert und der
+# Web-Build jedes Mal neu erzeugt (Forderung aus #16 — "immer ohne Cache,
+# damit wirklich neue Daten erfasst werden").
+#
+# Der Smoke-Test automatisiert den manuellen Durchlauf aus
+# docs/TEST-REPORT-WEBAPP.md: Start → Vorschau → Gate → Batch → ZIP →
+# Persistenz → Theme. Er läuft gegen den Dev-Build (kein Vault/Login).
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - "packages/web/index.html"
+      - "packages/web/src/**"
+      - "packages/web/build.mjs"
+      - "packages/web/public/**"
+      - "packages/web/tests/e2e/**"
+      - "packages/web/playwright.config.ts"
+      - "packages/web/package.json"
+      - "packages/lager-etiket/src/**"
+      - ".github/workflows/e2e-smoke.yml"
+  pull_request:
+    branches:
+      - master
+    paths:
+      - "packages/web/index.html"
+      - "packages/web/src/**"
+      - "packages/web/build.mjs"
+      - "packages/web/public/**"
+      - "packages/web/tests/e2e/**"
+      - "packages/web/playwright.config.ts"
+      - "packages/web/package.json"
+      - "packages/lager-etiket/src/**"
+      - ".github/workflows/e2e-smoke.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  e2e-smoke:
+    name: Playwright-Smoke-Test (Web-App)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v5
+
+      - name: pnpm installieren
+        uses: pnpm/action-setup@v4
+
+      - name: Node.js einrichten
+        uses: actions/setup-node@v5
+        with:
+          node-version: "24"
+          cache: "pnpm"
+
+      - name: Abhängigkeiten installieren (frisch, ohne Cache der Browser)
+        run: pnpm install --frozen-lockfile
+
+      - name: Playwright-Browser installieren (chromium, frisch)
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Smoke-Test ausführen (Dev-Build + Test in einem Schritt)
+        run: pnpm test:e2e
+
+      - name: Test-Report hochladen (bei Fehlschlag, 7 Tage)
+        if: failure()
+        uses: actions/upload-artifact@v6
+        with:
+          name: playwright-report
+          path: packages/web/test-results/
+          retention-days: 7
+
+      - name: Zusammenfassung schreiben
+        if: always()
+        run: |
+          {
+            echo "## E2E Smoke-Test (Web-App)"
+            echo ""
+            if [ "${{ job.status }}" = "success" ]; then
+              echo "✅ Playwright-Smoke-Test bestanden (Start → Vorschau → Gate → Batch → ZIP → Persistenz → Theme)."
+            else
+              echo "❌ Playwright-Smoke-Test fehlgeschlagen — Report im Artefakt \`playwright-report\`."
+            fi
+            echo ""
+            echo "_Trigger: Pages-relevante Dateien geändert (Issue #16)._"
+          } >> "$GITHUB_STEP_SUMMARY"

@@ -29,14 +29,15 @@ node packages/cli/dist/cli.mjs list                   # unterstützte Formate
 
 ## Commands
 
-| Command                         | Beschreibung                                         |
-| ------------------------------- | ---------------------------------------------------- |
-| `pnpm lint`                     | oxlint + oxfmt --check (0-Warnungen-Politik)         |
-| `pnpm typecheck`                | tsc --noEmit in allen Paketen                        |
-| `pnpm test`                     | vitest in allen Paketen (inkl. zxing-wasm-Roundtrip) |
-| `pnpm build`                    | obuild (lib, compose, cli) + esbuild (web)           |
-| `pnpm fmt`                      | oxfmt formatieren                                    |
-| `pnpm dev:cli` / `pnpm dev:web` | Dev-Modi                                             |
+| Command                         | Beschreibung                                                       |
+| ------------------------------- | ------------------------------------------------------------------ |
+| `pnpm lint`                     | oxlint + oxfmt --check (0-Warnungen-Politik)                       |
+| `pnpm typecheck`                | tsc --noEmit in allen Paketen                                      |
+| `pnpm test`                     | vitest in allen Paketen (inkl. zxing-wasm-Roundtrip)               |
+| `pnpm test:e2e`                 | Playwright-Smoke-Test der Web-App (nur bei Pages-änderungen in CI) |
+| `pnpm build`                    | obuild (lib, compose, cli) + esbuild (web)                         |
+| `pnpm fmt`                      | oxfmt formatieren                                                  |
+| `pnpm dev:cli` / `pnpm dev:web` | Dev-Modi                                                           |
 
 ## Architektur in Kürze
 
