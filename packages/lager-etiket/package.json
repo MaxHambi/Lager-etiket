@@ -35,13 +35,16 @@
   "scripts": {
     "build": "obuild",
     "typecheck": "tsc --noEmit",
-    "lint": "oxlint . && oxfmt --check ."
+    "lint": "oxlint . && oxfmt --check .",
+    "test": "vitest run"
   },
   "dependencies": {
     "etiket": "^0.12.0"
   },
   "devDependencies": {
     "obuild": "^0.4.40",
-    "typescript": "~5.9.2"
+    "typescript": "~5.9.2",
+    "vitest": "^5.0.1",
+    "zxing-wasm": "^3.1.4"
   }
 }

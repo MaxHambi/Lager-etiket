@@ -15,7 +15,7 @@
     "lint:fix": "oxlint . --fix && oxfmt .",
     "fmt": "oxfmt .",
     "typecheck": "pnpm -r typecheck",
-    "test": "pnpm lint && pnpm typecheck && vitest run",
+    "test": "pnpm -r test",
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
