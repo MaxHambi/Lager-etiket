@@ -33,6 +33,9 @@ export class TemplateGallery {
   /** Label des aktuell gewählten Galerie-Eintrags. */
   private label: string | null = null;
 
+  /** Nutzbare Einträge aus dem Manifest (für Batch-Vorlagen-Dropdowns). */
+  private manifestEntries: TemplateManifestEntry[] = [];
+
   /** Abonnenten der Auswahl-Änderungen. */
   private readonly listeners: Array<(img: HTMLImageElement | null, label: string | null) => void> = [];
 
@@ -67,8 +70,33 @@ export class TemplateGallery {
       return;
     }
     wrap.style.display = "block";
+    this.manifestEntries = usable;
     this.render(usable);
     this.log.info(usable.length + " Vorlage(n) in der Galerie gefunden.");
+  }
+
+  /** Nutzbare Manifest-Einträge (für Dropdowns in Unterkategorien). */
+  get manifest(): TemplateManifestEntry[] {
+    return this.manifestEntries;
+  }
+
+  /**
+   * Lädt eine Galerie-Vorlage anhand ihres Manifest-Dateinamens.
+   * Wird für Unterkategorien mit eigener Vorlagenauswahl gebraucht.
+   *
+   * @param file Manifest-Dateiname (z. B. "MV.png")
+   * @returns Geladenes Bild, oder null bei Fehler (Meldung im Protokoll)
+   */
+  async getImage(file: string): Promise<HTMLImageElement | null> {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = (): void => resolve(img);
+      img.onerror = (): void => {
+        this.log.err('Vorlage "' + file + '" konnte nicht geladen werden.');
+        resolve(null);
+      };
+      img.src = "public/templates/" + encodeURIComponent(file);
+    });
   }
 
   /** Aktuell über die Galerie gewähltes Bild (oder null). */
