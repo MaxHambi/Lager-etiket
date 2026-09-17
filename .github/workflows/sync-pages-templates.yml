@@ -88,7 +88,9 @@ jobs:
 
       - name: Änderungen committen und pushen
         run: |
-          git add -A public/templates public/configs config.json 2>/dev/null || git add -A
+          # -A: auch Löschungen (z. B. bereinigte apps/web-Duplikate früherer
+          # Läufe) müssen gestaged werden, sonst wird "keine Änderung" erkannt
+          git add -A
           if git diff --staged --quiet; then
             echo "Keine Vorlagen-/Config-Änderungen zu synchronisieren."
           else
