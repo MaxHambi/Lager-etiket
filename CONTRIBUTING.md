@@ -15,10 +15,10 @@ pnpm dev:web          # Web-App im Dev-Modus
 pnpm dev:cli          # CLI im Stub-Modus
 ```
 
-## Branch- und PR-Workflow (Standard)
+## Branch- und PR-Workflow (verbindlich)
 
-Direktes Pushen auf `master` ist **kein Standard mehr** — Änderungen
-landen über Feature-Branches und Pull Requests:
+Direktes Pushen auf `master` ist **technisch blockiert** (Branch-Protection):
+Änderungen landen ausschließlich über Feature-Branches und Pull Requests.
 
 ```bash
 # 1. Feature-Branch vom aktuellen master anlegen
@@ -32,27 +32,54 @@ pnpm lint && pnpm typecheck && pnpm test && pnpm build
 git add -A && git commit -m "feat(scope): beschreibung"
 
 # 4. Pushen und PR öffnen
-git -c credential.helper="!gh auth git-credential" push origin feat/kurz-beschreibend
+git push origin feat/kurz-beschreibend
 gh pr create --base master --title "…" --body "…"
 ```
 
+### Branch-Protection auf master
+
+| Regel                  | Einstellung      | Bedeutung                                                                                               |
+| ---------------------- | ---------------- | ------------------------------------------------------------------------------------------------------- |
+| Required status checks | ✅ strict        | Alle 6 CI-Checks (Lint/Tests je Linux+Windows, Build, Docs) müssen grün sein, bevor gemergt werden kann |
+| Update-Strategie       | `strict: true`   | Der Branch muss vor dem Merge auf aktuellem master stehen (CI validiert den Merge-Commit)               |
+| Force pushes           | ❌ verboten      | master-Historie ist unveränderlich                                                                      |
+| Branch-Löschung        | ❌ verboten      | master kann nicht gelöscht werden                                                                       |
+| Required reviews       | ❌ nicht gesetzt | Solo-Projekt: der CI-Check ist das Review-Gate                                                          |
+| Admin-Override         | ✅ möglich       | `enforce_admins: false` — Notausgang für Hotfixes; danach sofort PR nachziehen und begründen            |
+
+### Merge-Regeln
+
+- **Merge erst, wenn alle 6 Checks grün sind** — GitHub blockiert sonst.
+- **Standard: Merge-Commit** (`gh pr merge --merge`) — die Feature-Historie
+  bleibt im master sichtbar (etabliertes Muster dieses Repos).
+- **Squash** (`gh pr merge --squash`) für Fleißarbeit-Branches mit vielen
+  WIP-Commits — die Squash-Message muss dem Conventional-Commits-Format
+  folgen.
+- **Branch nach dem Merge löschen:** `gh pr merge --delete-branch`
+  erledigt remote + lokal; manuell `git push origin --delete <branch>` und
+  `git branch -d <branch>`.
+- **Kein Rebase-Merge** — umgeschriebene Commits brechen die
+  Merge-Commit-Referenzen aus den geschlossenen Issues.
+
 ### Regeln
 
-- **Branch-Namen:** `feat/…`, `fix/…`, `ci/…`, `docs/…` + kurzer Kebab-Case-Titel.
-- **Ein PR = ein thematisch zusammenhängendes Änderungspaket** (idealerweise
-  ein Issue). Größere Arbeiten in mehrere PRs schneiden.
-- **PR-Beschreibung** nennt: Was, Warum, Test-Plan (was wurde wie verifiziert),
-  `Closes #N`-Referenzen.
-- **Merge:** Squash oder Merge-Commit — maintainer-Entscheidung im PR.
-  Nach dem Merge den Branch löschen (`git branch -d`, `git push origin --delete`).
+- **Branch-Namen:** `feat/…`, `fix/…`, `ci/…`, `docs/…` + kurzer
+  Kebab-Case-Titel.
+- **Ein PR = ein thematisch zusammenhängendes Änderungspaket**
+  (idealerweise ein Issue). Größere Arbeiten in mehrere PRs schneiden.
+- **PR-Beschreibung** nennt: Was, Warum, Test-Plan (was wurde wie
+  verifiziert), `Closes #N`-Referenzen — beim Merge schließen die
+  Referenzen das Issue automatisch.
 - **CI ist Gate:** Ein PR wird nur gemergt, wenn alle Checks grün sind
   (Lint, Typecheck, Tests, Build — auf Linux **und** Windows).
 
 ### Ausnahme: direkter Push auf master
 
-Nur für triviale, sofort korrigierbare Fälle (Tippfehler in Doku,
-Workflow-Einzeiler). Alles andere gehört in einen PR — die Historie ist
-sonst nicht mehr nachvollziehbar.
+Durch die Branch-Protection **nicht mehr möglich**. Der einzige Weg bleibt
+der PR. Im Notfall (Repo kaputt, Fix am Workflow im Workflow selbst) per
+Admin-Override pushen (`git push` als Admin wird beim
+`enforce_admins: false` einmalig durchgelassen) und unmittelbar danach im
+folge-PR dokumentieren. Für alles andere gilt: Branch + PR.
 
 ## Commit-Conventions
 
