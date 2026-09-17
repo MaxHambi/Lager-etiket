@@ -19,8 +19,8 @@ function readU32(buf, offset) {
 
 test("makeZip: gültige ZIP-Signaturen (Local Header + EOCD)", async () => {
   const blob = makeZip([{ name: "a.txt", data: new TextEncoder().encode("hallo") }])
-  const buf = (await blob.arrayBuffer()).buffer ?? (await blob.arrayBuffer())
-  const view = new Uint8Array(buf)
+  const arrayBuf = await blob.arrayBuffer()
+  const view = new Uint8Array(arrayBuf)
 
   // "PK\x03\x04" Local File Header
   assert.equal(view[0], 0x50)
@@ -30,7 +30,7 @@ test("makeZip: gültige ZIP-Signaturen (Local Header + EOCD)", async () => {
 
   // EOCD-Signatur "PK\x05\x06" an Position len-22
   const eocdOffset = view.length - 22
-  assert.equal(readU32(buf, eocdOffset), 0x06054b50)
+  assert.equal(readU32(arrayBuf, eocdOffset), 0x06054b50)
 
   assert.equal(blob.type, "application/zip")
 })

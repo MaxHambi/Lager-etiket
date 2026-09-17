@@ -31,9 +31,9 @@ test("parseEntries: Doppelter Eintrag wirft Fehler mit Zeilennummern", () => {
   assert.throws(
     () => parseEntries("01A01\n01A02\n01A01"),
     (err) => {
-      assert.match(err.message, /Doppelter Eintrag "01A01"/)
-      assert.match(err.message, /Zeile 3/)
-      assert.match(err.message, /Zeile 1/)
+      assert.match((err as Error).message, /Doppelter Eintrag "01A01"/)
+      assert.match((err as Error).message, /Zeile 3/)
+      assert.match((err as Error).message, /Zeile 1/)
       return true
     },
   )

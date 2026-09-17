@@ -1,9 +1,14 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "lib": ["ES2022"],
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "types": ["node"],
     "noEmit": true,
+    "paths": {
+      "@lager-etiket/lib": ["../lager-etiket/src/index.ts"],
+      "@lager-etiket/lib/*": ["../lager-etiket/src/*"],
+      "@lager-etiket/compose": ["../compose/src/index.ts"],
+    },
   },
-  "include": ["src/**/*.ts"],
+  "include": ["src/**/*.ts", "../compose/src/**/*.ts", "../lager-etiket/src/**/*.ts"],
 }
