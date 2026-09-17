@@ -16,16 +16,16 @@ on:
       - master
     paths:
       # Vorlagen-Galerie der Web-App (Manifest + PNGs)
-      - 'apps/web/public/templates/**'
+      - "apps/web/public/templates/**"
       # Gespeicherte Konfigurationen (Config-Bibliothek)
-      - 'apps/web/public/configs/**'
+      - "apps/web/public/configs/**"
       # Projekt-Templates (Quelle der Galerie-PNGs)
-      - 'packages/tools/Templates/**'
-      - 'Templates/**'
+      - "packages/tools/Templates/**"
+      - "Templates/**"
       # Root-config.json (CLI + Standard-Config)
-      - 'config.json'
+      - "config.json"
       # Dieses Workflow-File selbst
-      - '.github/workflows/sync-pages-templates.yml'
+      - ".github/workflows/sync-pages-templates.yml"
   workflow_dispatch:
 
 permissions:

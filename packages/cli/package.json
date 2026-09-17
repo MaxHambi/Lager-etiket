@@ -1,0 +1,27 @@
+{
+  "name": "@lager-etiket/cli",
+  "version": "2.0.0-alpha.0",
+  "private": true,
+  "type": "module",
+  "description": "citty-CLI für den Lagerplatz-Barcode-Generator (ersetzt barcode.mjs/ps1)",
+  "bin": {
+    "lager": "./dist/cli.mjs"
+  },
+  "scripts": {
+    "build": "obuild",
+    "dev": "unbuild --stub",
+    "typecheck": "tsc --noEmit",
+    "lint": "oxlint . && oxfmt --check ."
+  },
+  "dependencies": {
+    "@lager-etiket/compose": "workspace:*",
+    "@lager-etiket/lib": "workspace:*",
+    "citty": "^0.1.6",
+    "consola": "^3.4.2"
+  },
+  "devDependencies": {
+    "obuild": "^0.4.40",
+    "typescript": "~5.9.2",
+    "unbuild": "^3.6.1"
+  }
+}

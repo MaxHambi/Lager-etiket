@@ -5,13 +5,13 @@
 
 /** Lädt die CRC-Tabelle (256 Einträge) einmalig träge. */
 function getCrcTable(): Uint32Array {
-  const table = new Uint32Array(256);
+  const table = new Uint32Array(256)
   for (let n = 0; n < 256; n++) {
-    let c = n;
-    for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
-    table[n] = c;
+    let c = n
+    for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1
+    table[n] = c
   }
-  return table;
+  return table
 }
 
 /**
@@ -21,10 +21,10 @@ function getCrcTable(): Uint32Array {
  * @returns CRC32 als unsigned 32-Bit-Wert
  */
 export function crc32(bytes: Uint8Array): number {
-  const table = getCrcTable();
-  let crc = 0 ^ -1;
+  const table = getCrcTable()
+  let crc = 0 ^ -1
   for (let i = 0; i < bytes.length; i++) {
-    crc = (crc >>> 8) ^ table[(crc ^ bytes[i]) & 0xff];
+    crc = (crc >>> 8) ^ table[(crc ^ bytes[i]) & 0xff]
   }
-  return (crc ^ -1) >>> 0;
+  return (crc ^ -1) >>> 0
 }

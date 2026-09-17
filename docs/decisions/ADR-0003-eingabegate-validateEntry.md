@@ -19,7 +19,7 @@ Quellcode-Analyse von etiket (`C:\Lager\etiket`) zeigte:
 1. `validateBarcode(text, "code128")` prüft bei Code 128 **nur auf Leere**
    (`validators/barcode.ts` Z. 59–61) — die Zeichensatz-Prüfung macht der
    Encoder.
-2. Code 128 kann Steuerzeichen *technisch* kodieren (Code-Set-A/SHIFT) —
+2. Code 128 kann Steuerzeichen _technisch_ kodieren (Code-Set-A/SHIFT) —
    Node-Experiment bestätigte: `"01\u0001A"` wird von `encodeBars` klaglos
    kodiert. Auf einem gedruckten Schild sind Steuerzeichen aber nie
    beabsichtigt (Copy-Paste-Fehler).
@@ -54,17 +54,20 @@ Dazu:
 ## Alternatives Considered
 
 ### Nur `validateBarcode()` aus `etiket/validators`
+
 - Pros: Offizielle etiket-API.
 - Cons: Prüft bei Code 128 nur Leere — Steuerzeichen rutschen durch.
 - Rejected: Unzureichend für das Druck-Szenario.
 
 ### Nur Druckbarkeits-Regex, ohne Encoder
+
 - Pros: Einfach.
 - Cons: Validierung und Rendering könnten künftig auseinanderlaufen (z. B. bei
   Renderer-Wechsel) — genau das, was etikets `byEncoding` verhindert.
 - Rejected: Verliert die Strukturgarantie.
 
 ### Typisierte Fehler (`InvalidInputError` fangen)
+
 - Pros: Differenziertere Meldungen.
 - Cons: Für den Anwendungsfall (drucken oder nicht) nicht nötig; die
   Encoder-Exception-Nachricht wird im Fehlerfall mit ausgegeben.

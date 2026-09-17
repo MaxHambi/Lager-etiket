@@ -1,0 +1,12 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "paths": {
+      "@lager-etiket/lib": ["../lager-etiket/src/index.ts"],
+      "@lager-etiket/lib/*": ["../lager-etiket/src/*"],
+    },
+  },
+  "include": ["src", "test"],
+}

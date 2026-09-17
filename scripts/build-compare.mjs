@@ -9,17 +9,17 @@
  *
  * Aufruf: node scripts/build-compare.mjs
  */
-import { build } from "esbuild";
-import { readFileSync, writeFileSync } from "node:fs";
-import path from "node:path";
+import { build } from "esbuild"
+import { readFileSync, writeFileSync } from "node:fs"
+import path from "node:path"
 
-const root = path.resolve(import.meta.dirname, "..");
-const webDir = path.join(root, "apps", "web");
-const toolsDir = path.join(root, "packages", "tools");
+const root = path.resolve(import.meta.dirname, "..")
+const webDir = path.join(root, "apps", "web")
+const toolsDir = path.join(root, "packages", "tools")
 
 // 1) Bundle bauen (compare.ts), CLI_PNG_SRC/TPL_PNG_SRC als Define einschleusen
-const cliPng = readFileSync(path.join(webDir, "public/compare/cli-01A01.png"));
-const tplPng = readFileSync(path.join(webDir, "public/compare/template.png"));
+const cliPng = readFileSync(path.join(webDir, "public/compare/cli-01A01.png"))
+const tplPng = readFileSync(path.join(webDir, "public/compare/template.png"))
 
 const result = await build({
   entryPoints: [path.join(toolsDir, "compare.ts")],
@@ -34,9 +34,9 @@ const result = await build({
     CLI_PNG_SRC: JSON.stringify("data:image/png;base64," + cliPng.toString("base64")),
     TPL_PNG_SRC: JSON.stringify("data:image/png;base64," + tplPng.toString("base64")),
   },
-});
+})
 
-const js = result.outputFiles[0].text;
+const js = result.outputFiles[0].text
 
 // 2) HTML mit inline Bundle zusammenbauen
 const html = `<!DOCTYPE html>
@@ -62,7 +62,7 @@ const html = `<!DOCTYPE html>
 <script>${js}</script>
 </body>
 </html>
-`;
+`
 
-writeFileSync(path.join(webDir, "public/compare/compare.html"), html);
-console.log("[compare] compare.html gebaut (" + Math.round(html.length / 1024) + " kb, inline)");
+writeFileSync(path.join(webDir, "public/compare/compare.html"), html)
+console.log("[compare] compare.html gebaut (" + Math.round(html.length / 1024) + " kb, inline)")
