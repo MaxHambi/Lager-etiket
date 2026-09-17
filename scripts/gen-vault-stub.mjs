@@ -11,7 +11,7 @@ import { dirname, join } from "node:path"
 import { fileURLToPath } from "node:url"
 
 const scriptDir = dirname(fileURLToPath(import.meta.url))
-const webDir = join(scriptDir, "..", "apps", "web")
+const webDir = join(scriptDir, "..", "packages", "web")
 const generatedDir = join(webDir, "src", "generated")
 const vaultFile = join(generatedDir, "vault.ts")
 
