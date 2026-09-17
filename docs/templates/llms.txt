@@ -1,0 +1,39 @@
+# llms.txt-Template (AI-freundliche Dokumentation)
+
+Vorlage für eine `llms.txt` im Projekt-Root — dient AI-Crawlern und Agenten
+als kompakte Orientierung. Bei größeren Strukturänderungen aktualisieren.
+
+```markdown
+# lager-etiket
+> Lagerplatz-Schild-Generator: Code-128-Barcodes auf PNG-Vorlagen,
+> Web-App + CLI, byte-identische Ausgabe in beiden Pfaden.
+
+## Core Files
+- [packages/lager-etiket/src/index.ts]: Kernlib-Entry (encoders, renderers, validators, errors)
+- [packages/compose/src/index.ts]: 3-stufige Pipeline (compute → renderSvg → raster)
+- [packages/cli/src/cli.ts]: citty-CLI (generate/validate/list)
+- [packages/web/src/main.ts]: Web-App-Entry
+- [AGENTS.md]: Konventionen und Projektstatus
+- [docs/ROADMAP.md]: 5-Phasen-Plan mit Status
+- [CHANGELOG.md]: Änderungshistorie
+
+## Key Concepts
+- Pure Functions: compute und renderSvg sind strikt deterministisch, kein IO/DOM
+- etiket/png: Zero-Dependency-PNG-Encoder, ersetzt sharp komplett
+- Subpath-Exports: @lager-etiket/lib/barcode, /render, /validators, /errors
+- Bytegleichheit: CLI- und Web-Pfad erzeugen identische PNG-Bytes
+
+## Konventionen
+- Commits: Conventional Commits, deutsche Beschreibung erlaubt, KEINE
+  KI-Attributions-Fußzeilen (docs/COMMIT-RULES.md)
+- Build: pnpm (nie npm), obuild für lib/compose/cli, esbuild für web
+- Lint: oxlint + oxfmt (0 Warnungen erzwingen)
+```
+
+## Hinweise
+
+- Die Datei ist **optional** — sie lohnt sich für Projekte, die stark von
+  Agenten gelesen werden (wie dieses).
+- Mermaid-Diagramme in der Doku (```mermaid-Blöcke) sind für RAG-Indexierung
+  und menschliche Leser gleichermaßen wertvoll.
+- JSON/YAML-Beispiele für Datenstrukturen bevorzugen (maschinenlesbar).

@@ -54,7 +54,9 @@ pnpm dev:web          # Web-App-Dev-Server
 ## Konventionen
 
 - **Commits:** Semantic lowercase (`feat:`, `fix:`, `ci:`, `test:`, `docs:`,
-  `chore:`), deutsche Beschreibung erlaubt.
+  `chore:`), deutsche Beschreibung erlaubt. **Keine KI-Fußzeilen** — kein
+  „Generated with Codebuff“ und kein `Co-Authored-By: …`-Trailer auf
+  Agenten-Namen. Details: `docs/COMMIT-RULES.md`.
 - **Formatierung:** oxfmt (oxc-Ökosystem). Niemals manuell formatieren —
   `pnpm fmt` verwenden.
 - **Tests:** Neue Encoder/Renderer-Features bekommen Roundtrip-Verifikation
