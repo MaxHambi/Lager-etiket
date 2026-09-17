@@ -13,6 +13,7 @@ on:
       - 'packages/**'
       - 'scripts/**'
       - 'config.json'
+      - 'packages/tools/config.json'
       - 'package.json'
       - 'package-lock.json'
       - 'turbo.json'
@@ -74,9 +75,14 @@ jobs:
           git checkout gh-pages
 
           # Aktuelle Quelldateien aus dem Hauptbranch holen
-          # (config.json liegt am Root, index.html in apps/web)
-          git checkout master -- config.json apps/web/index.html
-          mv apps/web/index.html index.html && rmdir apps/web 2>/dev/null || true
+          # (index.html liegt in apps/web; die Root-config.json ist nach
+          # packages/tools/config.json umgezogen — die Web-App nutzt
+          # public/configs/standard.json als Standard)
+          git checkout master -- apps/web/index.html
+          if git cat-file -e master:config.json 2>/dev/null; then
+            git checkout master -- config.json
+          fi
+          mv apps/web/index.html index.html && rm -rf apps/web 2>/dev/null || true
 
           # Gebaute Dateien aus dem Job übernehmen (vor dem Branch-Wechsel gesichert)
           rm -rf assets dist public

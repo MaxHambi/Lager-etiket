@@ -37,6 +37,8 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v5
+        with:
+          fetch-depth: 0 # Alle Branches laden, damit gh-pages ausgecheckt werden kann
 
       - name: Identität für den Sync-Bot
         run: |
