@@ -51,6 +51,30 @@ pnpm dev:cli          # CLI im --stub-Modus (jiti, kein Rebuild nötig)
 pnpm dev:web          # Web-App-Dev-Server
 ```
 
+## Git-Workflow (verbindlich)
+
+**Kein direkter Push auf `master`** — der Branch ist geschützt
+(Branch-Protection: 6 CI-Checks required, Force-Push verboten). Jede
+Änderung läuft über Feature-Branch + PR, auch für Agenten:
+
+```bash
+git checkout master && git pull origin master
+git checkout -b fix/kurz-beschreibend
+# … Änderungen + Quality-Gate (pnpm lint && pnpm typecheck && pnpm test && pnpm build)
+git add -A && git commit -m "fix(scope): beschreibung"
+git push origin fix/kurz-beschreibend
+gh pr create --base master --title "…" --body "… Closes #N"
+# Nach grünen Checks: gh pr merge --merge --delete-branch
+```
+
+- **Issue zuerst:** Zu jedem Arbeitspaket ein GitHub-Issue anlegen
+  (Problem/Goal/Scope/Acceptance-Criteria, Status ready) — der PR
+  referenziert es mit `Closes #N`.
+- **Merge-Regeln, Ausnahmen, Details:** `CONTRIBUTING.md`.
+- **Push-Setup:** Remote ist SSH (`git@github.com:MaxHambi/Lager-etiket.git`),
+  `core.sshCommand` zeigt auf Git-Bash-ssh — plain `git push` funktioniert
+  ohne credential helper.
+
 ## Konventionen
 
 - **Commits:** Semantic lowercase (`feat:`, `fix:`, `ci:`, `test:`, `docs:`,
@@ -61,9 +85,6 @@ pnpm dev:web          # Web-App-Dev-Server
   `pnpm fmt` verwenden.
 - **Tests:** Neue Encoder/Renderer-Features bekommen Roundtrip-Verifikation
   gegen ein unabhängiges Drittsystem (zxing-wasm) — etiket-Vorbild.
-- **CI-Push-Hinweis:** Lokal hängt `git push` am Windows credential manager;
-  `git -c credential.helper= -c credential.helper='!gh auth git-credential'
-  push origin master` verwenden.
 - **Doku:** ADRs in `docs/decisions/`, Analyse in `docs/`, Status in
   `docs/ROADMAP.md`. Neue Architektur-Entscheidungen → neuen ADR schreiben
   (alten niemals löschen, nur supersededen).
