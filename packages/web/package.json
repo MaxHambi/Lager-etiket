@@ -8,12 +8,15 @@
     "build:watch": "node build.mjs --watch",
     "typecheck": "node ../../scripts/gen-vault-stub.mjs && tsc --noEmit",
     "lint": "oxlint . && oxfmt --check .",
-    "dev": "node build.mjs --watch"
+    "dev": "node build.mjs --watch",
+    "test:e2e": "node build.mjs && playwright test",
+    "test:e2e:only": "playwright test"
   },
   "dependencies": {
     "@lager-etiket/lib": "workspace:*"
   },
   "devDependencies": {
+    "@playwright/test": "^1.63.0",
     "esbuild": "^0.28.2",
     "typescript": "~5.9.2"
   }
