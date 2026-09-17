@@ -30,8 +30,12 @@ export class PreviewUI {
    * Aktiviert/deaktiviert den Vorschau-Button je nach Vorlage + Eintrag.
    */
   updateEnabled(): void {
-    const hasTemplate = !!this.templates.current || !!this.gallery.current;
     const batches = this.batches.isMulti ? this.batches.collectBatches(true) : null;
+    // Mehrfach-Modus: erste Unterkategorie braucht eine Vorlage (eigene oder global)
+    const hasTemplate = this.batches.isMulti
+      ? !!batches && batches.length > 0 &&
+        (!!batches[0].templateFile || !!this.templates.current || !!this.gallery.current)
+      : !!this.templates.current || !!this.gallery.current;
     const hasEntry = this.batches.isMulti
       ? !!batches && batches.length > 0
       : this.batches.singleEntry().length > 0;

@@ -86,6 +86,10 @@ function bootstrap(): void {
     // Galerie-Load anwenden — die Wiederherstellung klickt sonst eine
     // Karte an, die noch nicht gerendert ist.
     initViewSettings(log, gallery);
+    // Batch-Vorlagen-Dropdowns mit dem Galerie-Manifest befüllen
+    batches.setTemplateOptions(
+      gallery.manifest.map((t) => ({ file: t.file, label: t.label })),
+    );
     updateAll();
   });
   void configLibrary.load().then(() => {

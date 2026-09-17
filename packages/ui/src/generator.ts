@@ -76,15 +76,21 @@ export class GeneratorUI {
   /**
    * Aktiviert/deaktiviert den "Alle Schilder erzeugen"-Button je nach
    * Modus (Einzelfeld / Unterkategorien) und Vorlagenquelle.
+   * Im Mehrfach-Modus reicht es, wenn jede aktive Unterkategorie eine
+   * Vorlage hat (eigene ODER globale) — die globale ist optional.
    */
   updateEnabled(): void {
-    const hasTemplate = !!this.templates.current || !!this.gallery.current;
-    let ok = hasTemplate;
+    let ok: boolean;
     if (this.batches.isMulti) {
       const batches = this.batches.collectBatches(true);
-      ok = ok && !!batches && batches.length > 0;
+      const globalTemplate = !!this.templates.current || !!this.gallery.current;
+      ok =
+        !!batches &&
+        batches.length > 0 &&
+        batches.every((b) => globalTemplate || !!b.templateFile);
     } else {
-      ok = ok && this.batches.singleEntry().length > 0;
+      const hasTemplate = !!this.templates.current || !!this.gallery.current;
+      ok = hasTemplate && this.batches.singleEntry().length > 0;
     }
     ($("btnGenerateAll") as HTMLButtonElement).disabled = !ok;
   }
