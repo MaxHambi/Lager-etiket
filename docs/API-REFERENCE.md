@@ -234,13 +234,28 @@ ohne AppConfig-Bridge), `validatePng` (Gate), `renderFailed` (Fehlerhelfer)
 
 ---
 
-### composeStructure(entry, templateMeta, barcodeSvg, w, h, cfg)
+### composeStructure(entry, templateMeta, templateDataUri, barcodeSvg, w, h, cfg)
 
-**Type**: Orchestrierung von compute + renderSvg in einem Aufruf.
+**Type**: Orchestrierung von compute + renderSvg in einem Aufruf. Das
+Overlay wird **real gerendert** — `overlaySvg` ist nie leer.
+
+**Parameter:**
+
+| Name              | Typ         | Pflicht | Beschreibung                                           |
+| ----------------- | ----------- | ------- | ------------------------------------------------------ |
+| `entry`           | `string`    | ja      | Lagerplatz-Code                                        |
+| `templateMeta`    | `object`    | ja      | `{ width, height }` der Vorlage                        |
+| `templateDataUri` | `string`    | ja      | Vorlagen-Bild als Data-URI (`data:image/png;base64,…`) |
+| `barcodeSvg`      | `string`    | ja      | Barcode-SVG aus `@lager-etiket/lib/barcode`            |
+| `w` / `h`         | `number`    | ja      | Barcode-SVG-Abmessungen (96-dpi-Basis)                 |
+| `cfg`             | `AppConfig` | ja      | Gesamtkonfiguration                                    |
 
 **Returns:**
 
-- `{ structure: ComposeStructure; overlaySvg: string }`
+- `{ structure: ComposeStructure; overlaySvg: string }` — `overlaySvg`
+  enthält das vollständige Schild als SVG (Vorlage eingebettet + Barcode
+  an berechneter Position, vektorbasiert skaliert), bereit zur Rasterung
+  (Stufe 3).
 
 **Beispiel (Node, CLI-Pfad):**
 
@@ -249,10 +264,12 @@ import { composeStructure } from "@lager-etiket/compose"
 import { renderBarcodeSvg } from "@lager-etiket/lib/barcode"
 
 const barcodeSvg = renderBarcodeSvg("01A01", cfg.barcode)
+const templateDataUri = "data:image/png;base64,…" // geladene Vorlage
 const { structure, overlaySvg } = composeStructure(
-  "01A01", { width: 2244, height: 709 }, barcodeSvg, 627, 602, cfg,
+  "01A01", { width: 2244, height: 709 },
+  templateDataUri, barcodeSvg, 627, 602, cfg,
 )
-// structure: Positionen; overlaySvg: fertiger SVG-String
+// structure: Positionen; overlaySvg: fertiges SVG (nie leer)
 ```
 
 ---
