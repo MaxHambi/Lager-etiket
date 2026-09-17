@@ -122,7 +122,7 @@ jobs:
       - name: Modul-Referenz generieren
         run: |
           pnpm --filter @lager-etiket/web run gen-vault 2>/dev/null || node scripts/gen-vault-stub.mjs
-          npx typedoc
+          pnpm exec typedoc
 
       - name: Modul-Referenz hochladen (7 Tage aufbewahren)
         uses: actions/upload-artifact@v6

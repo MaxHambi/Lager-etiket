@@ -21,8 +21,7 @@
  *
  * sharp wird damit vollständig ersetzt — siehe ADR-0007.
  */
-import { isPng } from "@lager-etiket/lib"
-import { appErrors } from "@lager-etiket/lib/errors"
+import { appErrors, isPng } from "@lager-etiket/lib"
 import type { AppConfig } from "@lager-etiket/lib"
 import { renderBarcodePngBytes } from "@lager-etiket/lib/render"
 

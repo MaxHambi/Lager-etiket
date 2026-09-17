@@ -1,0 +1,6 @@
+# Zeilenenden konsistent halten — oxfmt ist zeilenendensensitiv
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.woff binary
+*.woff2 binary

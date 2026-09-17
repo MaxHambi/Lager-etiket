@@ -74,7 +74,7 @@ jobs:
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
           # Zum gh-pages branch wechseln
-          git checkout gh-pages
+          git checkout -f gh-pages
 
           # Aktuelle Quelldateien aus dem Hauptbranch holen
           git checkout master -- packages/web/index.html
