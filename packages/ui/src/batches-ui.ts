@@ -25,6 +25,8 @@ interface BatchSection {
   config: HTMLSelectElement;
   template: HTMLSelectElement;
   output: HTMLInputElement;
+  /** Checkbox: soll diese Unterkategorie erzeugt werden? (Issue #2, Bug 2) */
+  include: HTMLInputElement;
 }
 
 /** Aufbau von `configs/configs.json` (für Batch-Config-Dropdowns). */
@@ -66,6 +68,9 @@ export class BatchesUI {
     $("btnModeMulti").addEventListener("click", () => this.setMode(true));
     $("btnModeSingle").addEventListener("click", () => this.setMode(false));
     $("btnAddBatch").addEventListener("click", () => this.addBatch());
+    // .txt-Eintragsliste: nur im Mehrfach-Modus aktiv (die Einzelerstellung
+    // braucht keine Liste) — Issue #2, Bug 1.
+    $("btnLoadEntries").addEventListener("click", () => ($("entriesFile") as HTMLInputElement).click());
 
     // Startzustand: Einzelfeld aktiv, erster Batch verborgen
     $("batchesWrap").style.display = "none";
@@ -107,6 +112,7 @@ export class BatchesUI {
     ($("entrySingle") as HTMLInputElement).disabled = multi;
     $("batchesWrap").style.display = multi ? "block" : "none";
     ($("btnAddBatch") as HTMLButtonElement).disabled = !multi;
+    ($("btnLoadEntries") as HTMLButtonElement).disabled = !multi;
 
     if (multi && this.batches.length === 0) this.addBatch();
     this.notify();
@@ -132,6 +138,8 @@ export class BatchesUI {
     root.innerHTML =
       '<div class="batch-head">' +
       '<strong>Unterkategorie ' + idx + '</strong>' +
+      '<label class="checkline batch-include-line" style="margin-left:auto;">' +
+      '<input type="checkbox" class="batch-include" checked> Erzeugen</label>' +
       '<button type="button" class="batch-remove" title="Unterkategorie entfernen">×</button>' +
       "</div>" +
       '<div class="row three">' +
@@ -154,6 +162,7 @@ export class BatchesUI {
       config: root.querySelector(".batch-config") as HTMLSelectElement,
       template: root.querySelector(".batch-template") as HTMLSelectElement,
       output: root.querySelector(".batch-output") as HTMLInputElement,
+      include: root.querySelector(".batch-include") as HTMLInputElement,
     };
 
     section.start.addEventListener("input", () => this.notify());
@@ -161,6 +170,7 @@ export class BatchesUI {
     section.config.addEventListener("change", () => this.notify());
     section.template.addEventListener("change", () => this.notify());
     section.output.addEventListener("input", () => this.notify());
+    section.include.addEventListener("change", () => this.notify());
     (root.querySelector(".batch-remove") as HTMLButtonElement).addEventListener("click", () => {
       this.removeBatch(section);
     });
@@ -241,6 +251,10 @@ export class BatchesUI {
         }
         return null;
       }
+      // Checkbox "Erzeugen": deaktivierte Unterkategorien nur überspringen,
+      // aber trotzdem validieren (Fehler sollen nicht verschwinden).
+      if (!b.include.checked) continue;
+
       groups.push({ label: "Unterkategorie " + (i + 1), entries });
       collected.push({
         index: i + 1,
@@ -295,7 +309,29 @@ export class BatchesUI {
 
   /** Einzel-Eintrag aus dem Einzelfeld (getrimmt, oder ""). */
   singleEntry(): string {
-    return (($("entrySingle") as HTMLInputElement).value || "").trim();
+    return (( $("entrySingle") as HTMLInputElement).value || "").trim();
+  }
+
+  /**
+   * Fügt eine neue Unterkategorie hinzu und befüllt sie direkt mit einer
+   * Eintragsliste (z. B. aus einer .txt-Datei). Start/Ende werden aus den
+   * Einträgen abgeleitet (erster = Start, letzter = Ende) — Issue #2, Bug 1.
+   *
+   * @param entries Gültige Lagerplatz-Codes (getrimmt, nicht leer)
+   * @returns true, wenn erstellt; false, wenn Limit erreicht
+   */
+  addEntriesBatch(entries: string[]): boolean {
+    if (!entries.length) return false;
+    if (!this.multiMode) this.setMode(true);
+    if (!this.addBatch()) return false;
+    const section = this.batches[this.batches.length - 1];
+    section.start.value = entries[0];
+    section.end.value = entries[entries.length - 1];
+    this.log.ok(
+      "Unterkategorie aus Eintragsliste erstellt: " + entries.length + " Einträge (" +
+      entries[0] + " … " + entries[entries.length - 1] + ").",
+    );
+    return true;
   }
 
   /** Ist der Mehrfach-Modus aktiv? */

@@ -47,8 +47,9 @@ function bootstrap(): void {
   gallery.onChange(() => updateAll());
   batches.onChange(() => updateAll());
 
-  // .txt-Import (Einzelliste) füllt das Einzelfeld, wenn genau ein Eintrag
-  // übrig bleibt — ansonsten Hinweis, den Mehrfach-Modus zu nutzen.
+  // .txt-Import (Eintragsliste): erstellt/befüllt eine Unterkategorie im
+  // Mehrfach-Modus (Issue #2, Bug 1). Eine Einzelerstellung braucht keine
+  // .txt-Datei — dafür gibt es das Einzelfeld.
   const entriesFile = $("entriesFile") as HTMLInputElement;
   entriesFile.addEventListener("change", () => {
     const file = entriesFile.files?.[0];
@@ -59,13 +60,13 @@ function bootstrap(): void {
         .split(/\r?\n/)
         .map((l) => l.trim())
         .filter((l) => l && !l.startsWith("#"));
-      if (lines.length === 1) {
-        ($("entrySingle") as HTMLInputElement).value = lines[0];
-        log.ok("Einzelliste geladen: " + lines[0]);
-      } else {
-        log.warn(
-          lines.length + " Einträge in der Datei — bitte den Mehrfach-Modus (Unterkategorien) nutzen.",
-        );
+      if (!lines.length) {
+        log.warn("Die Eintragsliste enthält keine verwertbaren Codes.");
+        updateAll();
+        return;
+      }
+      if (batches.addEntriesBatch(lines)) {
+        entriesFile.value = ""; // Reload derselben Datei wieder ermöglichen
       }
       updateAll();
     };
