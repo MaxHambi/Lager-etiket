@@ -71,8 +71,12 @@ jobs:
             git checkout master -- config.json
           fi
 
-          # Aufräumen: checkout-Überbleibsel entfernen
+          # Aufräumen: checkout-Überbleibsel + Altlasten früherer Läufe
+          # entfernen (packages/web/index.html-Kopie, public/compare des
+          # entfernten Pixelvergleich-Tools)
           rm -rf packages
+          rm -f packages/web/index.html 2>/dev/null || true
+          rm -rf public/compare 2>/dev/null || true
 
       - name: Änderungen committen und pushen
         run: |
