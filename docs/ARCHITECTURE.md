@@ -143,3 +143,4 @@ Entwicklungs-Build läuft unverschlüsselt.
 | 0005 | pnpm-Monorepo nach etiket-Vorbild                                                          |
 | 0006 | Pure-Functions-Pipeline (compute → renderSvg → raster)                                     |
 | 0007 | sharp entfernt — etiket/png (zero-dep)                                                     |
+| 0008 | areaAuto-Persistenz: Nutzerwahl schlägt Startup-Default                                    |
