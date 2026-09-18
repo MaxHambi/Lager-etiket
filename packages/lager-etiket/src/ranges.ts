@@ -90,16 +90,46 @@ export function expandRange(start: string, end: string): string[] {
  * @returns Liste der doppelten Werte (leer, wenn keine)
  */
 export function findDuplicates(groups: Array<{ label: string; entries: string[] }>): string[] {
-  const seen = new Map<string, string>()
-  const dupes = new Set<string>()
+  return findDuplicateGroups(groups).map((g) => g.entry)
+}
+
+/** Fundstelle eines Duplikats: Wert plus alle beteiligten Quellen. */
+export interface DuplicateGroup {
+  /** Der doppelte Wert. */
+  entry: string
+  /** Alle Gruppen (in Reihenfolge), die diesen Wert enthalten. */
+  labels: string[]
+}
+
+/**
+ * Findet Duplikate über mehrere Listen hinweg — mit Quell-Angabe.
+ *
+ * Erweiterung zu `findDuplicates` (Issue #22): statt nur der Werte liefert
+ * sie pro Fund die beteiligten Gruppen, damit Fehlermeldungen die Quelle
+ * nennen können („in A und B").
+ *
+ * @param groups Benannte Listen (z. B. pro Unterkategorie)
+ * @returns Liste der Duplikat-Gruppen (nach Wert sortiert, leer wenn keine)
+ */
+export function findDuplicateGroups(
+  groups: Array<{ label: string; entries: string[] }>,
+): DuplicateGroup[] {
+  // entry -> labels in Vorkommens-Reihenfolge (Duplikat-Labels dedupliziert:
+  // derselbe Wert zweimal in derselben Gruppe nennt die Gruppe einmal)
+  const seen = new Map<string, string[]>()
   for (const g of groups) {
     for (const entry of g.entries) {
-      if (seen.has(entry)) {
-        dupes.add(entry)
+      const labels = seen.get(entry)
+      if (labels) {
+        if (!labels.includes(g.label)) labels.push(g.label)
       } else {
-        seen.set(entry, g.label)
+        seen.set(entry, [g.label])
       }
     }
   }
-  return [...dupes].sort()
+  const out: DuplicateGroup[] = []
+  for (const [entry, labels] of seen) {
+    if (labels.length > 1) out.push({ entry, labels })
+  }
+  return out.sort((a, b) => (a.entry < b.entry ? -1 : a.entry > b.entry ? 1 : 0))
 }

@@ -6,8 +6,9 @@
  * da sie intern von cli.ts (runMain-Entry) genutzt wird.
  */
 import { defineCommand } from "citty"
-import { validateEntry, expandRange, findDuplicates } from "@lager-etiket/lib/validators"
+import { validateEntry, expandRange } from "@lager-etiket/lib/validators"
 import { readFile } from "node:fs/promises"
+import { basename } from "node:path"
 
 /** Shared-Argument: Lagerplatz-Code (positionell). */
 const entryArg = {
@@ -80,36 +81,83 @@ export async function collectEntries(args: {
   end?: string
   file?: string
 }): Promise<string[]> {
+  return (await collectEntriesSourced(args)).map((e) => e.entry)
+}
+
+/** Ein Eintrag mit optionaler Quell-Angabe für Fehlermeldungen (Issue #22). */
+export interface SourcedEntry {
+  entry: string
+  /** Herkunft, z. B. "entries.txt, Zeile 12" — in Gate-Fehlern genannt. */
+  source?: string
+}
+
+/**
+ * Wie collectEntries, aber mit Quell-Angabe: bei --file wird die echte
+ * Zeilennummer der .txt mitgeführt (Issue #22).
+ */
+export async function collectEntriesSourced(args: {
+  entry?: string
+  start?: string
+  end?: string
+  file?: string
+}): Promise<SourcedEntry[]> {
   if (args.file) {
     const raw = await readFile(args.file, "utf-8")
-    return raw
-      .split(/\r?\n/)
-      .map((l) => l.trim())
-      .filter((l) => l && !l.startsWith("#"))
+    const lines = raw.split(/\r?\n/)
+    const name = basename(args.file)
+    const out: SourcedEntry[] = []
+    for (let i = 0; i < lines.length; i++) {
+      const t = (lines[i] ?? "").trim()
+      if (t && !t.startsWith("#")) {
+        out.push({ entry: t, source: `${name}, Zeile ${i + 1}` })
+      }
+    }
+    return out
   }
   if (args.start && args.end) {
-    return expandRange(args.start, args.end)
+    return expandRange(args.start, args.end).map((entry) => ({ entry }))
   }
   if (args.entry) {
-    return [args.entry.trim()]
+    return [{ entry: args.entry.trim() }]
   }
   return []
 }
 
+/** Duplikat-Prüfung mit Quell-Angabe (Issue #22). */
+export function assertNoDuplicatesSourced(entries: SourcedEntry[]): void {
+  const seen = new Map<string, string[]>()
+  for (const { entry, source } of entries) {
+    const sources = seen.get(entry) ?? []
+    if (source) sources.push(source)
+    seen.set(entry, sources)
+  }
+  const dupes = [...seen.entries()].filter(([, sources]) => sources.length > 1)
+  if (dupes.length) {
+    const sample = dupes
+      .slice(0, 5)
+      .map(([entry, sources]) => `"${entry}" (${sources.join(" und ")})`)
+      .join(", ")
+    throw new Error("Doppelte Einträge: " + sample)
+  }
+}
+
 /** Duplikat-Prüfung über die gesammelten Einträge. */
 export function assertNoDuplicates(entries: string[]): void {
-  const dupes = findDuplicates([{ label: "Eingabe", entries }])
-  if (dupes.length) {
-    throw new Error("Doppelte Einträge: " + dupes.slice(0, 5).join(", "))
+  assertNoDuplicatesSourced(entries.map((entry) => ({ entry })))
+}
+
+/** Gate mit Quell-Angabe (ADR-0003, Issue #22) — vor dem Rendern. */
+export function gateEntriesSourced(entries: SourcedEntry[]): void {
+  for (const { entry, source } of entries) {
+    const res = validateEntry(entry)
+    if (!res.valid) {
+      const where = source ? source + ": " : ""
+      throw new Error(`${where}"${entry}": ${res.error ?? "ungültiger Code"}`)
+    }
   }
 }
 
 /** Gate: alle Einträge validieren (ADR-0003) — vor dem Rendern. */
 export function gateEntries(entries: string[]): void {
-  for (const e of entries) {
-    const res = validateEntry(e)
-    if (!res.valid) {
-      throw new Error(`"${e}": ${res.error ?? "ungültiger Code"}`)
-    }
-  }
+  gateEntriesSourced(entries.map((entry) => ({ entry })))
 }

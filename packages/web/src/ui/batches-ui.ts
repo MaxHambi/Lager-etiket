@@ -5,7 +5,12 @@
  */
 import { $ } from "./dom.ts"
 import type { Logger } from "./logger.ts"
-import { expandRange, findDuplicates, validateEntry, findInvalidEntries } from "@lager-etiket/lib"
+import {
+  expandRange,
+  findDuplicateGroups,
+  validateEntry,
+  findInvalidEntries,
+} from "@lager-etiket/lib"
 
 /** HTML-Attributwert sicher escapen (für dynamische <option>-Values). */
 function escapeAttr(s: string): string {
@@ -286,25 +291,37 @@ export class BatchesUI {
     }
 
     // Eingabegate: alle expandierten Codes gegen den etiket-Validator prüfen,
-    // bevor sie an Generator/Vorschau durchgereicht werden.
-    const invalid = findInvalidEntries(groups.flatMap((g) => g.entries))
-    if (invalid.length) {
-      if (!silent) {
-        const sample = invalid.map((v) => '"' + v.entry + '" (' + v.error + ")").join(", ")
-        const msg = "Ungültige Lagerplatz-Codes gefunden: " + sample
-        errorBox.textContent = msg
-        errorBox.style.display = "block"
-        this.log.err(msg)
+    // bevor sie an Generator/Vorschau durchgereicht werden. Die Meldung nennt
+    // die Quelle (Unterkategorie + Positionsnummer), Issue #22.
+    for (const g of groups) {
+      const invalid = findInvalidEntries(g.entries)
+      if (invalid.length) {
+        if (!silent) {
+          const sample = invalid
+            .map((v) => {
+              const pos = g.entries.indexOf(v.entry) + 1
+              return `${g.label}, Position ${pos}: "${v.entry}" (${v.error})`
+            })
+            .join(", ")
+          const msg = "Ungültige Lagerplatz-Codes gefunden — " + sample
+          errorBox.textContent = msg
+          errorBox.style.display = "block"
+          this.log.err(msg)
+        }
+        return null
       }
-      return null
     }
 
-    // Duplikate über alle Unterkategorien prüfen
-    const dupes = findDuplicates(groups)
-    if (dupes.length) {
+    // Duplikate über alle Unterkategorien prüfen — mit Quell-Angabe (Issue #22)
+    const dupeGroups = findDuplicateGroups(groups)
+    if (dupeGroups.length) {
       if (!silent) {
-        const sample = dupes.slice(0, 5).join(", ") + (dupes.length > 5 ? " …" : "")
-        const msg = "Doppelte Lagerplätze über Unterkategorien hinweg: " + sample
+        const sample = dupeGroups
+          .slice(0, 5)
+          .map((g) => `"${g.entry}" in ${g.labels.join(" und ")}`)
+          .join(", ")
+        const suffix = dupeGroups.length > 5 ? ` … (${dupeGroups.length} insgesamt)` : ""
+        const msg = "Doppelte Lagerplätze über Unterkategorien hinweg: " + sample + suffix
         errorBox.textContent = msg
         errorBox.style.display = "block"
         this.log.err(msg)
