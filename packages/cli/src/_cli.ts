@@ -34,7 +34,7 @@ export const generate = defineCommand({
     },
     config: {
       type: "string",
-      description: "Pfad zur config.json (Default: packages/tools/config.json)",
+      description: "Pfad zur config.json (Default: config/config.json im Projekt-Root)",
       required: false,
     },
     template: { type: "string", description: "Pfad zur Vorlagen-PNG", required: false },
@@ -69,9 +69,7 @@ export const list = defineCommand({
   args: {},
   async run() {
     console.log("Unterstützt (via etiket): code128 (primär im Lager), + 40 weitere Symbologien.")
-    console.log(
-      "Konfiguration: packages/tools/config.json — Komposition über @lager-etiket/compose.",
-    )
+    console.log("Konfiguration: config/config.json — Komposition über @lager-etiket/compose.")
   },
 })
 

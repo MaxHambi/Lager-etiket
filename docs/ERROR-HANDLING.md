@@ -80,7 +80,7 @@ composeLabel()              [core/compose.ts]
    │      (Eingabegate validateEntry() fängt die meisten Fälle VOR dem Rendern —
    │       ADR-0003; der Renderer-catch ist die letzte Verteidigungslinie)
    │
-   └─► CLI:      barcode.mjs
+   └─► CLI:      @lager-etiket/cli (lager …)
           catch (err) → describeError(err, 'Fehler bei Eintrag "01A01"')
           (lokale Kopie des Mappers — CLI kann kein TS importieren;
            bei Änderungen beide Dateien synchron halten)
@@ -96,7 +96,7 @@ composeLabel()              [core/compose.ts]
    unverändert weiter (kein Wrapping), damit `instanceof`-Prüfungen oben
    funktionieren. Nur _fremde_ Fehler werden in `AppError(RENDER_FAILED)`
    gekapselt.
-3. **Doppelte Mapper-Implementierung (bewusst):** `packages/tools/barcode.mjs`
+3. **Doppelte Mapper-Implementierung (bewusst):** die CLI (`@lager-etiket/cli`)
    hält eine JS-Kopie von `describeError`, weil die CLI kein TypeScript aus
    `@lager-etiket/core` importieren kann. Beide sind kommentarweise
    verknüpft und müssen synchron gehalten werden.
@@ -117,4 +117,4 @@ composeLabel()              [core/compose.ts]
    Zweig mit deutscher Erklärung.
 3. **Test schreiben** (`packages/core/test/errors.test.mjs`) — Mapper ist
    pure Logik, DOM-frei testbar.
-4. **CLI-Kopie** in `barcode.mjs` mitsynchronisieren.
+4. **CLI-Pfad** in `@lager-etiket/cli` mitsynchronisieren (historisch: barcode.mjs).
