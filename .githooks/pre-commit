@@ -1,0 +1,23 @@
+#!/bin/sh
+# Pre-commit: nur gestagte Dateien prüfen (schnell, <5s)
+set -e
+
+STAGED=$(git diff --cached --name-only --diff-filter=ACM)
+
+# 1. Secrets/Debug-Artefakte in gestagten Änderungen
+if echo "$STAGED" | grep -qE '\.(ts|js|mjs|json)$'; then
+  if git diff --cached --diff-filter=ACM -- '*.ts' '*.js' '*.mjs' | grep -nE '(console\.log\(|debugger)' > /dev/null 2>&1; then
+    echo "✗ Debug-Artefakte (console.log/debugger) in gestagten Dateien gefunden:"
+    git diff --cached --diff-filter=ACM | grep -nE '(console\.log\(|debugger)' | head -5
+    echo "  Entfernen oder mit git commit --no-verify überspringen."
+    exit 1
+  fi
+fi
+
+# 2. vault.ts darf nie committet werden (gitignored, aber Sicherheitshalber)
+if echo "$STAGED" | grep -q "generated/vault.ts"; then
+  echo "✗ src/generated/vault.ts ist automatisch generiert und darf nicht committet werden."
+  exit 1
+fi
+
+exit 0
