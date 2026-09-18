@@ -1,10 +1,6 @@
 /**
  * Kompositions-Logik: Barcode auf die Vorlage setzen.
  *
- * WICHTIG: Diese Formel ist bewusst identisch zu composeLabel() in
- * barcode.mjs — Änderungen immer in beiden Dateien synchron halten,
- * damit Browser- und PowerShell-Ergebnisse identisch sind.
- *
  * Der Barcode wird über etiket als SVG gerendert und asynchron in ein
  * Canvas gerastert — daher ist composeLabel() async.
  */

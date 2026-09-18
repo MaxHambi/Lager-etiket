@@ -1,8 +1,8 @@
 /**
  * Typen für die Generator-Konfiguration.
  *
- * Die Struktur ist identisch zu `config.json` und damit kompatibel mit
- * barcode.ps1 / barcode.mjs — Import/Export bleibt austauschbar.
+ * Die Struktur ist identisch zu `config.json` — Import/Export bleibt mit
+ * dem Web-Tool und dem citty-CLI (`packages/cli`) austauschbar.
  */
 
 /** Aussehen von Barcode + Klartext. */

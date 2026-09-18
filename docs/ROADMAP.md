@@ -42,12 +42,12 @@ Zielzustand des Plans auch praktisch im Browser bestätigt.
 
 ## Bewusste Abweichungen vom ursprünglichen Plan
 
-| Plan (analyse.md)      | Realität / Entscheidung                                                        | Begründung                                                                                       |
-| ---------------------- | ------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------ |
-| unbuild + `--stub`     | **obuild** (etiket nutzt obuild), `--stub` bleibt als Dev-Workflow für die CLI | etiket-Stil folgt der Referenz, nicht der Annahme                                                |
-| `@antfu/eslint-config` | **oxlint + oxfmt** (Oxc-Ökosystem)                                             | etiket-Stil, deutlich schneller                                                                  |
-| PNG via resvg/sharp    | **etiket/png** (zero-dep, pure TS) + Canvas-Adapter (Browser)                  | keine native Abhängigkeit; generische SVG→PNG-Rasterung macht compose über Stufe 2 (SVG-Overlay) |
-| npm + turbo            | **pnpm workspaces**, turbo entfernt                                            | etiket-Stil                                                                                      |
+| Plan (analyse.md)                       | Realität / Entscheidung                                                        | Begründung                                                                                       |
+| --------------------------------------- | ------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------ |
+| unbuild + `--stub`                      | **obuild** (etiket nutzt obuild), `--stub` bleibt als Dev-Workflow für die CLI | etiket-Stil folgt der Referenz, nicht der Annahme                                                |
+| `@antfu/eslint-config`                  | **oxlint + oxfmt** (Oxc-Ökosystem)                                             | etiket-Stil, deutlich schneller                                                                  |
+| PNG via externem Rasterer (sharp o. Ä.) | **etiket/png** (zero-dep, pure TS) + Canvas-Adapter (Browser)                  | keine native Abhängigkeit; generische SVG→PNG-Rasterung macht compose über Stufe 2 (SVG-Overlay) |
+| npm + turbo                             | **pnpm workspaces**, turbo entfernt                                            | etiket-Stil                                                                                      |
 
 ## Offene Punkte / nächste Schritte
 

@@ -13,13 +13,13 @@
  * Pixelzeilen erzeugen, PNG-Encoder füttern.
  *
  * Da etiket 0.12 keine generische SVG→PNG-Rasterung exportiert (sein
- * Rasterpfad geht von Barcode-Strukturen aus), bleibt die generische
- * Rasterung hier bewusst als Adapter mit zwei Implementierungen:
- *   - Browser: Canvas drawImage (bestehender Pfad, render-canvas.ts in web)
- *   - Node: etiket/png für den Barcode + Vorlagen-Komposition über
- *     @resvg/resvg-js (reines WASM, keine native Bibliothek)
+ * Rasterpfad geht von Barcode-Strukturen aus), läuft die Rasterung über
+ * zwei Pfade:
+ *   - Browser: Canvas drawImage (render-canvas.ts in web)
+ *   - Node: etiket/png (zero-dep, pure TS) für den Barcode
  *
- * sharp wird damit vollständig ersetzt — siehe ADR-0007.
+ * Fremde Raster-Abhängigkeiten (native wie WASM) werden vermieden —
+ * siehe ADR-0007.
  */
 import { appErrors, isPng } from "@lager-etiket/lib"
 import type { AppConfig } from "@lager-etiket/lib"
