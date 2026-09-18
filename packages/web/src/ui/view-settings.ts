@@ -1,13 +1,16 @@
 /**
  * Wiederherstellen der gespeicherten Ansichtseinstellungen beim Start:
  * - Zielbereich-Overlay ("Zielbereich einzeichnen")
+ * - Zielbereich automatisch ("areaAuto", Konfigurationsteil 3 — Issue #23)
  * - zuletzt gewählte Galerie-Vorlage (wird über die TemplateGallery geladen)
  */
 import { $ } from "./dom.ts"
 import type { Logger } from "./logger.ts"
 import type { TemplateGallery } from "./template-gallery.ts"
+import { toggleAreaFields } from "./config.ts"
 import {
   KEY_SHOW_AREA,
+  KEY_AREA_AUTO,
   KEY_LAST_TEMPLATE,
   loadSetting,
   saveSetting,
@@ -37,6 +40,22 @@ export function initViewSettings(log: Logger, gallery: TemplateGallery): void {
   }
   showArea.addEventListener("change", () => {
     saveSetting(KEY_SHOW_AREA, showArea.checked ? "1" : "0")
+  })
+
+  // --- Zielbereich automatisch (Issue #23) ---------------------------------
+  // Analog zum Overlay-Modus: gespeicherter Zustand auf die Checkbox
+  // anwenden (inkl. disabled-Zustand der Breite-/Höhe-Felder), Änderungen
+  // ab jetzt persistieren. Die Preview liest den Zustand live über
+  // readConfig() — kein weiteres Modul muss den Wert kennen.
+  const areaAuto = $("areaAuto") as HTMLInputElement
+
+  const savedAuto = loadSetting(KEY_AREA_AUTO)
+  if (savedAuto !== null) {
+    areaAuto.checked = savedAuto === "1"
+    toggleAreaFields()
+  }
+  areaAuto.addEventListener("change", () => {
+    saveSetting(KEY_AREA_AUTO, areaAuto.checked ? "1" : "0")
   })
 
   // --- Zuletzt gewählte Vorlage ------------------------------------------
