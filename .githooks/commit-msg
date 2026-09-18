@@ -1,0 +1,11 @@
+#!/bin/sh
+# Conventional Commits prüfen: type(scope): subject
+# Typen: feat fix docs style refactor perf test build ci chore revert
+msg=$(cat "$1")
+if ! echo "$msg" | grep -qE '^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(\([^)]+\))?!?: .{1,100}'; then
+  echo "✗ Commit-Message entspricht nicht Conventional Commits (docs/COMMIT-RULES.md):"
+  echo "    $msg" | head -1
+  echo "  Format: <type>(<scope>): beschreibung"
+  echo "  Überspringen: git commit --no-verify"
+  exit 1
+fi

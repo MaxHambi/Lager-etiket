@@ -20,12 +20,17 @@ on:
       - ".github/workflows/sync-pages.yml"
 
 # Erlaubnis geben, damit der Bot in den Branch schreiben darf
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: write
 
 jobs:
   sync:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     # Environment des Secrets: APP_PASSWORD ist als Environment-Secret im
     # Environment "github-pages" hinterlegt (nicht als Repository-Secret).
     environment: github-pages
@@ -101,6 +106,7 @@ jobs:
   smoke-check:
     name: Pages-Smoke-Check (Live-URLs)
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     needs: sync
     steps:
       - name: Warten auf Pages-Deployment

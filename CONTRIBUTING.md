@@ -13,7 +13,21 @@ pnpm build            # alle Pakete bauen
 pnpm test             # 65+ Tests inkl. Roundtrip
 pnpm dev:web          # Web-App im Dev-Modus
 pnpm dev:cli          # CLI im Stub-Modus
+sh scripts/setup-hooks.sh   # Git-Hooks aktivieren (pre-commit, commit-msg)
+sh scripts/git-aliases.sh   # optional: nützliche Git-Aliase (global)
 ```
+
+### Git-Hooks
+
+Das Projekt bringt eigene Hooks mit (`.githooks/`, aktiviert via
+`core.hooksPath`):
+
+| Hook         | Prüft                                                                                             |
+| ------------ | ------------------------------------------------------------------------------------------------- |
+| `pre-commit` | Keine Debug-Artefakte (`console.log`, `debugger`) in TS/JS-Dateien; `vault.ts` wird nie committet |
+| `commit-msg` | Conventional-Commits-Format (`feat: …`, `fix(scope): …`, siehe `docs/COMMIT-RULES.md`)            |
+
+Einzelne Übergänge: `git commit --no-verify` (sparsam einsetzen).
 
 ## Branch- und PR-Workflow (verbindlich)
 

@@ -53,6 +53,12 @@ pnpm dev:web          # Web-App-Dev-Server
 
 ## Git-Workflow (verbindlich)
 
+**Hooks:** Nach dem Klonen `sh scripts/setup-hooks.sh` ausführen —
+`pre-commit` blockt Debug-Artefakte und `vault.ts`, `commit-msg` erzwingt
+Conventional Commits. Bei Projektarbeit immer aktiviert lassen; Umgehung
+nur mit `--no-verify` und Begründung im PR.
+
+
 **Kein direkter Push auf `master`** — der Branch ist geschützt
 (Branch-Protection: 6 CI-Checks required, Force-Push verboten). Jede
 Änderung läuft über Feature-Branch + PR, auch für Agenten:
