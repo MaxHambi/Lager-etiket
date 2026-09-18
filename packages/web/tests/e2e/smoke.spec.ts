@@ -107,7 +107,11 @@ test.describe("Web-App Smoke (packages/web Dev-Build)", () => {
     })
 
     // ---------- 7. Persistenz nach Reload ----------
-    await test.step("Persistenz: Vorlage + Overlay-Modus nach Reload", async () => {
+    await test.step("Persistenz: Vorlage + Overlay-Modus + areaAuto nach Reload", async () => {
+      // areaAuto einschalten (Issue #23) — muss den Reload überleben
+      await page.check("#areaAuto")
+      await expect(page.locator("#cfgWidth")).toBeDisabled()
+
       await page.reload()
       await expect(page.locator("#templateGallery .tpl-card")).toHaveCount(3, {
         timeout: 10_000,
@@ -115,6 +119,17 @@ test.describe("Web-App Smoke (packages/web Dev-Build)", () => {
       await page.locator("#splash-screen").click()
       const selected = page.locator(".tpl-card.selected")
       await expect(selected, "zuletzt gewählte Vorlage muss wieder ausgewählt sein").toHaveCount(1)
+
+      // areaAuto muss wiederhergestellt sein (localStorage lager-etiket-area-auto)
+      await expect(
+        page.locator("#areaAuto"),
+        "areaAuto-Zustand muss den Reload überleben (Issue #23)",
+      ).toBeChecked()
+      await expect(page.locator("#cfgWidth")).toBeDisabled()
+
+      // Aufräumen für die folgenden Schritte (Theme-Test nutzt denselben Kontext)
+      await page.uncheck("#areaAuto")
+      await expect(page.locator("#cfgWidth")).toBeEnabled()
     })
 
     // ---------- 8. Theme + Fallback ----------

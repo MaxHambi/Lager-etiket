@@ -65,8 +65,12 @@ export function readConfig(): AppConfig {
  * Schreibt eine Konfiguration in die Formularfelder.
  *
  * @param cfg Zu übernehmende Konfiguration (unbekannte Felder bleiben auf Default)
+ * @param opts `keepAreaMode`: die "Zielbereich automatisch"-Checkbox bleibt
+ *        unverändert (auch wenn cfg einen manuellen Bereich trägt) — genutzt
+ *        vom Startup-Default, damit die persistierte Nutzerwahl (Issue #23)
+ *        nicht durch das nachgeladene Projekt-Config überschrieben wird.
  */
-export function applyConfig(cfg: AppConfig): void {
+export function applyConfig(cfg: AppConfig, opts?: { keepAreaMode?: boolean }): void {
   const b = cfg.barcode
   const p = cfg.placement
   const a = p.area
@@ -84,7 +88,9 @@ export function applyConfig(cfg: AppConfig): void {
   ;($("cfgTop") as HTMLInputElement).value = String(a.top ?? d.placement.area.top)
 
   const isAuto = a.width == null || a.height == null
-  ;($("areaAuto") as HTMLInputElement).checked = isAuto
+  if (opts?.keepAreaMode !== true) {
+    ;($("areaAuto") as HTMLInputElement).checked = isAuto
+  }
   ;($("cfgWidth") as HTMLInputElement).value = a.width == null ? "" : String(a.width)
   ;($("cfgHeight2") as HTMLInputElement).value = a.height == null ? "" : String(a.height)
   ;($("cfgMaxW") as HTMLInputElement).value = String(

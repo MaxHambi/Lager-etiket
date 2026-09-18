@@ -89,7 +89,9 @@ export class ConfigLibrary {
       })
       if (!res.ok) throw new Error("HTTP " + res.status)
       const cfg = (await res.json()) as AppConfig
-      applyConfig(cfg)
+      // Startup-Default: areaAuto-Nutzerwahl bleibt erhalten (Issue #23) —
+      // bei expliziter Auswahl im Dropdown gilt dagegen die komplette Config.
+      applyConfig(cfg, { keepAreaMode: true })
       const sel = $("configSelect") as HTMLSelectElement
       sel.value = entry.file
       this.log.ok('Projekt-Standard geladen: "' + entry.label + '" (' + entry.file + ").")

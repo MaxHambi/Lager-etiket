@@ -3,6 +3,7 @@
  *
  * Gespeichert werden (zusammen mit der Theme-Wahl, siehe theme.ts):
  * - der Zielbereich-Overlay-Modus ("Zielbereich einzeichnen"-Checkbox)
+ * - der "Zielbereich automatisch"-Modus (Konfigurationsteil 3, Issue #23)
  * - die zuletzt gewählte Vorlage (Galerie-Datei)
  *
  * Alles hier ist best-effort: localStorage kann fehlen (privater Modus,
@@ -11,6 +12,9 @@
 
 /** Storage-Key für den Overlay-Modus des Zielbereichs. */
 export const KEY_SHOW_AREA = "lager-etiket-show-area"
+
+/** Storage-Key für den "Zielbereich automatisch"-Modus (Issue #23). */
+export const KEY_AREA_AUTO = "lager-etiket-area-auto"
 
 /** Storage-Key für die zuletzt gewählte Galerie-Vorlage (Dateiname). */
 export const KEY_LAST_TEMPLATE = "lager-etiket-last-template"
