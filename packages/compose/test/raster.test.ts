@@ -3,7 +3,7 @@
  * etiket/png (renderBarcodePngBytes aus @lager-etiket/lib) — ohne sharp.
  */
 import { describe, it, expect } from "vitest"
-import { rasterBarcodeDirect, validatePng } from "../src/raster"
+import { rasterBarcode, rasterBarcodeDirect, validatePng, renderFailed, isPng } from "../src/raster"
 import { compute } from "../src/compute"
 import { DEFAULT_CONFIG } from "@lager-etiket/lib"
 
@@ -29,5 +29,26 @@ describe("raster (Node-Pfad via etiket/png)", () => {
     const s = compute("01A01", template, { width: 2000, height: 400 }, DEFAULT_CONFIG) // area 642,50,1068x756 → Skalierung greift
     expect(s.warnings.length).toBeGreaterThanOrEqual(0)
     expect(s.label.scale).toBeGreaterThan(0)
+  })
+
+  it("rasterBarcode (AppConfig-Pfad) liefert dieselben PNG-Bytes wie Direct", async () => {
+    const viaCfg = await rasterBarcode("01A01", DEFAULT_CONFIG)
+    const direct = await rasterBarcodeDirect("01A01", DEFAULT_CONFIG.barcode)
+    expect(Buffer.from(viaCfg).equals(Buffer.from(direct))).toBe(true)
+  })
+
+  it("validatePng lehnt Nicht-PNG-Bytes ab und akzeptiert einen 9-Byte-Header", () => {
+    expect(validatePng(new Uint8Array([0]))).toBe(false)
+    expect(validatePng(new Uint8Array())).toBe(false)
+    // isPng verlangt length > 8 — 8-Byte-Magic allein reicht nicht
+    const header9 = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00])
+    expect(isPng(header9)).toBe(true)
+  })
+
+  it("renderFailed erzeugt AppError mit RENDER_FAILED-Kontext", () => {
+    const err = renderFailed("Test-Detail")
+    expect(err).toBeInstanceOf(Error)
+    expect(err.message).toContain("Test-Detail")
+    expect((err as { code?: string }).code).toBe("RENDER_FAILED")
   })
 })
