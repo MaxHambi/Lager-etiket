@@ -8,6 +8,7 @@
     "build:watch": "node build.mjs --watch",
     "typecheck": "node ../../scripts/gen-vault-stub.mjs && tsc --noEmit",
     "lint": "oxlint . && oxfmt --check .",
+    "test": "vitest run",
     "dev": "node build.mjs --watch",
     "test:e2e": "node build.mjs && playwright test",
     "test:e2e:only": "playwright test"
@@ -18,6 +19,7 @@
   "devDependencies": {
     "@playwright/test": "^1.63.0",
     "esbuild": "^0.28.2",
-    "typescript": "~5.9.2"
+    "typescript": "~5.9.2",
+    "vitest": "^5.0.1"
   }
 }

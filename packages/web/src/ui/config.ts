@@ -1,8 +1,14 @@
 /**
  * Konfigurations-Handling: Formularwerte <-> AppConfig-Objekt.
  * UI-Modul: liest und schreibt die Formularfelder.
+ *
+ * Single Source of Truth für Defaults ist `DEFAULT_CONFIG` aus der lib
+ * (Issue #24): Sowohl die Fallback-Werte beim Formular-Lesen als auch die
+ * Platzhalter beim Zurückschreiben werden daraus abgeleitet — eine
+ * Änderung eines Defaults an genau einer Stelle ist wirksam.
  */
 import { $ } from "./dom.ts"
+import { DEFAULT_CONFIG } from "@lager-etiket/lib"
 import type { AppConfig } from "@lager-etiket/lib"
 
 /** Wandelt einen Wert in eine Zahl um, mit Fallback. */
@@ -22,34 +28,35 @@ export function readConfig(): AppConfig {
   const areaWidth = areaAuto.checked ? null : num(($("cfgWidth") as HTMLInputElement).value, 0)
   const areaHeight = areaAuto.checked ? null : num(($("cfgHeight2") as HTMLInputElement).value, 0)
 
+  const d = DEFAULT_CONFIG
   return {
     barcode: {
-      height: num(($("cfgHeight") as HTMLInputElement).value, 180),
-      barWidth: num(($("cfgBarWidth") as HTMLInputElement).value, 4),
-      margin: num(($("cfgMargin") as HTMLInputElement).value, 20),
-      fontSize: num(($("cfgFontSize") as HTMLInputElement).value, 54),
-      fontFamily: ($("cfgFontFamily") as HTMLInputElement).value || "Arial, Helvetica, sans-serif",
-      color: ($("cfgColor") as HTMLInputElement).value || "#000000",
-      background: "transparent",
-      textMargin: num(($("cfgTextMargin") as HTMLInputElement).value, 6),
+      height: num(($("cfgHeight") as HTMLInputElement).value, d.barcode.height),
+      barWidth: num(($("cfgBarWidth") as HTMLInputElement).value, d.barcode.barWidth),
+      margin: num(($("cfgMargin") as HTMLInputElement).value, d.barcode.margin),
+      fontSize: num(($("cfgFontSize") as HTMLInputElement).value, d.barcode.fontSize),
+      fontFamily: ($("cfgFontFamily") as HTMLInputElement).value || d.barcode.fontFamily,
+      color: ($("cfgColor") as HTMLInputElement).value || d.barcode.color,
+      background: d.barcode.background,
+      textMargin: num(($("cfgTextMargin") as HTMLInputElement).value, d.barcode.textMargin),
     },
     placement: {
       area: {
-        left: num(($("cfgLeft") as HTMLInputElement).value, 0),
-        top: num(($("cfgTop") as HTMLInputElement).value, 0),
+        left: num(($("cfgLeft") as HTMLInputElement).value, d.placement.area.left),
+        top: num(($("cfgTop") as HTMLInputElement).value, d.placement.area.top),
         width: areaWidth,
         height: areaHeight,
       },
-      maxWidthPercent: num(($("cfgMaxW") as HTMLInputElement).value, 90),
-      maxHeightPercent: num(($("cfgMaxH") as HTMLInputElement).value, 90),
-      offsetX: num(($("cfgOffX") as HTMLInputElement).value, 0),
-      offsetY: num(($("cfgOffY") as HTMLInputElement).value, 0),
+      maxWidthPercent: num(($("cfgMaxW") as HTMLInputElement).value, d.placement.maxWidthPercent),
+      maxHeightPercent: num(($("cfgMaxH") as HTMLInputElement).value, d.placement.maxHeightPercent),
+      offsetX: num(($("cfgOffX") as HTMLInputElement).value, d.placement.offsetX),
+      offsetY: num(($("cfgOffY") as HTMLInputElement).value, d.placement.offsetY),
     },
     output: {
-      prefix: ($("cfgPrefix") as HTMLInputElement).value || "lagerplatz_",
-      dpi: num(($("cfgDpi") as HTMLInputElement).value, 300),
-      renderDpi: num(($("cfgRenderDpi") as HTMLInputElement).value, 600),
-      overwrite: false,
+      prefix: ($("cfgPrefix") as HTMLInputElement).value || d.output.prefix,
+      dpi: num(($("cfgDpi") as HTMLInputElement).value, d.output.dpi),
+      renderDpi: num(($("cfgRenderDpi") as HTMLInputElement).value, d.output.renderDpi),
+      overwrite: d.output.overwrite,
     },
   }
 }
@@ -64,28 +71,33 @@ export function applyConfig(cfg: AppConfig): void {
   const p = cfg.placement
   const a = p.area
   const o = cfg.output
+  const d = DEFAULT_CONFIG
 
-  ;($("cfgHeight") as HTMLInputElement).value = String(b.height ?? 180)
-  ;($("cfgBarWidth") as HTMLInputElement).value = String(b.barWidth ?? 4)
-  ;($("cfgMargin") as HTMLInputElement).value = String(b.margin ?? 20)
-  ;($("cfgFontSize") as HTMLInputElement).value = String(b.fontSize ?? 54)
-  ;($("cfgFontFamily") as HTMLInputElement).value = b.fontFamily ?? "Arial, Helvetica, sans-serif"
-  ;($("cfgColor") as HTMLInputElement).value = b.color ?? "#000000"
-  ;($("cfgTextMargin") as HTMLInputElement).value = String(b.textMargin ?? 6)
-  ;($("cfgLeft") as HTMLInputElement).value = String(a.left ?? 0)
-  ;($("cfgTop") as HTMLInputElement).value = String(a.top ?? 0)
+  ;($("cfgHeight") as HTMLInputElement).value = String(b.height ?? d.barcode.height)
+  ;($("cfgBarWidth") as HTMLInputElement).value = String(b.barWidth ?? d.barcode.barWidth)
+  ;($("cfgMargin") as HTMLInputElement).value = String(b.margin ?? d.barcode.margin)
+  ;($("cfgFontSize") as HTMLInputElement).value = String(b.fontSize ?? d.barcode.fontSize)
+  ;($("cfgFontFamily") as HTMLInputElement).value = b.fontFamily ?? d.barcode.fontFamily
+  ;($("cfgColor") as HTMLInputElement).value = b.color ?? d.barcode.color
+  ;($("cfgTextMargin") as HTMLInputElement).value = String(b.textMargin ?? d.barcode.textMargin)
+  ;($("cfgLeft") as HTMLInputElement).value = String(a.left ?? d.placement.area.left)
+  ;($("cfgTop") as HTMLInputElement).value = String(a.top ?? d.placement.area.top)
 
   const isAuto = a.width == null || a.height == null
   ;($("areaAuto") as HTMLInputElement).checked = isAuto
   ;($("cfgWidth") as HTMLInputElement).value = a.width == null ? "" : String(a.width)
   ;($("cfgHeight2") as HTMLInputElement).value = a.height == null ? "" : String(a.height)
-  ;($("cfgMaxW") as HTMLInputElement).value = String(p.maxWidthPercent ?? 90)
-  ;($("cfgMaxH") as HTMLInputElement).value = String(p.maxHeightPercent ?? 90)
-  ;($("cfgOffX") as HTMLInputElement).value = String(p.offsetX ?? 0)
-  ;($("cfgOffY") as HTMLInputElement).value = String(p.offsetY ?? 0)
-  ;($("cfgPrefix") as HTMLInputElement).value = o.prefix ?? "lagerplatz_"
-  ;($("cfgDpi") as HTMLInputElement).value = String(o.dpi ?? 300)
-  ;($("cfgRenderDpi") as HTMLInputElement).value = String(o.renderDpi ?? 600)
+  ;($("cfgMaxW") as HTMLInputElement).value = String(
+    p.maxWidthPercent ?? d.placement.maxWidthPercent,
+  )
+  ;($("cfgMaxH") as HTMLInputElement).value = String(
+    p.maxHeightPercent ?? d.placement.maxHeightPercent,
+  )
+  ;($("cfgOffX") as HTMLInputElement).value = String(p.offsetX ?? d.placement.offsetX)
+  ;($("cfgOffY") as HTMLInputElement).value = String(p.offsetY ?? d.placement.offsetY)
+  ;($("cfgPrefix") as HTMLInputElement).value = o.prefix ?? d.output.prefix ?? ""
+  ;($("cfgDpi") as HTMLInputElement).value = String(o.dpi ?? d.output.dpi)
+  ;($("cfgRenderDpi") as HTMLInputElement).value = String(o.renderDpi ?? d.output.renderDpi)
 
   toggleAreaFields()
 }
