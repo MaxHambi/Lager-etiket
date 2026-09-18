@@ -86,14 +86,9 @@ jobs:
           cp -r /tmp/app-dist dist
           cp -r /tmp/app-public public
 
-          # Altlasten früherer Läufe entfernen (Checkout-Rest des
-          # verschobenen Index + compare-Ordner des entfernten
-          # Pixelvergleich-Tools) — rm reicht, -A stagt die Löschung
-          rm -rf packages/web public/compare 2>/dev/null || true
-
           # Prüfen, ob sich die Dateien überhaupt verändert haben
           # (-A: auch Löschungen werden gestaged)
-          git add -A index.html assets dist public
+          git add -A .
           if git diff --staged --quiet; then
             echo "Keine Änderungen zu synchronisieren."
           else
@@ -120,8 +115,14 @@ jobs:
             echo "$BASE/$u → $CODE"
             if [ "$CODE" != "200" ]; then FAIL=1; fi
           done
+          # Altlasten müssen 404 liefern (Issue #18)
+          for u in "packages/web/index.html" "public/compare/README.md"; do
+            CODE=$(curl -s -o /dev/null -w "%{http_code}" "$BASE/$u")
+            echo "$BASE/$u → $CODE (404 erwartet)"
+            if [ "$CODE" != "404" ]; then FAIL=1; fi
+          done
           if [ "$FAIL" = "1" ]; then
-            echo "::error::Pages-Smoke-Check fehlgeschlagen — mindestens eine Kern-URL liefert kein 200."
+            echo "::error::Pages-Smoke-Check fehlgeschlagen — Kern-URL ohne 200 oder Altlast noch erreichbar."
             exit 1
           fi
-          echo "Alle Kern-URLs erreichbar — Pages-Deploy verifiziert."
+          echo "Alle Kern-URLs erreichbar, Altlasten entfernt — Pages-Deploy verifiziert."
