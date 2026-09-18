@@ -1,102 +1,61 @@
 # AGENTS.md — lager-etiket
 
-> Leitlinie für Agenten und Entwickler. Halte diese Datei aktuell mit dem
-> Projektstatus (analog etiket/AGENTS.md). Bei Abweichung vom Plan: zuerst
-> `docs/ROADMAP.md` und die ADRs prüfen, dann entscheiden, ob der Plan oder
-> die Abweichung falsch ist.
-
-## Was dieses Projekt ist
-
-**lager-etiket** ist ein Lagerplatz-Schild-Generator (Code 128 via
+Lagerplatz-Schild-Generator (Code 128 via
 [etiket](https://github.com/productdevbook/etiket)): Web-App + CLI erzeugen
-Schilder-PNGs (Vorlage + skaliertes Barcode-SVG → Rasterung). Spezifische
-Weiterentwicklung von etiket — folgt dessen Konventionen.
+Schilder-PNGs. pnpm-Monorepo mit 4 Paketen — Details: `docs/ARCHITECTURE.md`.
 
-## Monorepo-Struktur (pnpm Workspaces)
+## Package Manager
 
-```
-packages/
-  lager-etiket/   # Kernlib: encoders/ renderers/ validators/ errors/
-                  #   Subpath-Exports via obuild
-  compose/        # 3-stufige Kompositions-Pipeline (alle Stufen pure):
-                  #   compute → renderSvg → raster (etiket/png, kein sharp)
-  cli/            # citty-CLI (generate/validate/list), Dev via unbuild --stub
-  web/            # Web-App (esbuild, Canvas-Rasterung im Browser)
-```
-
-## Kernprinzipien
-
-1. **Separation of Concerns:** Encoders berechnen Daten, Renderer erzeugen
-   Grafik, Validators prüfen Eingaben, Errors definieren die Fehlertaxonomie.
-   Niemals mischen.
-2. **Pure Functions:** `compute` und `renderSvg` sind strikt pure (kein IO,
-   kein DOM, deterministisch). Nur `raster` (explizit async) berührt Bytes.
-   PNG entsteht bewusst erst **nach** der SVG-Skalierung (100 % Qualität).
-3. **Kein sharp, kein node-canvas:** Rasterung über `etiket/png` (Node) bzw.
-   Canvas-Adapter (Browser). Siehe ADR-0007.
-4. **Fehler:** Keine generischen `Error`-Würfe — die Taxonomie aus
-   `@lager-etiket/lib/errors` (AppError-Subklassen, etiket-Mapping) nutzen.
-5. **Kompatibilität:** `composeStructure`-Signatur stabil halten (web + cli
-   hängen daran). Breaking Changes nur mit ADR.
-
-## Commands (pnpm, nicht npm!)
+**pnpm** (nicht npm): `pnpm install`, `pnpm dev:web`, `pnpm dev:cli`
 
 ```bash
-pnpm install          # Setup
-pnpm lint             # oxlint + oxfmt --check (0 Warnungen erzwingen)
-pnpm typecheck        # tsc --noEmit in allen Paketen
-pnpm test             # vitest in allen Paketen (57+ Tests inkl. zxing-Roundtrip)
-pnpm build            # obuild (lib/compose/cli) + esbuild (web)
-pnpm dev:cli          # CLI im --stub-Modus (jiti, kein Rebuild nötig)
-pnpm dev:web          # Web-App-Dev-Server
+pnpm lint && pnpm typecheck && pnpm test && pnpm build   # Quality-Gate vor jedem PR
 ```
+
+## File-Scoped Commands
+
+| Task                  | Command                                                                 |
+| --------------------- | ----------------------------------------------------------------------- |
+| Tests (ein Paket)     | `pnpm --filter @lager-etiket/lib test` (analog `compose`, `web`, `cli`) |
+| Typecheck (ein Paket) | `pnpm --filter @lager-etiket/lib typecheck`                             |
+| Formatieren           | `pnpm exec oxfmt <datei>` — nie manuell formatieren                     |
+| E2E-Smoke             | `pnpm test:e2e` (Playwright, web-Dev-Build)                             |
+
+## Commit Attribution
+
+**Keine KI-Fußzeilen**: kein „Generated with …", kein `Co-Authored-By`-Trailer
+auf Agenten-Namen — siehe `docs/COMMIT-RULES.md`. Conventional Commits,
+lowercase, deutsche Beschreibung üblich (`fix(web): …`).
 
 ## Git-Workflow (verbindlich)
 
-**Hooks:** Nach dem Klonen `sh scripts/setup-hooks.sh` ausführen —
-`pre-commit` blockt Debug-Artefakte und `vault.ts`, `commit-msg` erzwingt
-Conventional Commits. Bei Projektarbeit immer aktiviert lassen; Umgehung
-nur mit `--no-verify` und Begründung im PR.
+- **Kein direkter Push auf `master`** (Branch-Protection, 6 required Checks).
+  Immer: Branch → PR (`Closes #N`) → CI grün → `gh pr merge --merge --delete-branch`.
+- **Issue zuerst** (Problem/Goal/Scope/Acceptance-Criteria) — Issue-first-Queue.
+- Hooks nach dem Klonen aktivieren: `sh scripts/setup-hooks.sh`. `pre-commit`
+  blockt `console.log`/`debugger` in geänderten Zeilen und `vault.ts`; bei
+  False-Positives (z. B. unveränderte CLI-Output-Zeilen im Diff-Kontext)
+  `--no-verify` mit Begründung im PR. `commit-msg` erzwingt Conventional Commits.
 
+## Key Conventions
 
-**Kein direkter Push auf `master`** — der Branch ist geschützt
-(Branch-Protection: 6 CI-Checks required, Force-Push verboten). Jede
-Änderung läuft über Feature-Branch + PR, auch für Agenten:
-
-```bash
-git checkout master && git pull origin master
-git checkout -b fix/kurz-beschreibend
-# … Änderungen + Quality-Gate (pnpm lint && pnpm typecheck && pnpm test && pnpm build)
-git add -A && git commit -m "fix(scope): beschreibung"
-git push origin fix/kurz-beschreibend
-gh pr create --base master --title "…" --body "… Closes #N"
-# Nach grünen Checks: gh pr merge --merge --delete-branch
-```
-
-- **Issue zuerst:** Zu jedem Arbeitspaket ein GitHub-Issue anlegen
-  (Problem/Goal/Scope/Acceptance-Criteria, Status ready) — der PR
-  referenziert es mit `Closes #N`.
-- **Merge-Regeln, Ausnahmen, Details:** `CONTRIBUTING.md`.
-- **Push-Setup:** Remote ist SSH (`git@github.com:MaxHambi/Lager-etiket.git`),
-  `core.sshCommand` zeigt auf Git-Bash-ssh — plain `git push` funktioniert
-  ohne credential helper.
-
-## Konventionen
-
-- **Commits:** Semantic lowercase (`feat:`, `fix:`, `ci:`, `test:`, `docs:`,
-  `chore:`), deutsche Beschreibung erlaubt. **Keine KI-Fußzeilen** — kein
-  „Generated with Codebuff“ und kein `Co-Authored-By: …`-Trailer auf
-  Agenten-Namen. Details: `docs/COMMIT-RULES.md`.
-- **Formatierung:** oxfmt (oxc-Ökosystem). Niemals manuell formatieren —
-  `pnpm fmt` verwenden.
-- **Tests:** Neue Encoder/Renderer-Features bekommen Roundtrip-Verifikation
-  gegen ein unabhängiges Drittsystem (zxing-wasm) — etiket-Vorbild.
-- **Doku:** ADRs in `docs/decisions/`, Analyse in `docs/`, Status in
-  `docs/ROADMAP.md`. Neue Architektur-Entscheidungen → neuen ADR schreiben
-  (alten niemals löschen, nur supersededen).
+- **Separation of Concerns:** encoders/renderers/validators/errors nicht mischen.
+- **Pure Functions:** `compute`/`renderSvg` ohne IO/DOM; nur `raster` berührt Bytes.
+- **Kein sharp, kein node-canvas:** Rasterung via `etiket/png` (Node) bzw.
+  Canvas-Adapter (Browser) — ADR-0007.
+- **Fehler:** Taxonomie aus `@lager-etiket/lib/errors`, keine generischen `Error`-Würfe.
+- **Defaults:** `DEFAULT_CONFIG` (lib) ist die einzige Quelle für Formular- und
+  Reset-Werte — keine hartcodierten Default-Literale in der UI (Konsistenz-Test
+  `packages/web/test/config.test.ts`).
+- **Persistenz:** UI-Einstellungen via `persistence.ts`-Keys
+  (`lager-etiket-*`), best-effort localStorage.
+- **Kompatibilität:** `composeStructure`-Signatur stabil halten; Breaking
+  Changes nur mit ADR.
+- **Doku:** ADRs in `docs/decisions/` (alte niemals löschen, nur superseden),
+  Status in `docs/ROADMAP.md`, nutzerrelevante Änderungen in `CHANGELOG.md`
+  unter `[Unreleased]`.
 
 ## Aktueller Status
 
-Phase 1–4 der etiket-Umstellung abgeschlossen (siehe `docs/ROADMAP.md`):
-pnpm-Monorepo, Pure-Functions-Pipeline, vitest + Roundtrip, citty-CLI.
-Phase 5 (CI + Doku) in diesem Commit.
+etiket-Umstellung Phase 1–5 abgeschlossen; Härtungs-Queue #36 abgearbeitet
+(#24/#23/#22/#20/#19 via PRs #37–#40). Offen: #21 (renderDpi-Doku).
