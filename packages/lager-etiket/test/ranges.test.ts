@@ -1,6 +1,6 @@
 import { test } from "vitest"
 import assert from "node:assert/strict"
-import { expandRange, findDuplicates, MAX_RANGE_SIZE } from "../src/ranges.ts"
+import { expandRange, findDuplicates, findDuplicateGroups, MAX_RANGE_SIZE } from "../src/ranges.ts"
 
 test("expandRange: einfacher Bereich mit Präfix und führenden Nullen", () => {
   assert.deepEqual(expandRange("01A01", "01A05"), ["01A01", "01A02", "01A03", "01A04", "01A05"])
@@ -49,4 +49,47 @@ test("findDuplicates: ohne Überschneidung leer", () => {
     { label: "B", entries: ["01A02"] },
   ])
   assert.deepEqual(dupes, [])
+})
+
+test("findDuplicateGroups: nennt beide beteiligten Gruppen (Issue #22)", () => {
+  const groups = findDuplicateGroups([
+    { label: "Unterkategorie 1", entries: ["01A01", "01A02"] },
+    { label: "Unterkategorie 2", entries: ["01A02", "03C01"] },
+  ])
+  assert.deepEqual(groups, [{ entry: "01A02", labels: ["Unterkategorie 1", "Unterkategorie 2"] }])
+})
+
+test("findDuplicateGroups: mehr als zwei Beteiligte, sortiert nach Wert", () => {
+  const groups = findDuplicateGroups([
+    { label: "C", entries: ["02B01"] },
+    { label: "A", entries: ["01A01", "02B01"] },
+    { label: "B", entries: ["02B01", "01A01"] },
+  ])
+  assert.deepEqual(groups, [
+    { entry: "01A01", labels: ["A", "B"] },
+    { entry: "02B01", labels: ["C", "A", "B"] },
+  ])
+})
+
+test("findDuplicateGroups: Duplikat in derselben Gruppe dedupliziert das Label", () => {
+  const groups = findDuplicateGroups([{ label: "A", entries: ["01A01", "01A01"] }])
+  assert.deepEqual(groups, [])
+})
+
+test("findDuplicateGroups: ohne Überschneidung leer", () => {
+  assert.deepEqual(
+    findDuplicateGroups([
+      { label: "A", entries: ["01A01"] },
+      { label: "B", entries: ["01A02"] },
+    ]),
+    [],
+  )
+})
+
+test("findDuplicates bleibt kompatibel: liefert nur die Werte", () => {
+  const dupes = findDuplicates([
+    { label: "A", entries: ["01A01", "01A05"] },
+    { label: "B", entries: ["01A05"] },
+  ])
+  assert.deepEqual(dupes, ["01A05"])
 })

@@ -10,5 +10,6 @@ export type { EntryValidation } from "./entry.ts"
 export { MAX_CODE_LENGTH } from "./entry.ts"
 
 // Bereichs-/Listenlogik (ebenfalls pure Validatoren)
-export { expandRange, findDuplicates, MAX_RANGE_SIZE } from "../ranges.ts"
+export { expandRange, findDuplicates, findDuplicateGroups, MAX_RANGE_SIZE } from "../ranges.ts"
+export type { DuplicateGroup } from "../ranges.ts"
 export { parseEntries, sanitizeFileName } from "../entries.ts"

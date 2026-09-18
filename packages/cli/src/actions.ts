@@ -4,7 +4,7 @@
  */
 import { writeFile, mkdir, readFile } from "node:fs/promises"
 import path from "node:path"
-import { collectEntries, assertNoDuplicates, gateEntries } from "./_cli.ts"
+import { collectEntriesSourced, assertNoDuplicatesSourced, gateEntriesSourced } from "./_cli.ts"
 import { rasterBarcodeDirect } from "@lager-etiket/compose"
 import type { AppConfig } from "@lager-etiket/lib"
 import { DEFAULT_CONFIG } from "@lager-etiket/lib"
@@ -32,21 +32,22 @@ export async function generateAction(args: {
   template?: string
   out: string
 }): Promise<void> {
-  const entries = await collectEntries(args)
+  const entries = await collectEntriesSourced(args)
   if (!entries.length) {
     console.error("Keine Einträge angegeben (entry | --start/--end | --file).")
     process.exitCode = 1
     return
   }
-  gateEntries(entries)
-  assertNoDuplicates(entries)
+  // Gates mit Quell-Angabe: bei --file nennen Fehler Datei + Zeile (Issue #22)
+  gateEntriesSourced(entries)
+  assertNoDuplicatesSourced(entries)
 
   const cfg = await loadConfig(args.config)
   const outDir = path.resolve(args.out)
   await mkdir(outDir, { recursive: true })
 
   let created = 0
-  for (const entry of entries) {
+  for (const { entry } of entries) {
     const png = await rasterBarcodeDirect(entry, cfg.barcode)
     const fileName = (cfg.output.prefix || "") + entry.replace(/[\\/:*?"<>|]/g, "_") + ".png"
     await writeFile(path.join(outDir, fileName), png)
@@ -58,19 +59,20 @@ export async function generateAction(args: {
 
 /** validate-Action: Gate ohne Rasterung. */
 export async function validateAction(args: { entry?: string; file?: string }): Promise<void> {
-  const entries = await collectEntries(args)
+  const entries = await collectEntriesSourced(args)
   if (!entries.length) {
     console.error("Keine Einträge angegeben (entry | --file).")
     process.exitCode = 1
     return
   }
   let invalid = 0
-  for (const e of entries) {
+  for (const { entry: e, source } of entries) {
     const res = validateEntry(e)
     if (res.valid) {
       console.log(`OK       ${e}`)
     } else {
-      console.error(`INVALID  ${e} — ${res.error ?? ""}`)
+      // Mit Quelle (Datei + Zeile) bei --file, Issue #22
+      console.error(`INVALID  ${e}${source ? ` — ${source}` : ""} — ${res.error ?? ""}`)
       invalid++
     }
   }

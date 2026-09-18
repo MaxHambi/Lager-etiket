@@ -11,7 +11,14 @@ import { describe, it, expect, beforeAll, afterAll } from "vitest"
 import { mkdtemp, writeFile, readFile, rm } from "node:fs/promises"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
-import { collectEntries, gateEntries, assertNoDuplicates } from "../src/_cli.ts"
+import {
+  collectEntries,
+  collectEntriesSourced,
+  gateEntries,
+  gateEntriesSourced,
+  assertNoDuplicates,
+  assertNoDuplicatesSourced,
+} from "../src/_cli.ts"
 import { generateAction, validateAction } from "../src/actions.ts"
 
 let tmp: string
@@ -53,6 +60,48 @@ describe("gateEntries", () => {
   it("lehnt ungültige Codes mit Fehlermeldung ab", () => {
     // Steuerzeichen sind eindeutig ungültig ("!" ist als ASCII hingegen kodierbar)
     expect(() => gateEntries(["01A\u0001"])).toThrow(/nicht druckbar/)
+  })
+
+  it("gateEntriesSourced nennt Datei und Zeile bei --file-Einträgen (Issue #22)", () => {
+    const sourced = [
+      { entry: "01A01", source: "liste.txt, Zeile 3" },
+      { entry: "01A\u0001", source: "liste.txt, Zeile 4" },
+    ]
+    expect(() => gateEntriesSourced(sourced)).toThrow(/liste\.txt, Zeile 4/)
+  })
+
+  it("gateEntriesSourced ohne Quelle wirkt wie gateEntries", () => {
+    expect(() => gateEntriesSourced([{ entry: "01A\u0001" }])).toThrow(/"01A\u0001"/)
+  })
+
+  it("assertNoDuplicatesSourced nennt beide Quellen (Issue #22)", () => {
+    const sourced = [
+      { entry: "01A01", source: "a.txt, Zeile 1" },
+      { entry: "01A02" },
+      { entry: "01A01", source: "b.txt, Zeile 7" },
+    ]
+    expect(() => assertNoDuplicatesSourced(sourced)).toThrow(
+      /"01A01" \(a\.txt, Zeile 1 und b\.txt, Zeile 7\)/,
+    )
+  })
+
+  it("assertNoDuplicates bleibt rückwärtskompatibel", () => {
+    expect(() => assertNoDuplicates(["01A01", "01A01"])).toThrow(/Doppelte Einträge.*01A01/)
+  })
+
+  it("collectEntriesSourced führt echte .txt-Zeilennummern mit (Issue #22)", async () => {
+    const file = join(tmp, "sourced.txt")
+    await writeFile(file, "# Kopf\n\n01A01\n01A02\n", "utf-8")
+    expect(await collectEntriesSourced({ file })).toEqual([
+      { entry: "01A01", source: "sourced.txt, Zeile 3" },
+      { entry: "01A02", source: "sourced.txt, Zeile 4" },
+    ])
+  })
+
+  it("collectEntries bleibt rückwärtskompatibel: liefert nur Werte", async () => {
+    const file = join(tmp, "plain.txt")
+    await writeFile(file, "01A01\n01A02\n", "utf-8")
+    expect(await collectEntries({ file })).toEqual(["01A01", "01A02"])
   })
 })
 

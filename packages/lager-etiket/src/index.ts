@@ -19,7 +19,8 @@ export { validateEntry, findInvalidEntries, MAX_CODE_LENGTH } from "./validators
 export type { EntryValidation } from "./validators/entry.ts"
 
 // Bereiche & Listen (pure)
-export { expandRange, findDuplicates, MAX_RANGE_SIZE } from "./ranges.ts"
+export { expandRange, findDuplicates, findDuplicateGroups, MAX_RANGE_SIZE } from "./ranges.ts"
+export type { DuplicateGroup } from "./ranges.ts"
 export { parseEntries, sanitizeFileName } from "./entries.ts"
 
 // Browser-Rasterung & Download-Helfer (Canvas/PNG/ZIP)
