@@ -42,7 +42,7 @@ von „etwas anderes ging schief" zu trennen.
 
 ## 2. Der Meldungs-Mapper `describeError()`
 
-**Eine Funktion für alle Ausgabestellen** (`packages/core/src/errors.ts`):
+**Eine Funktion für alle Ausgabestellen** (`packages/lager-etiket/src/errors.ts`):
 
 ```
 describeError(err: unknown, context?: string): string
@@ -66,14 +66,14 @@ der Aufrufer muss die Fehlertaxonomie nicht kennen.
 etiket-Encoder
    │  (InvalidInputError / CapacityError / CheckDigitError)
    ▼
-renderBarcodeSvg()          [core/barcode.ts]
+renderBarcodeSvg()          [lib: renderers/svg.ts]
    │  EtiketError transparent durchgereicht,
    │  anderes → AppError(RENDER_FAILED)
    ▼
-renderBarcodeImage()        [core/barcode.ts]
+renderBarcodeImage()        [lib: encoders/code128.ts]
    │  SVG-Ladefehler → AppError(RENDER_FAILED)
    ▼
-composeLabel()              [core/compose.ts]
+composeLabel()              [lib: compose.ts]
    │
    ├─► Browser:  generator.ts / preview.ts
    │      catch (err) → log.err(describeError(err, 'Fehler bei "01A01"'))
@@ -81,9 +81,9 @@ composeLabel()              [core/compose.ts]
    │       ADR-0003; der Renderer-catch ist die letzte Verteidigungslinie)
    │
    └─► CLI:      @lager-etiket/cli (lager …)
-          catch (err) → describeError(err, 'Fehler bei Eintrag "01A01"')
-          (lokale Kopie des Mappers — CLI kann kein TS importieren;
-           bei Änderungen beide Dateien synchron halten)
+          Fehler werden an citty/runMain durchgereicht und dort gemeldet;
+          describeError steht bei Bedarf aus @lager-etiket/lib zur Verfügung
+          (kein Mapper-Fork mehr — siehe ADR-0005, Monorepo-Umstellung)
 ```
 
 ### Wichtige Design-Entscheidungen
@@ -96,10 +96,10 @@ composeLabel()              [core/compose.ts]
    unverändert weiter (kein Wrapping), damit `instanceof`-Prüfungen oben
    funktionieren. Nur _fremde_ Fehler werden in `AppError(RENDER_FAILED)`
    gekapselt.
-3. **Doppelte Mapper-Implementierung (bewusst):** die CLI (`@lager-etiket/cli`)
-   hält eine JS-Kopie von `describeError`, weil die CLI kein TypeScript aus
-   `@lager-etiket/core` importieren kann. Beide sind kommentarweise
-   verknüpft und müssen synchron gehalten werden.
+3. **Mapper-Fork (historisch, aufgelöst):** seit der Monorepo-Migration
+   (ADR-0005) importiert auch die CLI `describeError` direkt aus
+   `@lager-etiket/lib` — die frühere JS-Kopie aus der Barcode.mjs-Ära ist
+   entfallen.
 4. **Originaltext bleibt erhalten:** Bei etiket-Fehlern hängt der englische
    Originaltext in Klammern an der deutschen Meldung — wichtig für Bugreports.
 
@@ -107,7 +107,7 @@ composeLabel()              [core/compose.ts]
 
 ## 4. Neue Fehlerstellen ergänzen (Anleitung)
 
-1. **Neuer AppError-Code?** In `packages/core/src/errors.ts`:
+1. **Neuer AppError-Code?** In `packages/lager-etiket/src/errors.ts`:
    - `ErrorCode`-Union erweitern,
    - ggf. konstruktor-Helper in `appErrors` ergänzen,
    - Lösungshinweis in `hint()` eintragen (nur wenn ein Tipp sinnvoll ist).
@@ -115,6 +115,6 @@ composeLabel()              [core/compose.ts]
    `errors.ts` prüfen: `isEtiketError` arbeitet über `err.name`-Whitelist —
    neue Klasse dort ergänzen, `describeEtiketError()` bekommt einen eigenen
    Zweig mit deutscher Erklärung.
-3. **Test schreiben** (`packages/core/test/errors.test.mjs`) — Mapper ist
+3. **Test schreiben** (`packages/lager-etiket/test/errors.test.ts`) — Mapper ist
    pure Logik, DOM-frei testbar.
-4. **CLI-Pfad** in `@lager-etiket/cli` mitsynchronisieren (historisch: barcode.mjs).
+4. **CLI-Pfad** in `@lager-etiket/cli` mitsynchronisieren (`pnpm cli generate|validate|list`).

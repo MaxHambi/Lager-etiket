@@ -1,6 +1,5 @@
 /**
- * Eintragsverarbeitung — identisch zu barcode.mjs (readEntries).
- * Reine Logik ohne DOM-Zugriffe.
+ * Eintragsverarbeitung (readEntries). Reine Logik ohne DOM-Zugriffe.
  */
 
 /**

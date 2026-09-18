@@ -22,7 +22,7 @@ export class ConfigUI {
         new Blob([JSON.stringify(cfg, null, 2)], { type: "application/json" }),
         "config.json",
       )
-      this.log.ok("config.json exportiert (kompatibel mit barcode.ps1 / barcode.mjs).")
+      this.log.ok("config.json exportiert (kompatibel zum lager-CLI: pnpm cli generate).")
     })
 
     configFile.addEventListener("change", (e: Event) => {

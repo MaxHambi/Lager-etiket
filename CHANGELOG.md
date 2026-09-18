@@ -15,6 +15,21 @@ Versionen nach [Semantic Versioning](https://semver.org/lang/de/).
   in allen vitest-Konfigurationen (lib 85/75, compose 90/80, cli 75/65 —
   lines/functions bzw. branches/statements), `pnpm test:coverage` erzwingt sie
 
+### Fixed
+
+- Härtungs-Queue (Issues #24, #23, #22, #20, #19):
+  - Formular-Defaults ausschließlich aus `DEFAULT_CONFIG` (Single Source of
+    Truth, Konsistenz-Test gegen Rückfall in die Doppelpflege)
+  - "Zielbereich automatisch" (`areaAuto`) wird wie `showArea` in localStorage
+    persistiert und überlebt den Reload; Startup-Config überschreibt die
+    Nutzerwahl nicht mehr
+  - Batch-Gate-Fehler nennen die Quelle: Unterkategorie + Position im Web,
+    Datei + .txt-Zeilennummer im CLI; Duplikat-Meldungen nennen alle
+    beteiligten Kategorien (`findDuplicateGroups` in der lib)
+  - UI-Texte und Error-Doku verweisen statt auf die entfernten Werkzeuge
+    (`barcode.ps1`/`barcode.mjs`) auf die citty-CLI; compose-Doku beschreibt
+    Stufe 3 korrekt über etiket/png + Canvas-Adapter (ADR-0007)
+
 ## [2.0.0-alpha.0] - 2026-09-17
 
 Vollständige Umstrukturierung des Monorepos nach dem Vorbild von
