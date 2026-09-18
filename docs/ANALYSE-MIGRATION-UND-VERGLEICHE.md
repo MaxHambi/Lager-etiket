@@ -1,5 +1,10 @@
 # Analyse-Report: etiket-Migration, Eingabegate & Pixelvergleich CLI ↔ Browser
 
+> ⚠️ **HISTORISCHES DOKUMENT (Stand 2026-09-16).** Es beschreibt den Zustand
+> während der Migration und wird nicht mehr gepflegt. Pfade, Dateinamen und
+> Zwischenstände können veraltet sein — aktueller Maßstab sind
+> `docs/ARCHITECTURE.md`, die ADRs in `docs/decisions/` und der Code selbst.
+
 > **Fehlerbehandlung:** Die zentrale Fehlertaxonomie (AppError, etiket-Fehler-Integration, `describeError()`-Mapper) ist in `docs/ERROR-HANDLING.md` und ADR-0004 dokumentiert.
 
 **Stand:** 16. September 2026
