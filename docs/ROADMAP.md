@@ -64,5 +64,11 @@ Zielzustand des Plans auch praktisch im Browser bestätigt.
 - [x] Playwright-Smoke-Test für den Live-Test-Durchlauf automatisiert
       (`packages/web/tests/e2e/`, Workflow `e2e-smoke.yml` mit Pfad-Trigger,
       Issue #16)
-- [ ] Härtungs-Issues #13–#15 (CLI-Doku-Pfad, verwaiste Verzeichnisse,
+- [ ] Härtungs-Restposten: #21 (renderDpi-Wirkweg dokumentieren,
+      ADR-0002-Zusicherung)
+- [x] Härtungs-Issues #13–#15 (CLI-Doku-Pfad, verwaiste Verzeichnisse,
       composeStructure-API) abarbeiten
+- [x] Härtungs-Blocker #24, #23, #22, #20, #19 abgearbeitet (Session-Queue
+      #36, PRs #37–#40): DEFAULT_CONFIG als Single Source of Truth,
+      areaAuto-Persistenz, Quell-Angaben in Gate-Fehlern
+      (Kategorie/Zeile), Legacy-Werkzeug-Referenzen entfernt

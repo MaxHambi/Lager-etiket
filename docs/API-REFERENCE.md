@@ -29,6 +29,7 @@ Subpaths für gezielten Tree-Shaking-Konsum.
 | --------------------------------- | ------------------------------------------ | -------------- |
 | Lagerplatz validieren             | `validateEntry(code)`                      | lib/validators |
 | Bereich expandieren               | `expandRange(start, end)`                  | lib            |
+| Duplikate mit Quellen             | `findDuplicateGroups(groups)`              | lib            |
 | Eintragsliste parsen              | `parseEntries(raw)`                        | lib            |
 | Barcode als SVG                   | `renderBarcodeSvg(text, cfg)`              | lib/barcode    |
 | Barcode als PNG                   | `renderBarcodePngBytes(text, cfg)`         | lib/render     |
@@ -79,6 +80,33 @@ if (!res.valid) console.error(res.error) // „Vorschau abgelehnt: …"
 Expandiert einen alphanumerischen Bereich mit gemeinsamem Präfix:
 `expandRange("01A01", "01A03")` → `["01A01", "01A02", "01A03"]`.
 Identische Angaben liefern genau einen Eintrag.
+
+---
+
+### findDuplicateGroups(groups) / findDuplicates(groups)
+
+**Type**:
+
+- `findDuplicateGroups: (groups: Array<{ label: string; entries: string[] }>) => DuplicateGroup[]`
+- `findDuplicates: (groups) => string[]` (kompatibler Vorgänger, liefert nur Werte)
+
+**Since**: `findDuplicateGroups` 2.0 (Härtung #22)
+
+Findet Duplikate über benannte Listen (z. B. Unterkategorien) hinweg.
+`findDuplicateGroups` liefert pro Duplikat **alle beteiligten Quellen** —
+für Fehlermeldungen mit Kategorie-Angabe:
+
+```ts
+findDuplicateGroups([
+  { label: "Unterkategorie 1", entries: ["01A01", "01A02"] },
+  { label: "Unterkategorie 2", entries: ["01A02"] },
+])
+// → [{ entry: "01A02", labels: ["Unterkategorie 1", "Unterkategorie 2"] }]
+```
+
+**Siehe auch:** `packages/web/src/ui/batches-ui.ts` (Gate-Meldung mit
+Kategorie) und `packages/cli/src/_cli.ts` (`gateEntriesSourced` mit
+.txt-Zeilennummer).
 
 ---
 
